@@ -1,0 +1,2 @@
+(executables (names torch_gen) (libraries ctypes.stubs)
+ (preprocess (pps ppx_jane)))
