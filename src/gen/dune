@@ -1,0 +1,2 @@
+(executables (names gen) (libraries base stdio yaml)
+ (preprocess (pps ppx_string)))
