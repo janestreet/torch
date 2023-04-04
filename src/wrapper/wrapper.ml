@@ -496,6 +496,12 @@ module Module = struct
     Gc.finalise free m;
     m
   ;;
+
+  let load_str str =
+    let m = load_str str (String.length str) in
+    Gc.finalise free m;
+    m
+  ;;
 end
 
 let manual_seed seed = Wrapper_generated.C.manual_seed (Int64.of_int seed)

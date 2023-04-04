@@ -1,2 +1,2 @@
 (library (name torch) (public_name torch)
- (libraries unix base stdio torch_core) (preprocess (pps ppx_jane)))
+ (libraries base core stdio torch_core unix) (preprocess (pps ppx_jane)))

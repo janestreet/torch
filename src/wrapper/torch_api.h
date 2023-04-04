@@ -1,6 +1,7 @@
 #ifndef __TORCH_API_H__
 #define __TORCH_API_H__
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,6 +112,7 @@ int atc_cudnn_is_available();
 void atc_set_benchmark_cudnn(int b);
 
 module atm_load(char *);
+module atm_load_str(char *, size_t);
 tensor atm_forward(module, tensor *tensors, int ntensors);
 ivalue atm_forward_(module, ivalue *ivalues, int nivalues);
 ivalue atm_named_buffers(module);
