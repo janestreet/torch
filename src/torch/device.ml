@@ -1,6 +1,9 @@
+open Core
+
 type t = Torch_core.Device.t =
   | Cpu
   | Cuda of int
+[@@deriving sexp]
 
 let cuda_if_available () = if Cuda.is_available () then Cuda 0 else Cpu
 

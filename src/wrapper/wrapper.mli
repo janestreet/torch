@@ -156,6 +156,7 @@ module Module : sig
   type t
 
   val load : string -> t
+  val load_str : string -> t
   val forward : t -> Tensor.t list -> Tensor.t
   val forward_ : t -> Ivalue.t list -> Ivalue.t
   val named_buffers : t -> (string, Tensor.t, String.comparator_witness) Base.Map.t
