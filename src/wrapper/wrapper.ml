@@ -406,6 +406,16 @@ module Ivalue = struct
     t
   ;;
 
+  let tensor_list ts =
+    let t =
+      tensor_list
+        CArray.(of_list Wrapper_generated.C.Tensor.t ts |> start)
+        (List.length ts)
+    in
+    Gc.finalise free t;
+    t
+  ;;
+
   let string s =
     let t = string s in
     Gc.finalise free t;
@@ -444,6 +454,16 @@ module Ivalue = struct
     to_tuple t (CArray.start outputs) noutputs;
     let outputs = CArray.to_list outputs in
     List.iter (Gc.finalise free) outputs;
+    outputs
+  ;;
+
+  let to_tensor_list t =
+    let noutputs = list_length t in
+    let outputs = CArray.make Wrapper_generated.C.Tensor.t noutputs in
+    Wrapper_generated.C.Ivalue.to_tensor_list t (CArray.start outputs) noutputs;
+    let outputs = CArray.to_list outputs in
+    (* free calls ati_free which destructs an Ivalue. Here we need to destruct a Tensor. *)
+    List.iter (Gc.finalise Wrapper_generated.C.Tensor.free) outputs;
     outputs
   ;;
 end
