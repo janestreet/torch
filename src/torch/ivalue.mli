@@ -9,6 +9,7 @@ type t =
   | Int of int
   | Double of float
   | Tuple of t list
+  | TensorList of Tensor.t list
   | String of string
 
 val to_raw : t -> raw

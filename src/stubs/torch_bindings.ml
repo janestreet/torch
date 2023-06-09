@@ -228,6 +228,10 @@ module C (F : Cstubs.FOREIGN) = struct
     let list_length = foreign "ati_list_length" (t @-> returning int)
     let to_tuple = foreign "ati_to_tuple" (t @-> ptr t @-> int @-> returning void)
 
+    let to_tensor_list =
+      foreign "ati_to_tensor_list" (t @-> ptr Tensor.t @-> int @-> returning void)
+    ;;
+
     let to_generic_list =
       foreign "ati_to_generic_list" (t @-> ptr t @-> int @-> returning void)
     ;;
@@ -239,6 +243,7 @@ module C (F : Cstubs.FOREIGN) = struct
     let int64 = foreign "ati_int" (int64_t @-> returning t)
     let double = foreign "ati_double" (float @-> returning t)
     let tuple = foreign "ati_tuple" (ptr t @-> int @-> returning t)
+    let tensor_list = foreign "ati_tensor_list" (ptr Tensor.t @-> int @-> returning t)
     let string = foreign "ati_string" (string @-> returning t)
     let tag = foreign "ati_tag" (t @-> returning int)
     let free = foreign "ati_free" (t @-> returning void)
