@@ -4,6 +4,7 @@ from collections import deque
 from PIL import Image
 from multiprocessing import Process, Pipe
 
+
 # atari_wrappers.py
 class NoopResetEnv(gym.Wrapper):
     def __init__(self, env, noop_max=30):
@@ -16,7 +17,7 @@ class NoopResetEnv(gym.Wrapper):
         assert env.unwrapped.get_action_meanings()[0] == "NOOP"
 
     def reset(self):
-        """ Do no-op action for a number of steps in [1, noop_max]."""
+        """Do no-op action for a number of steps in [1, noop_max]."""
         self.env.reset()
         if self.override_num_noops is not None:
             noops = self.override_num_noops

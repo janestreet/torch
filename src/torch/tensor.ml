@@ -370,6 +370,30 @@ let of_float3 ?device f =
   |> of_bigarray ?device
 ;;
 
+let of_double0 ?device f =
+  Bigarray.Array0.of_value Float64 C_layout f
+  |> Bigarray.genarray_of_array0
+  |> of_bigarray ?device
+;;
+
+let of_double1 ?device f =
+  Bigarray.Array1.of_array Float64 C_layout f
+  |> Bigarray.genarray_of_array1
+  |> of_bigarray ?device
+;;
+
+let of_double2 ?device f =
+  Bigarray.Array2.of_array Float64 C_layout f
+  |> Bigarray.genarray_of_array2
+  |> of_bigarray ?device
+;;
+
+let of_double3 ?device f =
+  Bigarray.Array3.of_array Float64 C_layout f
+  |> Bigarray.genarray_of_array3
+  |> of_bigarray ?device
+;;
+
 let of_int0 ?device f =
   Bigarray.Array0.of_value Int C_layout f
   |> Bigarray.genarray_of_array0

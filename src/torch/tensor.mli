@@ -230,6 +230,18 @@ val of_float2 : ?device:Device.t -> float array array -> t
 (** [of_float3 v] creates a three dimension tensor with values vs. *)
 val of_float3 : ?device:Device.t -> float array array array -> t
 
+(** [of_double0 v] creates a scalar (0-dimension) tensor with value v. *)
+val of_double0 : ?device:Device.t -> float -> t
+
+(** [of_double1 v] creates a single dimension tensor with values vs. *)
+val of_double1 : ?device:Device.t -> float array -> t
+
+(** [of_double2 v] creates a two dimension tensor with values vs. *)
+val of_double2 : ?device:Device.t -> float array array -> t
+
+(** [of_double3 v] creates a three dimension tensor with values vs. *)
+val of_double3 : ?device:Device.t -> float array array array -> t
+
 (** [of_int0 v] creates a scalar (0-dimension) tensor with value v. *)
 val of_int0 : ?device:Device.t -> int -> t
 
