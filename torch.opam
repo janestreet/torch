@@ -23,9 +23,14 @@ depends: [
   "dune"                {>= "2.0.0"}
   "dune-configurator"
   "ocaml-compiler-libs" {>= "v0.11.0"}
-  "libtorch"            {>= "1.13.0" & < "1.14.0"}
+]
+depopts: [
+  "libtorch"
 ]
 available: arch != "arm32" & arch != "x86_32"
+conflicts: [
+  "libtorch" {< "1.13.0" | >= "1.14.0"}
+]
 synopsis: "Torch bindings for OCaml"
 description: "
 The ocaml-torch project provides some OCaml bindings for the Torch library.

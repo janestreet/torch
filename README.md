@@ -1,39 +1,67 @@
 # ocaml-torch
-__ocaml-torch__ provides some ocaml bindings for the [PyTorch](https://pytorch.org) tensor library.
+__ocaml-torch__ provides OCaml bindings for the [PyTorch](https://pytorch.org) tensor library.
 This brings to OCaml NumPy-like tensor computations with GPU acceleration and tape-based automatic
 differentiation.
 
 These bindings use the [PyTorch C++ API](https://pytorch.org/cppdocs/) and are
-mostly automatically generated. The current GitHub tip and the opam package v0.7
-corresponds to PyTorch **v1.13.0**.
+mostly automatically generated.
+The current GitHub tip corresponds to PyTorch **v1.13.0**.
 
-On Linux note that you will need the PyTorch version using the appropriate cxx11 abi depending on your g++ version.
-[cpu version](https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.13.0%2Bcpu.zip),
-[cuda 11.6 version](https://download.pytorch.org/libtorch/cu116/libtorch-cxx11-abi-shared-with-deps-1.13.0%2Bcu116.zip).
+## Installation with Libtorch
 
-## Opam Installation
+Torch depends on libtorch, so when you opam install this package, it will try linking to
+libtorch depending on your environment variables.
+The code for discovering libtorch is in `src/config/discover.ml`.
+In order to change how torch binds to libtorch, you must uninstall and reinstall libtorch.
 
-The [opam](https://opam.ocaml.org/) package can be installed using the following command.
-This automatically installs the CPU version of libtorch.
+To install with any of these methods, after configuring your environment, you may either
 
+* `opam install torch`, or
+* build from source:
 ```bash
-opam install torch
+git clone https://github.com/LaurentMazare/ocaml-torch.git
+cd ocaml-torch
+make all
 ```
 
-You can then compile some sample code, see some instructions below.
-__ocaml-torch__ can also be used in interactive mode via
+On Linux note that you will need the libtorch PyTorch version using the appropriate cxx11
+abi depending on your g++ version.
+
+### Option 1: OPAM switch (CPU only)
+
+The [opam](https://opam.ocaml.org/) libtorch package will be automatically installed as a
+dependency and requires no special environment variables. However, it is CPU-only, so will
+not support GPUs.
+
+### Option 2: Conda
+
+If you've installed libtorch via Conda, ensure that you are in the Conda environment with
+the `CONDA_PREFIX` set before installing.
+
+### Option 3: System Libraries
+
+If you have libtorch installed as a system library (e.g. RPM), run `export
+LIBTORCH_USE_SYSTEM=1` before installing.
+
+### Option 4: Custom Libtorch Location
+If you have [downloaded libtorch](https://pytorch.org) somewhere, run `export
+LIBTORCH=/path/to/libtorch/` before installing.
+
+## Examples
+
+### Utop
+
+__ocaml-torch__ can be used in interactive mode via
 [utop](https://github.com/ocaml-community/utop) or
 [ocaml-jupyter](https://github.com/akabe/ocaml-jupyter).
 
-Here is a sample utop session.
+Here is a sample utop session:
 
 ![utop](./images/utop.png)
 
+### Simple Script
 
-### Build a Simple Example
-
-To build a first torch program, create a file `example.ml` with the
-following content.
+To build a simple torch program, create a file `example.ml`:
 
 ```ocaml
 open Torch
@@ -57,61 +85,21 @@ Alternatively you can first compile the code via `dune build example.exe` then r
 `_build/default/example.exe` (note that building the bytecode target `example.bc` may
 not work on macos).
 
-## Tutorials and Examples
+### Demos
 
 * [MNIST tutorial](./examples/mnist/README.md).
 * [Finetuning a ResNet-18 model](./examples/pretrained/README.md).
 * [Generative Adversarial Networks](./examples/gan/README.md).
 * [Running some Python model](./examples/jit/README.md).
+* [ResNet examples on CIFAR-10](./examples/cifar/README.md).
+* [Character-level RNN](./examples/char_rnn/README.md)
+* [Neural Style Transfer](./examples/neural_transfer/README.md)
 
 Some more advanced applications from external repos:
+
 * An [OCaml port of mini-dalle](https://github.com/ArulselvanMadhavan/mini_dalle) by Arulselvan Madhavan.
 * Natural Language Processing models based on BERT can be found in the
 [ocaml-bert repo](https://github.com/LaurentMazare/ocaml-bert).
-
-## Sample Code
-
-Below is an example of a linear model trained on the MNIST dataset ([full
-code](./examples/mnist/README.md)).
-
-```ocaml
-  (* Create two tensors to store model weights. *)
-  let ws = Tensor.zeros [image_dim; label_count] ~requires_grad:true in
-  let bs = Tensor.zeros [label_count] ~requires_grad:true in
-
-  let model xs = Tensor.(mm xs ws + bs) in
-  for index = 1 to 100 do
-    (* Compute the cross-entropy loss. *)
-    let loss =
-      Tensor.cross_entropy_for_logits (model train_images) ~targets:train_labels
-    in
-
-    Tensor.backward loss;
-
-    (* Apply gradient descent, disable gradient tracking for these. *)
-    Tensor.(no_grad (fun () ->
-        ws -= grad ws * f learning_rate;
-        bs -= grad bs * f learning_rate));
-
-    (* Compute the validation error. *)
-    let test_accuracy =
-      Tensor.(argmax ~dim:(-1) (model test_images) = test_labels)
-      |> Tensor.to_kind ~kind:(T Float)
-      |> Tensor.sum
-      |> Tensor.float_value
-      |> fun sum -> sum /. test_samples
-    in
-    printf "%d %f %.2f%%\n%!" index (Tensor.float_value loss) (100. *. test_accuracy);
-  done
-
-```
-
-* Some [ResNet examples on CIFAR-10](./examples/cifar/README.md).
-* A simplified version of
-  [char-rnn](./examples/char_rnn/README.md)
-  illustrating character level language modeling using Recurrent Neural Networks.
-* [Neural Style Transfer](./examples/neural_transfer/README.md)
-  applies the style of an image to the content of another image. This uses some deep Convolutional Neural Network.
 
 ## Models and Weights
 
@@ -141,7 +129,7 @@ The weight files can be downloaded at the following links:
   [b3 weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b3.ot),
   [b4 weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/efficientnet-b4.ot).
 
-Running the pre-trained models on some sample images can the easily be done via the following commands.
+Running the pre-trained models on sample images can the easily be done via:
 ```bash
 dune exec examples/pretrained/predict.exe path/to/resnet18.ot images/tiger.jpg
 ```
