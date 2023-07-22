@@ -19,12 +19,12 @@ To install with any of these methods, after configuring your environment, you ma
 * `opam install torch`, or
 * build from source:
 ```bash
-git clone https://github.com/LaurentMazare/ocaml-torch.git
-cd ocaml-torch
+git clone https://github.com/janestreet/torch.git
+cd torch
 make all
 ```
 
-On Linux note that you will need the libtorch PyTorch version using the appropriate cxx11
+On Linux note that you will need the libtorch version using the appropriate cxx11
 abi depending on your g++ version.
 
 ### Option 1: OPAM switch (CPU only)
