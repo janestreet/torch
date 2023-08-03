@@ -10,11 +10,13 @@ let with_training t =
 
 type activation =
   | Relu
+  | Gelu
   | Softmax
   | Log_softmax
   | Tanh
   | Leaky_relu
   | Sigmoid
+  | Hardsigmoid
 
 let kaiming_uniform vs ~name ~shape ~a =
   let fan_in =
@@ -32,10 +34,12 @@ let kaiming_uniform vs ~name ~shape ~a =
 let apply ?activation ys =
   match activation with
   | Some Relu -> Tensor.relu ys
+  | Some Gelu -> Tensor.gelu ys
   | Some Softmax -> Tensor.softmax ys ~dim:(-1) ~dtype:(T Float)
   | Some Log_softmax -> Tensor.log_softmax ys ~dim:(-1) ~dtype:(T Float)
   | Some Tanh -> Tensor.tanh ys
   | Some Sigmoid -> Tensor.sigmoid ys
+  | Some Hardsigmoid -> Tensor.hardsigmoid ys
   | Some Leaky_relu -> Tensor.leaky_relu ys
   | None -> ys
 ;;
@@ -62,6 +66,58 @@ let linear vs ?activation ?(use_bias = true) ?w_init ~input_dim output_dim =
     else fun xs -> Tensor.(mm xs (tr w)) |> apply ?activation
   in
   { apply }
+;;
+
+let conv1d
+      vs
+      ~ksize:k1
+      ~stride
+      ?activation
+      ?(use_bias = true)
+      ?w_init
+      ?(padding = 0)
+      ?(groups = 1)
+      ~input_dim
+      output_dim
+  =
+  let w =
+    let shape = [ output_dim; input_dim / groups; k1 ] in
+    match w_init with
+    | None -> kaiming_uniform vs ~shape ~a:(Float.sqrt 5.) ~name:"weight"
+    | Some init -> Var_store.new_var vs ~shape ~init ~name:"weight"
+  in
+  let b =
+    if use_bias
+    then Some (Var_store.new_var vs ~shape:[ output_dim ] ~init:Zeros ~name:"bias")
+    else None
+  in
+  let apply xs = Tensor.conv1d xs w b ~padding ~stride ~groups |> apply ?activation in
+  { apply }
+;;
+
+let conv1d_
+      vs
+      ~ksize
+      ~stride
+      ?activation
+      ?use_bias
+      ?w_init
+      ?(padding = 0)
+      ?groups
+      ~input_dim
+      output_dim
+  =
+  conv1d
+    vs
+    ~ksize:(ksize)
+    ~stride:(stride)
+    ?use_bias
+    ?activation
+    ?w_init
+    ~padding:(padding)
+    ?groups
+    ~input_dim
+    output_dim
 ;;
 
 let conv2d
@@ -111,6 +167,118 @@ let conv2d_
     ?activation
     ?w_init
     ~padding:(padding, padding)
+    ?groups
+    ~input_dim
+    output_dim
+;;
+
+let conv3d
+      vs
+      ~ksize:(k1, k2, k3)
+      ~stride
+      ?activation
+      ?(use_bias = true)
+      ?w_init
+      ?(padding = 0, 0, 0)
+      ?(groups = 1)
+      ~input_dim
+      output_dim
+  =
+  let w =
+    let shape = [ output_dim; input_dim / groups; k1; k2; k3 ] in
+    match w_init with
+    | None -> kaiming_uniform vs ~shape ~a:(Float.sqrt 5.) ~name:"weight"
+    | Some init -> Var_store.new_var vs ~shape ~init ~name:"weight"
+  in
+  let b =
+    if use_bias
+    then Some (Var_store.new_var vs ~shape:[ output_dim ] ~init:Zeros ~name:"bias")
+    else None
+  in
+  let apply xs = Tensor.conv3d xs w b ~padding ~stride ~groups |> apply ?activation in
+  { apply }
+;;
+
+let conv3d_
+      vs
+      ~ksize
+      ~stride
+      ?activation
+      ?use_bias
+      ?w_init
+      ?(padding = 0)
+      ?groups
+      ~input_dim
+      output_dim
+  =
+  conv2d
+    vs
+    ~ksize:(ksize, ksize, ksize)
+    ~stride:(stride, stride, stride)
+    ?use_bias
+    ?activation
+    ?w_init
+    ~padding:(padding, padding, padding)
+    ?groups
+    ~input_dim
+    output_dim
+;;
+
+let conv_transpose1d
+      vs
+      ~ksize:(k1)
+      ~stride
+      ?activation
+      ?(use_bias = true)
+      ?(w_init = Var_store.Init.Normal { mean = 0.; stdev = 0.1 })
+      ?(padding = 0)
+      ?(output_padding = 0)
+      ?(groups = 1)
+      ~input_dim
+      output_dim
+  =
+  let w =
+    Var_store.new_var
+      vs
+      ~shape:[ input_dim; output_dim / groups; k1 ]
+      ~init:w_init
+      ~name:"weight"
+  in
+  let apply =
+    let b =
+      if use_bias
+      then Some (Var_store.new_var vs ~shape:[ output_dim ] ~init:Zeros ~name:"bias")
+      else None
+    in
+    fun xs ->
+      Tensor.conv_transpose1d xs w b ~output_padding ~padding ~stride ~groups
+      |> apply ?activation
+  in
+  { apply }
+;;
+
+let conv_transpose1d_
+      vs
+      ~ksize
+      ~stride
+      ?activation
+      ?use_bias
+      ?w_init
+      ?(padding = 0)
+      ?(output_padding = 0)
+      ?groups
+      ~input_dim
+      output_dim
+  =
+  conv_transpose1d
+    vs
+    ~ksize:(ksize)
+    ~stride:(stride)
+    ?activation
+    ?use_bias
+    ?w_init
+    ~padding:(padding)
+    ~output_padding:(output_padding)
     ?groups
     ~input_dim
     output_dim
@@ -176,6 +344,66 @@ let conv_transpose2d_
     output_dim
 ;;
 
+let conv_transpose3d
+      vs
+      ~ksize:(k1, k2, k3)
+      ~stride
+      ?activation
+      ?(use_bias = true)
+      ?(w_init = Var_store.Init.Normal { mean = 0.; stdev = 0.1 })
+      ?(padding = 0, 0, 0)
+      ?(output_padding = 0, 0, 0)
+      ?(groups = 1)
+      ~input_dim
+      output_dim
+  =
+  let w =
+    Var_store.new_var
+      vs
+      ~shape:[ input_dim; output_dim / groups; k1; k2; k3 ]
+      ~init:w_init
+      ~name:"weight"
+  in
+  let apply =
+    let b =
+      if use_bias
+      then Some (Var_store.new_var vs ~shape:[ output_dim ] ~init:Zeros ~name:"bias")
+      else None
+    in
+    fun xs ->
+      Tensor.conv_transpose3d xs w b ~output_padding ~padding ~stride ~groups
+      |> apply ?activation
+  in
+  { apply }
+;;
+
+let conv_transpose3d_
+      vs
+      ~ksize
+      ~stride
+      ?activation
+      ?use_bias
+      ?w_init
+      ?(padding = 0)
+      ?(output_padding = 0)
+      ?groups
+      ~input_dim
+      output_dim
+  =
+  conv_transpose2d
+    vs
+    ~ksize:(ksize, ksize, ksize)
+    ~stride:(stride, stride, stride)
+    ?activation
+    ?use_bias
+    ?w_init
+    ~padding:(padding, padding, padding)
+    ~output_padding:(output_padding, output_padding, output_padding)
+    ?groups
+    ~input_dim
+    output_dim
+;;
+
 let batch_norm2d
       vs
       ?(w_init = Var_store.Init.Uniform (0., 1.))
@@ -221,15 +449,58 @@ let layer_norm vs ?(cudnn_enable = true) ?(eps = 1e-5) dim =
   let weight = Var_store.new_var vs ~name:"weight" ~shape:[ dim ] ~init:Ones in
   let bias = Var_store.new_var vs ~name:"bias" ~shape:[ dim ] ~init:Zeros in
   let apply xs =
-    Tensor.layer_norm
+    Tensor.layer_norm2d
       xs
-      ~normalized_shape:[ dim ]
+      ~num_features:[ dim ]
       ~weight:(Some weight)
       ~bias:(Some bias)
       ~eps
+      ~momentum
+
       ~cudnn_enable
   in
   { apply }
+;;
+
+let instance_norm2d
+      vs
+      ?(w_init = Var_store.Init.Uniform (0., 1.))
+      ?(cudnn_enabled = true)
+      ?(eps = 1e-5)
+      ?(momentum = 0.1)
+      output_dim
+  =
+  let w = Var_store.new_var vs ~shape:[ output_dim ] ~init:w_init ~name:"weight" in
+  let b = Var_store.new_var vs ~shape:[ output_dim ] ~init:Zeros ~name:"bias" in
+  let running_mean =
+    Var_store.new_var
+      vs
+      ~trainable:false
+      ~shape:[ output_dim ]
+      ~init:Zeros
+      ~name:"running_mean"
+  in
+  let running_var =
+    Var_store.new_var
+      vs
+      ~trainable:false
+      ~shape:[ output_dim ]
+      ~init:Ones
+      ~name:"running_var"
+  in
+  let apply_with_training xs ~is_training =
+    Tensor.instance_norm
+      xs
+      ~weight:(Some w)
+      ~bias:(Some b)
+      ~running_mean:(Some running_mean)
+      ~running_var:(Some running_var)
+      ~training:is_training
+      ~momentum
+      ~eps
+      ~cudnn_enabled
+  in
+  { apply_with_training }
 ;;
 
 let forward t xs = t.apply xs
