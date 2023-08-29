@@ -19,19 +19,21 @@ To install with any of these methods, after configuring your environment, you ma
 * `opam install torch`, or
 * build from source:
 ```bash
-git clone https://github.com/LaurentMazare/ocaml-torch.git
-cd ocaml-torch
+git clone https://github.com/janestreet/torch.git
+cd torch
 make all
 ```
 
-On Linux note that you will need the libtorch PyTorch version using the appropriate cxx11
+On Linux note that you will need the libtorch version using the appropriate cxx11
 abi depending on your g++ version.
 
 ### Option 1: OPAM switch (CPU only)
 
-The [opam](https://opam.ocaml.org/) libtorch package will be automatically installed as a
-dependency and requires no special environment variables. However, it is CPU-only, so will
-not support GPUs.
+The [opam](https://opam.ocaml.org/) libtorch package (an optional dependency) can be installed, and torch will automatically detect it and build with it.
+However, it might not suit your needs if you use any of these:
+* Windows operating system,
+* ARM processors, or
+* GPUs.
 
 ### Option 2: Conda
 
