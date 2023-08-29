@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <caml/fail.h>
+#include <caml/threads.h>
 #undef invalid_argument
 #include "torch_api.h"
 
@@ -557,7 +558,9 @@ module atm_load_str(char *data, size_t sz) {
 tensor atm_forward(module m, tensor *tensors, int ntensors) {
   PROTECT(std::vector<torch::jit::IValue> inputs;
           for (int i = 0; i < ntensors; ++i) inputs.push_back(*(tensors[i]));
+          caml_release_runtime_system();
           torch::jit::IValue output = m->forward(std::move(inputs));
+          caml_acquire_runtime_system();
           if (!output.isTensor()) throw std::invalid_argument(
               "forward did not return a tensor");
           return new torch::Tensor(output.toTensor());)
@@ -567,8 +570,9 @@ tensor atm_forward(module m, tensor *tensors, int ntensors) {
 ivalue atm_forward_(module m, ivalue *ivalues, int nivalues) {
   PROTECT(std::vector<torch::jit::IValue> inputs;
           for (int i = 0; i < nivalues; ++i) inputs.push_back(*(ivalues[i]));
+          caml_release_runtime_system();
           torch::jit::IValue output = m->forward(inputs);
-          return new torch::jit::IValue(output);)
+          caml_acquire_runtime_system(); return new torch::jit::IValue(output);)
   return nullptr;
 }
 
