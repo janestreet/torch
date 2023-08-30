@@ -220,9 +220,9 @@ module Scalar = struct
   include (
     S :
       module type of struct
-      include S
-    end
-    with type t := S.t)
+        include S
+      end
+      with type t := S.t)
 
   type nonrec _ t = S.t
 
@@ -277,16 +277,16 @@ module Serialize = struct
   let escape s =
     String.map
       (function
-        | '.' -> '|'
-        | c -> c)
+       | '.' -> '|'
+       | c -> c)
       s
   ;;
 
   let unescape s =
     String.map
       (function
-        | '|' -> '.'
-        | c -> c)
+       | '|' -> '.'
+       | c -> c)
       s
   ;;
 
@@ -333,8 +333,8 @@ module Serialize = struct
         (Foreign.funptr (string @-> Wrapper_generated.C.Tensor.t @-> returning void))
         (static_funptr (string @-> Wrapper_generated.C.Tensor.t @-> returning void))
         (fun tensor_name tensor ->
-           Gc.finalise Wrapper_generated.C.Tensor.free tensor;
-           all_tensors := (unescape tensor_name, tensor) :: !all_tensors)
+          Gc.finalise Wrapper_generated.C.Tensor.free tensor;
+          all_tensors := (unescape tensor_name, tensor) :: !all_tensors)
       [@alert "-deprecated"]
     in
     load_callback filename callback;

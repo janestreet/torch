@@ -83,13 +83,13 @@ let report predictions ~image ~width ~height =
     |> Map.of_alist_multi (module Int)
     |> Map.to_alist
     |> List.concat_map ~f:(fun (_, bboxes) ->
-      (* NMS suppression. *)
-      let bboxes = List.sort bboxes ~compare:Stdlib.compare |> List.rev_map ~f:snd in
-      List.fold bboxes ~init:[] ~f:(fun acc_bboxes bbox ->
-        let drop =
-          List.exists acc_bboxes ~f:(fun b -> Float.( > ) (iou b bbox) nms_threshold)
-        in
-        if drop then acc_bboxes else bbox :: acc_bboxes))
+         (* NMS suppression. *)
+         let bboxes = List.sort bboxes ~compare:Stdlib.compare |> List.rev_map ~f:snd in
+         List.fold bboxes ~init:[] ~f:(fun acc_bboxes bbox ->
+           let drop =
+             List.exists acc_bboxes ~f:(fun b -> Float.( > ) (iou b bbox) nms_threshold)
+           in
+           if drop then acc_bboxes else bbox :: acc_bboxes))
   in
   let image = Tensor.(to_type image ~type_:(T Float) / f 255.) in
   let _, _, initial_height, initial_width = Tensor.shape4_exn image in

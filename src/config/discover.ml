@@ -44,15 +44,15 @@ let torch_flags () =
     Stdlib.Sys.readdir conda_prefix
     |> Array.to_list
     |> List.filter_map ~f:(fun filename ->
-      if String.is_prefix filename ~prefix:"python"
-      then (
-        let libdir =
-          Printf.sprintf "%s/%s/site-packages/torch" conda_prefix filename
-        in
-        if file_exists libdir && Stdlib.Sys.is_directory libdir
-        then Some libdir
-        else None)
-      else None)
+         if String.is_prefix filename ~prefix:"python"
+         then (
+           let libdir =
+             Printf.sprintf "%s/%s/site-packages/torch" conda_prefix filename
+           in
+           if file_exists libdir && Stdlib.Sys.is_directory libdir
+           then Some libdir
+           else None)
+         else None)
     |> function
     | [] -> None
     | lib_dir :: _ ->
@@ -64,21 +64,21 @@ let torch_flags () =
       config ~include_dir:(l /^ "include") ~lib_dir:(l /^ "lib"))
     (* try system libraries *)
     |> or_else ~f:(fun () ->
-      match Stdlib.Sys.getenv_opt "LIBTORCH_USE_SYSTEM" with
-      | Some "1" -> Some { C.Pkg_config.cflags = []; libs = dynamic_links }
-      | _ -> None)
+         match Stdlib.Sys.getenv_opt "LIBTORCH_USE_SYSTEM" with
+         | Some "1" -> Some { C.Pkg_config.cflags = []; libs = dynamic_links }
+         | _ -> None)
     (* try conda environment *)
     |> or_else ~f:(fun () ->
-      Option.bind (Stdlib.Sys.getenv_opt "CONDA_PREFIX") ~f:(fun conda_prefix ->
-        conda_config ~conda_prefix))
+         Option.bind (Stdlib.Sys.getenv_opt "CONDA_PREFIX") ~f:(fun conda_prefix ->
+           conda_config ~conda_prefix))
     (* try opam switch *)
     |> or_else ~f:(fun () ->
-      Option.bind (Stdlib.Sys.getenv_opt "OPAM_SWITCH_PREFIX") ~f:(fun prefix ->
-        let lib_dir = prefix /^ "lib" /^ "libtorch" in
-        if file_exists lib_dir
-        then
-          Some (config ~include_dir:(lib_dir ^ "/include") ~lib_dir:(lib_dir ^ "/lib"))
-        else None))
+         Option.bind (Stdlib.Sys.getenv_opt "OPAM_SWITCH_PREFIX") ~f:(fun prefix ->
+           let lib_dir = prefix /^ "lib" /^ "libtorch" in
+           if file_exists lib_dir
+           then
+             Some (config ~include_dir:(lib_dir ^ "/include") ~lib_dir:(lib_dir ^ "/lib"))
+           else None))
   in
   Option.value flags ~default:empty_flags
 ;;

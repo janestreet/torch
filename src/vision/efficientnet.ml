@@ -27,14 +27,14 @@ let block_args () =
   ; 3, 1, 192, 320, 6, 0.25, 1
   ]
   |> List.map ~f:(fun (k, n, i, o, e, se, s) ->
-    { kernel_size = k
-    ; num_repeat = n
-    ; input_filters = i
-    ; output_filters = o
-    ; expand_ratio = e
-    ; se_ratio = se
-    ; stride = s
-    })
+       { kernel_size = k
+       ; num_repeat = n
+       ; input_filters = i
+       ; output_filters = o
+       ; expand_ratio = e
+       ; se_ratio = se
+       ; stride = s
+       })
 ;;
 
 type params =

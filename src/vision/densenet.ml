@@ -51,25 +51,25 @@ let densenet vs ~growth_rate ~block_config ~init_dim ~bn_size ~num_classes =
       block_config
       ~init:(init_dim, Layer.id_)
       ~f:(fun i (num_features, acc) num_layers ->
-        let block =
-          dense_block
-            (Printf.sprintf "denseblock%d" (1 + i) |> sub features_vs)
-            ~bn_size
-            ~growth_rate
-            ~num_layers
+      let block =
+        dense_block
+          (Printf.sprintf "denseblock%d" (1 + i) |> sub features_vs)
+          ~bn_size
+          ~growth_rate
+          ~num_layers
+          ~input_dim:num_features
+      in
+      let num_features = num_features + (num_layers * growth_rate) in
+      if i <> last_index
+      then (
+        let trans =
+          transition
+            (Printf.sprintf "transition%d" (1 + i) |> sub features_vs)
             ~input_dim:num_features
+            (num_features / 2)
         in
-        let num_features = num_features + (num_layers * growth_rate) in
-        if i <> last_index
-        then (
-          let trans =
-            transition
-              (Printf.sprintf "transition%d" (1 + i) |> sub features_vs)
-              ~input_dim:num_features
-              (num_features / 2)
-          in
-          num_features / 2, Layer.sequential_ [ acc; block; trans ])
-        else num_features, Layer.sequential_ [ acc; block ])
+        num_features / 2, Layer.sequential_ [ acc; block; trans ])
+      else num_features, Layer.sequential_ [ acc; block ])
   in
   let bn5 = Layer.batch_norm2d (sub features_vs "norm5") num_features in
   let linear = Layer.linear (sub vs "classifier") ~input_dim:num_features num_classes in

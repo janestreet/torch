@@ -22,33 +22,33 @@ let parse_config filename =
   let blocks =
     Stdio.In_channel.read_lines filename
     |> List.filter_map ~f:(fun line ->
-      let line = String.strip line in
-      if String.is_empty line || Char.( = ) line.[0] '#' then None else Some line)
+         let line = String.strip line in
+         if String.is_empty line || Char.( = ) line.[0] '#' then None else Some line)
     |> List.group ~break:(fun _ line -> Char.( = ) line.[0] '[')
     |> List.map ~f:(function
-      | block_type :: paramaters ->
-        let block_type =
-          match String.chop_prefix block_type ~prefix:"[" with
-          | None -> failwithf "block-type does not start with [: %s" block_type ()
-          | Some block_type ->
-            (match String.chop_suffix block_type ~suffix:"]" with
-             | None -> failwithf "block-type does not end with ]: %s" block_type ()
-             | Some block_type -> block_type)
-        in
-        let parameters =
-          List.map paramaters ~f:(fun line ->
-            match String.split line ~on:'=' with
-            | [ lhs; rhs ] -> String.strip lhs, String.strip rhs
-            | _ ->
-              failwithf "parameter line does not contain exactly one equal: %s" line ())
-        in
-        let parameters =
-          match Map.of_alist (module String) parameters with
-          | `Duplicate_key key -> failwithf "multiple %s key for %s" key block_type ()
-          | `Ok parameters -> parameters
-        in
-        { block_type; parameters }
-      | _ -> assert false)
+         | block_type :: paramaters ->
+           let block_type =
+             match String.chop_prefix block_type ~prefix:"[" with
+             | None -> failwithf "block-type does not start with [: %s" block_type ()
+             | Some block_type ->
+               (match String.chop_suffix block_type ~suffix:"]" with
+                | None -> failwithf "block-type does not end with ]: %s" block_type ()
+                | Some block_type -> block_type)
+           in
+           let parameters =
+             List.map paramaters ~f:(fun line ->
+               match String.split line ~on:'=' with
+               | [ lhs; rhs ] -> String.strip lhs, String.strip rhs
+               | _ ->
+                 failwithf "parameter line does not contain exactly one equal: %s" line ())
+           in
+           let parameters =
+             match Map.of_alist (module String) parameters with
+             | `Duplicate_key key -> failwithf "multiple %s key for %s" key block_type ()
+             | `Ok parameters -> parameters
+           in
+           { block_type; parameters }
+         | _ -> assert false)
   in
   match blocks with
   | { block_type = "net"; parameters } :: blocks -> { blocks; parameters }
@@ -135,8 +135,8 @@ let yolo ~index ~prev_channels ~parameters =
     find_key ~index ~parameters "anchors" ~f:int_list_of_string
     |> List.groupi ~break:(fun i _ _ -> i % 2 = 0)
     |> List.map ~f:(function
-      | [ p; q ] -> p, q
-      | _ -> failwithf "odd number of elements in mask at index %d" index ())
+         | [ p; q ] -> p, q
+         | _ -> failwithf "odd number of elements in mask at index %d" index ())
     |> Array.of_list
   in
   let anchors =
@@ -229,38 +229,38 @@ let build_model vs t =
       blocks
       ~init:(xs, None)
       ~f:(fun index (xs, detections) (_channels, block) ->
-        let ys, detections =
-          match block with
-          | `layers layers ->
-            let ys =
-              List.fold layers ~init:xs ~f:(fun xs l -> Layer.forward_ l xs ~is_training)
-            in
-            ys, detections
-          | `route layers ->
-            let ys =
-              List.map layers ~f:(fun i -> Hashtbl.find_exn outputs (index - i))
-              |> Tensor.cat ~dim:1
-            in
-            ys, detections
-          | `shortcut from ->
-            let ys =
-              Tensor.( + )
-                (Hashtbl.find_exn outputs (index - 1))
-                (Hashtbl.find_exn outputs (index - from))
-            in
-            ys, detections
-          | `yolo (classes, anchors) ->
-            let ys =
-              detect xs ~image_height ~anchors ~classes ~device:(Var_store.device vs)
-            in
-            let detections =
-              match detections with
-              | None -> ys
-              | Some detections -> Tensor.cat [ detections; ys ] ~dim:1
-            in
-            ys, Some detections
-        in
-        Hashtbl.add_exn outputs ~key:index ~data:ys;
-        ys, detections)
+      let ys, detections =
+        match block with
+        | `layers layers ->
+          let ys =
+            List.fold layers ~init:xs ~f:(fun xs l -> Layer.forward_ l xs ~is_training)
+          in
+          ys, detections
+        | `route layers ->
+          let ys =
+            List.map layers ~f:(fun i -> Hashtbl.find_exn outputs (index - i))
+            |> Tensor.cat ~dim:1
+          in
+          ys, detections
+        | `shortcut from ->
+          let ys =
+            Tensor.( + )
+              (Hashtbl.find_exn outputs (index - 1))
+              (Hashtbl.find_exn outputs (index - from))
+          in
+          ys, detections
+        | `yolo (classes, anchors) ->
+          let ys =
+            detect xs ~image_height ~anchors ~classes ~device:(Var_store.device vs)
+          in
+          let detections =
+            match detections with
+            | None -> ys
+            | Some detections -> Tensor.cat [ detections; ys ] ~dim:1
+          in
+          ys, Some detections
+      in
+      Hashtbl.add_exn outputs ~key:index ~data:ys;
+      ys, detections)
     |> fun (_last, detections) -> Option.value_exn detections)
 ;;
