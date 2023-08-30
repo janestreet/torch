@@ -34,37 +34,37 @@ let () =
     ~checkpoint_base:(model_name ^ ".ot")
     ~checkpoint_every:(`iters 25)
     (fun ~index:epoch_idx ->
-       let start_time = Unix.gettimeofday () in
-       let sum_loss = ref 0. in
-       Dataset_helper.iter
-         cifar
-         ~device
-         ~batch_size
-         ~augmentation:[ `flip; `crop_with_pad 4; `cutout 8 ]
-         ~f:(fun batch_idx ~batch_images ~batch_labels ->
-           Optimizer.set_learning_rate
-             sgd
-             ~learning_rate:(lr_schedule ~batch_idx ~batches_per_epoch ~epoch_idx);
-           Optimizer.zero_grad sgd;
-           let predicted = train_model batch_images in
-           (* Compute the cross-entropy loss. *)
-           let loss = Tensor.cross_entropy_for_logits predicted ~targets:batch_labels in
-           sum_loss := !sum_loss +. Tensor.float_value loss;
-           Stdio.printf
-             "%d/%d %f\r%!"
-             (1 + batch_idx)
-             batches_per_epoch
-             (!sum_loss /. Float.of_int (1 + batch_idx));
-           Tensor.backward loss;
-           Optimizer.step sgd);
-       (* Compute the validation error. *)
-       let test_accuracy =
-         Dataset_helper.batch_accuracy cifar `test ~device ~batch_size ~predict:test_model
-       in
-       Stdio.printf
-         "%d %.2fs %f %.2f%%\n%!"
-         epoch_idx
-         (Unix.gettimeofday () -. start_time)
-         (!sum_loss /. Float.of_int batches_per_epoch)
-         (100. *. test_accuracy))
+    let start_time = Unix.gettimeofday () in
+    let sum_loss = ref 0. in
+    Dataset_helper.iter
+      cifar
+      ~device
+      ~batch_size
+      ~augmentation:[ `flip; `crop_with_pad 4; `cutout 8 ]
+      ~f:(fun batch_idx ~batch_images ~batch_labels ->
+        Optimizer.set_learning_rate
+          sgd
+          ~learning_rate:(lr_schedule ~batch_idx ~batches_per_epoch ~epoch_idx);
+        Optimizer.zero_grad sgd;
+        let predicted = train_model batch_images in
+        (* Compute the cross-entropy loss. *)
+        let loss = Tensor.cross_entropy_for_logits predicted ~targets:batch_labels in
+        sum_loss := !sum_loss +. Tensor.float_value loss;
+        Stdio.printf
+          "%d/%d %f\r%!"
+          (1 + batch_idx)
+          batches_per_epoch
+          (!sum_loss /. Float.of_int (1 + batch_idx));
+        Tensor.backward loss;
+        Optimizer.step sgd);
+    (* Compute the validation error. *)
+    let test_accuracy =
+      Dataset_helper.batch_accuracy cifar `test ~device ~batch_size ~predict:test_model
+    in
+    Stdio.printf
+      "%d %.2fs %f %.2f%%\n%!"
+      epoch_idx
+      (Unix.gettimeofday () -. start_time)
+      (!sum_loss /. Float.of_int batches_per_epoch)
+      (100. *. test_accuracy))
 ;;

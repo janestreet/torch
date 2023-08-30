@@ -39,7 +39,7 @@ let excluded_functions =
     ; "linalg_matrix_norm_out"
     ; "histogram"
     ; "histogram_out"
-    (* Deactivate normal_out, bernoulli_out as these result in some
+      (* Deactivate normal_out, bernoulli_out as these result in some
        ambiguous function calls. *)
     ; "normal_out"
     ; "bernoulli_out"
@@ -359,7 +359,7 @@ let read_yaml filename =
     In_channel.with_file filename ~f:In_channel.input_lines
     |> List.group ~break:(fun _ l -> String.length l > 0 && Char.( = ) l.[0] '-')
     |> List.concat_map ~f:(fun lines ->
-      Yaml.of_string_exn (String.concat lines ~sep:"\n") |> extract_list)
+         Yaml.of_string_exn (String.concat lines ~sep:"\n") |> extract_list)
   in
   printf "Read %s, got %d functions.\n%!" filename (List.length funcs);
   List.filter_map funcs ~f:(fun yaml ->
@@ -406,50 +406,50 @@ let read_yaml filename =
       else None
     in
     if (not deprecated)
-    && (not
-          (List.exists excluded_prefixes ~f:(fun prefix ->
-             String.is_prefix name ~prefix)))
-    && (not
-          (List.exists excluded_suffixes ~f:(fun suffix ->
-             String.is_suffix name ~suffix)))
-    && not (Set.mem excluded_functions name)
+       && (not
+             (List.exists excluded_prefixes ~f:(fun prefix ->
+                String.is_prefix name ~prefix)))
+       && (not
+             (List.exists excluded_suffixes ~f:(fun suffix ->
+                String.is_suffix name ~suffix)))
+       && not (Set.mem excluded_functions name)
     then
       Option.both returns kind
       |> Option.bind ~f:(fun (returns, kind) ->
-        try
-          let args =
-            List.filter_map arguments ~f:(fun arg ->
-              let arg = extract_map arg in
-              let arg_name = Map.find_exn arg "name" |> extract_string in
-              let arg_type = Map.find_exn arg "dynamic_type" |> extract_string in
-              let is_nullable =
-                Map.find arg "is_nullable"
-                |> Option.value_map ~default:false ~f:extract_bool
-              in
-              let default_value =
-                Map.find arg "default" |> Option.map ~f:extract_string
-              in
-              match Func.arg_type_of_string arg_type ~is_nullable with
-              | Some Scalar when Option.is_some default_value && not is_nullable ->
-                None
-              | Some TensorOptions
-                when Option.is_some default_value && Set.mem no_tensor_options name ->
-                None
-              | Some arg_type -> Some { Func.arg_name; arg_type; default_value }
-              | None ->
-                if Option.is_some default_value then None else raise Not_a_simple_arg)
-          in
-          Some { Func.name; operator_name; overload_name; args; returns; kind }
-        with
-        | Not_a_simple_arg -> None)
+           try
+             let args =
+               List.filter_map arguments ~f:(fun arg ->
+                 let arg = extract_map arg in
+                 let arg_name = Map.find_exn arg "name" |> extract_string in
+                 let arg_type = Map.find_exn arg "dynamic_type" |> extract_string in
+                 let is_nullable =
+                   Map.find arg "is_nullable"
+                   |> Option.value_map ~default:false ~f:extract_bool
+                 in
+                 let default_value =
+                   Map.find arg "default" |> Option.map ~f:extract_string
+                 in
+                 match Func.arg_type_of_string arg_type ~is_nullable with
+                 | Some Scalar when Option.is_some default_value && not is_nullable ->
+                   None
+                 | Some TensorOptions
+                   when Option.is_some default_value && Set.mem no_tensor_options name ->
+                   None
+                 | Some arg_type -> Some { Func.arg_name; arg_type; default_value }
+                 | None ->
+                   if Option.is_some default_value then None else raise Not_a_simple_arg)
+             in
+             Some { Func.name; operator_name; overload_name; args; returns; kind }
+           with
+           | Not_a_simple_arg -> None)
     else None)
 ;;
 
 let p out_channel s =
   Printf.ksprintf
     (fun line ->
-       Out_channel.output_string out_channel line;
-       Out_channel.output_char out_channel '\n')
+      Out_channel.output_string out_channel line;
+      Out_channel.output_char out_channel '\n')
     s
 ;;
 
@@ -657,29 +657,29 @@ let run ~yaml_filename ~cpp_filename ~stubs_filename ~wrapper_filename =
     |> Map.of_alist_multi (module String)
     |> Map.to_alist
     |> List.concat_map ~f:(fun (name, funcs) ->
-      match funcs with
-      | [] -> assert false
-      | [ func ] -> [ name, func ]
-      | funcs ->
-        let has_empty_overload =
-          List.exists funcs ~f:(fun (func : Func.t) ->
-            String.is_empty func.overload_name)
-        in
-        List.sort funcs ~compare:(fun (f1 : Func.t) (f2 : Func.t) ->
-          match Int.compare (String.length f1.name) (String.length f2.name) with
-          | 0 -> Int.compare (List.length f1.args) (List.length f2.args)
-          | cmp -> cmp)
-        |> List.mapi ~f:(fun index (func : Func.t) ->
-          let operator_name = Func.operator_name func in
-          let overload_name = String.lowercase func.overload_name in
-          let name =
-            if String.is_empty overload_name || (index = 0 && not has_empty_overload)
-            then operator_name
-            else if String.is_suffix operator_name ~suffix:"_"
-            then operator_name ^ overload_name ^ "_"
-            else operator_name ^ "_" ^ overload_name
-          in
-          name, func))
+         match funcs with
+         | [] -> assert false
+         | [ func ] -> [ name, func ]
+         | funcs ->
+           let has_empty_overload =
+             List.exists funcs ~f:(fun (func : Func.t) ->
+               String.is_empty func.overload_name)
+           in
+           List.sort funcs ~compare:(fun (f1 : Func.t) (f2 : Func.t) ->
+             match Int.compare (String.length f1.name) (String.length f2.name) with
+             | 0 -> Int.compare (List.length f1.args) (List.length f2.args)
+             | cmp -> cmp)
+           |> List.mapi ~f:(fun index (func : Func.t) ->
+                let operator_name = Func.operator_name func in
+                let overload_name = String.lowercase func.overload_name in
+                let name =
+                  if String.is_empty overload_name || (index = 0 && not has_empty_overload)
+                  then operator_name
+                  else if String.is_suffix operator_name ~suffix:"_"
+                  then operator_name ^ overload_name ^ "_"
+                  else operator_name ^ "_" ^ overload_name
+                in
+                name, func))
     |> Map.of_alist_exn (module String)
   in
   write_cpp funcs cpp_filename;

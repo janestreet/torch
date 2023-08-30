@@ -6,23 +6,23 @@ let latest_index_and_filename ~checkpoint_base =
   Stdlib.Sys.readdir dirname
   |> Array.to_list
   |> List.filter_map ~f:(fun filename ->
-    match String.chop_prefix filename ~prefix:(basename ^ ".") with
-    | None -> None
-    | Some suffix ->
-      (try Some (Int.of_string suffix, Stdlib.Filename.concat dirname filename) with
-       | _ -> None))
+       match String.chop_prefix filename ~prefix:(basename ^ ".") with
+       | None -> None
+       | Some suffix ->
+         (try Some (Int.of_string suffix, Stdlib.Filename.concat dirname filename) with
+          | _ -> None))
   |> List.sort ~compare:Stdlib.compare
   |> List.last
 ;;
 
 let loop
-      ~start_index
-      ~end_index
-      ~var_stores
-      ~checkpoint_base
-      ?only_keep
-      ?(checkpoint_every = `seconds 600.)
-      f
+  ~start_index
+  ~end_index
+  ~var_stores
+  ~checkpoint_base
+  ?only_keep
+  ?(checkpoint_every = `seconds 600.)
+  f
   =
   if start_index < 0 then Printf.invalid_argf "negative start_index %d" start_index ();
   Option.iter only_keep ~f:(fun only_keep ->

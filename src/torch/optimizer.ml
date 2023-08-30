@@ -31,36 +31,36 @@ let add_missing_variables t =
 ;;
 
 let adam
-      ?(beta1 = 0.9)
-      ?(beta2 = 0.999)
-      ?(weight_decay = 0.)
-      ?(eps = 1e-8)
-      vs
-      ~learning_rate
+  ?(beta1 = 0.9)
+  ?(beta2 = 0.999)
+  ?(weight_decay = 0.)
+  ?(eps = 1e-8)
+  vs
+  ~learning_rate
   =
   Optimizer.adam ~learning_rate ~beta1 ~beta2 ~weight_decay ~eps |> create ~vs
 ;;
 
 let rmsprop
-      ?(alpha = 0.99)
-      ?(eps = 1e-8)
-      ?(weight_decay = 0.)
-      ?(momentum = 0.)
-      ?(centered = false)
-      vs
-      ~learning_rate
+  ?(alpha = 0.99)
+  ?(eps = 1e-8)
+  ?(weight_decay = 0.)
+  ?(momentum = 0.)
+  ?(centered = false)
+  vs
+  ~learning_rate
   =
   Optimizer.rmsprop ~learning_rate ~alpha ~eps ~weight_decay ~momentum ~centered
   |> create ~vs
 ;;
 
 let sgd
-      ?(momentum = 0.)
-      ?(dampening = 0.)
-      ?(weight_decay = 0.)
-      ?(nesterov = false)
-      vs
-      ~learning_rate
+  ?(momentum = 0.)
+  ?(dampening = 0.)
+  ?(weight_decay = 0.)
+  ?(nesterov = false)
+  vs
+  ~learning_rate
   =
   Optimizer.sgd ~learning_rate ~momentum ~dampening ~weight_decay ~nesterov |> create ~vs
 ;;

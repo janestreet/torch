@@ -65,16 +65,16 @@ let linear vs ?activation ?(use_bias = true) ?w_init ~input_dim output_dim =
 ;;
 
 let conv2d
-      vs
-      ~ksize:(k1, k2)
-      ~stride
-      ?activation
-      ?(use_bias = true)
-      ?w_init
-      ?(padding = 0, 0)
-      ?(groups = 1)
-      ~input_dim
-      output_dim
+  vs
+  ~ksize:(k1, k2)
+  ~stride
+  ?activation
+  ?(use_bias = true)
+  ?w_init
+  ?(padding = 0, 0)
+  ?(groups = 1)
+  ~input_dim
+  output_dim
   =
   let w =
     let shape = [ output_dim; input_dim / groups; k1; k2 ] in
@@ -92,16 +92,16 @@ let conv2d
 ;;
 
 let conv2d_
-      vs
-      ~ksize
-      ~stride
-      ?activation
-      ?use_bias
-      ?w_init
-      ?(padding = 0)
-      ?groups
-      ~input_dim
-      output_dim
+  vs
+  ~ksize
+  ~stride
+  ?activation
+  ?use_bias
+  ?w_init
+  ?(padding = 0)
+  ?groups
+  ~input_dim
+  output_dim
   =
   conv2d
     vs
@@ -117,17 +117,17 @@ let conv2d_
 ;;
 
 let conv_transpose2d
-      vs
-      ~ksize:(k1, k2)
-      ~stride
-      ?activation
-      ?(use_bias = true)
-      ?(w_init = Var_store.Init.Normal { mean = 0.; stdev = 0.1 })
-      ?(padding = 0, 0)
-      ?(output_padding = 0, 0)
-      ?(groups = 1)
-      ~input_dim
-      output_dim
+  vs
+  ~ksize:(k1, k2)
+  ~stride
+  ?activation
+  ?(use_bias = true)
+  ?(w_init = Var_store.Init.Normal { mean = 0.; stdev = 0.1 })
+  ?(padding = 0, 0)
+  ?(output_padding = 0, 0)
+  ?(groups = 1)
+  ~input_dim
+  output_dim
   =
   let w =
     Var_store.new_var
@@ -150,17 +150,17 @@ let conv_transpose2d
 ;;
 
 let conv_transpose2d_
-      vs
-      ~ksize
-      ~stride
-      ?activation
-      ?use_bias
-      ?w_init
-      ?(padding = 0)
-      ?(output_padding = 0)
-      ?groups
-      ~input_dim
-      output_dim
+  vs
+  ~ksize
+  ~stride
+  ?activation
+  ?use_bias
+  ?w_init
+  ?(padding = 0)
+  ?(output_padding = 0)
+  ?groups
+  ~input_dim
+  output_dim
   =
   conv_transpose2d
     vs
@@ -177,12 +177,12 @@ let conv_transpose2d_
 ;;
 
 let batch_norm2d
-      vs
-      ?(w_init = Var_store.Init.Uniform (0., 1.))
-      ?(cudnn_enabled = true)
-      ?(eps = 1e-5)
-      ?(momentum = 0.1)
-      output_dim
+  vs
+  ?(w_init = Var_store.Init.Uniform (0., 1.))
+  ?(cudnn_enabled = true)
+  ?(eps = 1e-5)
+  ?(momentum = 0.1)
+  output_dim
   =
   let w = Var_store.new_var vs ~shape:[ output_dim ] ~init:w_init ~name:"weight" in
   let b = Var_store.new_var vs ~shape:[ output_dim ] ~init:Zeros ~name:"bias" in
@@ -389,11 +389,11 @@ module Gru = struct
 end
 
 let embeddings
-      ?(sparse = false)
-      ?(scale_grad_by_freq = false)
-      vs
-      ~num_embeddings
-      ~embedding_dim
+  ?(sparse = false)
+  ?(scale_grad_by_freq = false)
+  vs
+  ~num_embeddings
+  ~embedding_dim
   =
   let weight =
     Var_store.new_var

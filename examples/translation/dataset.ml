@@ -9,14 +9,14 @@ type t =
 let normalize str =
   String.lowercase str
   |> String.concat_map ~f:(fun c ->
-    if Char.is_alphanum c
-    then String.of_char c
-    else (
-      match c with
-      | '!' -> " !"
-      | '.' -> " ."
-      | '?' -> " ?"
-      | _ -> " "))
+       if Char.is_alphanum c
+       then String.of_char c
+       else (
+         match c with
+         | '!' -> " !"
+         | '.' -> " ."
+         | '?' -> " ?"
+         | _ -> " "))
 ;;
 
 (* We only consider a subset of the dataset that starts with the
@@ -49,8 +49,8 @@ let length_in_words str =
 
 let filter_pair lhs rhs ~max_length =
   if length_in_words lhs < max_length
-  && length_in_words rhs < max_length
-  && (filter_prefix lhs || filter_prefix rhs)
+     && length_in_words rhs < max_length
+     && (filter_prefix lhs || filter_prefix rhs)
   then Some (lhs, rhs)
   else None
 ;;
@@ -95,9 +95,9 @@ let pairs t =
   in
   Array.of_list t.pairs
   |> Array.map ~f:(fun (lhs, rhs) ->
-    let lhs = to_indexes lhs t.input_lang in
-    let rhs = to_indexes rhs t.output_lang in
-    lhs, rhs)
+       let lhs = to_indexes lhs t.input_lang in
+       let rhs = to_indexes rhs t.output_lang in
+       lhs, rhs)
 ;;
 
 let reverse t =
