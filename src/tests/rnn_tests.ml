@@ -1,4 +1,4 @@
-open Base
+open! Base
 open Sexplib.Conv
 open Torch
 
