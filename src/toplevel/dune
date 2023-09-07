@@ -1,4 +1,4 @@
 (library (name torch_toplevel) (public_name torch.toplevel)
- (libraries base ppx_expect.common ocaml-compiler-libs.toplevel
-  ppx_bench.runtime-lib ppx_inline_test.runtime-lib)
+ (libraries base ocaml-compiler-libs.toplevel ppx_bench.runtime-lib
+  ppx_inline_test.runtime-lib)
  (preprocess (pps ppx_jane)))

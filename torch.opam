@@ -14,7 +14,6 @@ depends: [
   "base"
   "core"
   "ppx_bench"
-  "ppx_expect"
   "ppx_inline_test"
   "ppx_jane"
   "stdio"
