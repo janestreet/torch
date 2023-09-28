@@ -1,7 +1,6 @@
 (* Automatically generate the C++ -> C -> ocaml bindings.
    This takes as input the Descriptions.yaml file that gets generated when
-   building PyTorch from source.
-*)
+   building PyTorch from source. *)
 open Base
 open Stdio
 
@@ -45,6 +44,16 @@ let excluded_functions =
     ; "bernoulli_out"
     ; "nested_tensor"
     ; "arange_out"
+    ; "to_sparse_out"
+    ; "to_sparse_csr_out"
+    ; "to_sparse_csc_out"
+    ; "to_sparse_bsr_out"
+    ; "to_sparse_bsc_out"
+    ; "to_sparse"
+    ; "to_sparse_csr"
+    ; "to_sparse_csc"
+    ; "to_sparse_bsr"
+    ; "to_sparse_bsc"
     ]
 ;;
 
@@ -689,7 +698,7 @@ let run ~yaml_filename ~cpp_filename ~stubs_filename ~wrapper_filename =
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v1.13.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v2.0.0.yaml"
     ~cpp_filename:"src/wrapper/torch_api_generated"
     ~stubs_filename:"src/stubs/torch_bindings_generated.ml"
     ~wrapper_filename:"src/wrapper/wrapper_generated"

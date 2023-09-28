@@ -266,6 +266,12 @@ module C0 (F : Cstubs.FOREIGN) = struct
       (ptr t @-> t @-> t @-> t @-> int @-> returning void)
   ;;
 
+  let stubs__chunk_grad_outputs_efficient_attention =
+    foreign
+      "atg__chunk_grad_outputs_efficient_attention"
+      (t @-> t @-> t @-> int @-> returning bool)
+  ;;
+
   let stubs__coalesce = foreign "atg__coalesce" (ptr t @-> t @-> returning void)
 
   let stubs__coalesce_out =
@@ -561,6 +567,12 @@ module C0 (F : Cstubs.FOREIGN) = struct
       (ptr t @-> t @-> t @-> t @-> t @-> int64_t @-> int @-> returning void)
   ;;
 
+  let stubs__ctc_loss_tensor_out =
+    foreign
+      "atg__ctc_loss_tensor_out"
+      (ptr t @-> t @-> t @-> t @-> t @-> t @-> t @-> int64_t @-> int @-> returning void)
+  ;;
+
   let stubs__cudnn_ctc_loss =
     foreign
       "atg__cudnn_ctc_loss"
@@ -600,18 +612,6 @@ module C0 (F : Cstubs.FOREIGN) = struct
       "atg__cudnn_ctc_loss_tensor"
       (ptr t @-> t @-> t @-> t @-> t @-> int64_t @-> int @-> int @-> returning void)
   ;;
-
-  let stubs__cudnn_init_dropout_state =
-    foreign
-      "atg__cudnn_init_dropout_state"
-      (ptr t @-> double @-> int @-> int64_t @-> int @-> int @-> returning void)
-  ;;
-
-  let stubs__cudnn_init_dropout_state_out =
-    foreign
-      "atg__cudnn_init_dropout_state_out"
-      (ptr t @-> t @-> double @-> int @-> int64_t @-> returning void)
-  ;;
 end
 
 module C1 (F : Cstubs.FOREIGN) = struct
@@ -624,6 +624,18 @@ module C1 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
+
+  let stubs__cudnn_init_dropout_state =
+    foreign
+      "atg__cudnn_init_dropout_state"
+      (ptr t @-> double @-> int @-> int64_t @-> int @-> int @-> returning void)
+  ;;
+
+  let stubs__cudnn_init_dropout_state_out =
+    foreign
+      "atg__cudnn_init_dropout_state_out"
+      (ptr t @-> t @-> double @-> int @-> int64_t @-> returning void)
+  ;;
 
   let stubs__cudnn_rnn =
     foreign
@@ -740,6 +752,12 @@ module C1 (F : Cstubs.FOREIGN) = struct
 
   let stubs__dirichlet_grad_out =
     foreign "atg__dirichlet_grad_out" (ptr t @-> t @-> t @-> t @-> t @-> returning void)
+  ;;
+
+  let stubs__efficient_attention_backward =
+    foreign
+      "atg__efficient_attention_backward"
+      (ptr t @-> t @-> t @-> t @-> t @-> t @-> t @-> int @-> int @-> returning void)
   ;;
 
   let stubs__efficientzerotensor =
@@ -1091,10 +1109,13 @@ module C1 (F : Cstubs.FOREIGN) = struct
       (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> int64_t @-> int @-> returning void)
   ;;
 
-  let stubs__flash_scaled_dot_product_attention =
+  let stubs__flash_attention_backward =
     foreign
-      "atg__flash_scaled_dot_product_attention"
+      "atg__flash_attention_backward"
       (ptr t
+       @-> t
+       @-> t
+       @-> t
        @-> t
        @-> t
        @-> t
@@ -1104,6 +1125,8 @@ module C1 (F : Cstubs.FOREIGN) = struct
        @-> int64_t
        @-> double
        @-> int
+       @-> int64_t
+       @-> int64_t
        @-> returning void)
   ;;
 
@@ -1149,6 +1172,62 @@ module C1 (F : Cstubs.FOREIGN) = struct
   let stubs__fused_adam_ =
     foreign
       "atg__fused_adam_"
+      (ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> double
+       @-> double
+       @-> double
+       @-> double
+       @-> double
+       @-> int
+       @-> int
+       @-> t
+       @-> t
+       @-> returning void)
+  ;;
+
+  let stubs__fused_adamw =
+    foreign
+      "atg__fused_adamw"
+      (ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> ptr t
+       @-> int
+       @-> double
+       @-> double
+       @-> double
+       @-> double
+       @-> double
+       @-> int
+       @-> int
+       @-> t
+       @-> t
+       @-> returning void)
+  ;;
+
+  let stubs__fused_adamw_ =
+    foreign
+      "atg__fused_adamw_"
       (ptr t
        @-> int
        @-> ptr t
@@ -1243,6 +1322,12 @@ module C1 (F : Cstubs.FOREIGN) = struct
        @-> int
        @-> int
        @-> returning void)
+  ;;
+
+  let stubs__fused_sdp_choice =
+    foreign
+      "atg__fused_sdp_choice"
+      (t @-> t @-> t @-> t @-> double @-> int @-> returning int64_t)
   ;;
 
   let stubs__fw_primal =
@@ -1383,6 +1468,8 @@ module C1 (F : Cstubs.FOREIGN) = struct
     foreign "atg__indices_copy_out" (ptr t @-> t @-> t @-> returning void)
   ;;
 
+  let stubs__is_all_true = foreign "atg__is_all_true" (ptr t @-> t @-> returning void)
+  let stubs__is_any_true = foreign "atg__is_any_true" (ptr t @-> t @-> returning void)
   let stubs__is_zerotensor = foreign "atg__is_zerotensor" (t @-> returning bool)
 
   let stubs__linalg_check_errors =
@@ -1460,6 +1547,18 @@ module C1 (F : Cstubs.FOREIGN) = struct
   let stubs__logcumsumexp =
     foreign "atg__logcumsumexp" (ptr t @-> t @-> int64_t @-> returning void)
   ;;
+end
+
+module C2 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
 
   let stubs__logcumsumexp_out =
     foreign "atg__logcumsumexp_out" (ptr t @-> t @-> t @-> int64_t @-> returning void)
@@ -1487,6 +1586,7 @@ module C1 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg__lstm_mps_out"
       (ptr t
+       @-> t
        @-> t
        @-> t
        @-> t
@@ -1529,18 +1629,6 @@ module C1 (F : Cstubs.FOREIGN) = struct
       "atg__make_per_channel_quantized_tensor"
       (ptr t @-> t @-> t @-> t @-> int64_t @-> returning void)
   ;;
-end
-
-module C2 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs__make_per_channel_quantized_tensor_out =
     foreign
@@ -1692,38 +1780,73 @@ module C2 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs__mps_max_pool2d =
+  let stubs__native_batch_norm_legit =
     foreign
-      "atg__mps_max_pool2d"
+      "atg__native_batch_norm_legit"
       (ptr t
        @-> t
-       @-> ptr int64_t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
        @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
+       @-> double
+       @-> double
        @-> returning void)
   ;;
 
-  let stubs__mps_max_pool2d_out =
+  let stubs__native_batch_norm_legit_functional =
     foreign
-      "atg__mps_max_pool2d_out"
+      "atg__native_batch_norm_legit_functional"
       (ptr t
        @-> t
        @-> t
-       @-> ptr int64_t
+       @-> t
+       @-> t
+       @-> t
        @-> int
-       @-> ptr int64_t
+       @-> double
+       @-> double
+       @-> returning void)
+  ;;
+
+  let stubs__native_batch_norm_legit_no_stats =
+    foreign
+      "atg__native_batch_norm_legit_no_stats"
+      (ptr t @-> t @-> t @-> t @-> int @-> double @-> double @-> returning void)
+  ;;
+
+  let stubs__native_batch_norm_legit_no_stats_out =
+    foreign
+      "atg__native_batch_norm_legit_no_stats_out"
+      (ptr t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
        @-> int
-       @-> ptr int64_t
+       @-> double
+       @-> double
+       @-> returning void)
+  ;;
+
+  let stubs__native_batch_norm_legit_out =
+    foreign
+      "atg__native_batch_norm_legit_out"
+      (ptr t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
        @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
+       @-> double
+       @-> double
        @-> returning void)
   ;;
 
@@ -1978,6 +2101,14 @@ module C2 (F : Cstubs.FOREIGN) = struct
     foreign "atg__pin_memory_out" (ptr t @-> t @-> t @-> int @-> returning void)
   ;;
 
+  let stubs__prelu_kernel =
+    foreign "atg__prelu_kernel" (ptr t @-> t @-> t @-> returning void)
+  ;;
+
+  let stubs__prelu_kernel_backward =
+    foreign "atg__prelu_kernel_backward" (ptr t @-> t @-> t @-> t @-> returning void)
+  ;;
+
   let stubs__remove_batch_dim =
     foreign
       "atg__remove_batch_dim"
@@ -2007,6 +2138,10 @@ module C2 (F : Cstubs.FOREIGN) = struct
        @-> ptr int64_t
        @-> int
        @-> returning void)
+  ;;
+
+  let stubs__reshape_copy =
+    foreign "atg__reshape_copy" (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
   ;;
 
   let stubs__reshape_from_tensor =
@@ -2056,7 +2191,40 @@ module C2 (F : Cstubs.FOREIGN) = struct
   let stubs__scaled_dot_product_attention_math =
     foreign
       "atg__scaled_dot_product_attention_math"
-      (ptr t @-> t @-> t @-> t @-> t @-> double @-> int @-> int @-> returning void)
+      (ptr t @-> t @-> t @-> t @-> t @-> double @-> int @-> t @-> returning void)
+  ;;
+
+  let stubs__scaled_dot_product_efficient_attention =
+    foreign
+      "atg__scaled_dot_product_efficient_attention"
+      (ptr t @-> t @-> t @-> t @-> int @-> int @-> returning void)
+  ;;
+
+  let stubs__scaled_dot_product_efficient_attention_backward =
+    foreign
+      "atg__scaled_dot_product_efficient_attention_backward"
+      (ptr t @-> t @-> t @-> t @-> t @-> t @-> t @-> int @-> int @-> returning void)
+  ;;
+
+  let stubs__scaled_dot_product_flash_attention_backward =
+    foreign
+      "atg__scaled_dot_product_flash_attention_backward"
+      (ptr t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> int64_t
+       @-> int64_t
+       @-> double
+       @-> int
+       @-> int64_t
+       @-> int64_t
+       @-> returning void)
   ;;
 
   let stubs__scatter_reduce =
@@ -2182,6 +2350,18 @@ module C2 (F : Cstubs.FOREIGN) = struct
   let stubs__sparse_addmm_out =
     foreign "atg__sparse_addmm_out" (ptr t @-> t @-> t @-> t @-> t @-> returning void)
   ;;
+end
+
+module C3 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
 
   let stubs__sparse_broadcast_to =
     foreign
@@ -2308,18 +2488,6 @@ module C2 (F : Cstubs.FOREIGN) = struct
       "atg__sparse_csr_tensor_unsafe"
       (ptr t @-> t @-> t @-> t @-> ptr int64_t @-> int @-> int @-> int @-> returning void)
   ;;
-end
-
-module C3 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs__sparse_log_softmax =
     foreign "atg__sparse_log_softmax" (ptr t @-> t @-> int64_t @-> int @-> returning void)
@@ -2349,15 +2517,15 @@ module C3 (F : Cstubs.FOREIGN) = struct
       (ptr t @-> t @-> t @-> int64_t @-> int @-> returning void)
   ;;
 
-  let stubs__sparse_mask_helper =
-    foreign "atg__sparse_mask_helper" (ptr t @-> t @-> t @-> returning void)
-  ;;
-
-  let stubs__sparse_mask_helper_out =
-    foreign "atg__sparse_mask_helper_out" (ptr t @-> t @-> t @-> t @-> returning void)
-  ;;
-
   let stubs__sparse_mm = foreign "atg__sparse_mm" (ptr t @-> t @-> t @-> returning void)
+
+  let stubs__sparse_mm_reduce =
+    foreign "atg__sparse_mm_reduce" (ptr t @-> t @-> t @-> string @-> returning void)
+  ;;
+
+  let stubs__sparse_mm_reduce_impl =
+    foreign "atg__sparse_mm_reduce_impl" (ptr t @-> t @-> t @-> string @-> returning void)
+  ;;
 
   let stubs__sparse_softmax =
     foreign "atg__sparse_softmax" (ptr t @-> t @-> int64_t @-> int @-> returning void)
@@ -2461,16 +2629,6 @@ module C3 (F : Cstubs.FOREIGN) = struct
     foreign "atg__standard_gamma_out" (ptr t @-> t @-> t @-> returning void)
   ;;
 
-  let stubs__symeig_helper =
-    foreign "atg__symeig_helper" (ptr t @-> t @-> int @-> int @-> returning void)
-  ;;
-
-  let stubs__symeig_helper_out =
-    foreign
-      "atg__symeig_helper_out"
-      (ptr t @-> t @-> t @-> t @-> int @-> int @-> returning void)
-  ;;
-
   let stubs__test_ambiguous_defaults =
     foreign
       "atg__test_ambiguous_defaults"
@@ -2513,6 +2671,10 @@ module C3 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg__test_autograd_multiple_dispatch_view_copy_out"
       (ptr t @-> t @-> t @-> returning void)
+  ;;
+
+  let stubs__test_check_tensor =
+    foreign "atg__test_check_tensor" (ptr t @-> t @-> returning void)
   ;;
 
   let stubs__test_optional_filled_intlist =
@@ -2648,16 +2810,6 @@ module C3 (F : Cstubs.FOREIGN) = struct
 
   let stubs__to_dense_out =
     foreign "atg__to_dense_out" (ptr t @-> t @-> t @-> int @-> returning void)
-  ;;
-
-  let stubs__torch_cuda_cu_linker_symbol_op =
-    foreign "atg__torch_cuda_cu_linker_symbol_op" (ptr t @-> t @-> returning void)
-  ;;
-
-  let stubs__torch_cuda_cu_linker_symbol_op_out =
-    foreign
-      "atg__torch_cuda_cu_linker_symbol_op_out"
-      (ptr t @-> t @-> t @-> returning void)
   ;;
 
   let stubs__transform_bias_rescale_qkv =
@@ -2899,6 +3051,18 @@ module C3 (F : Cstubs.FOREIGN) = struct
   let stubs__unsafe_view =
     foreign "atg__unsafe_view" (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
   ;;
+end
+
+module C4 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
 
   let stubs__unsafe_view_out =
     foreign
@@ -2956,37 +3120,6 @@ module C3 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs__upsample_bicubic2d_aa_backward_vec =
-    foreign
-      "atg__upsample_bicubic2d_aa_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs__upsample_bicubic2d_aa_backward_vec_out =
-    foreign
-      "atg__upsample_bicubic2d_aa_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs__upsample_bicubic2d_aa_out =
     foreign
       "atg__upsample_bicubic2d_aa_out"
@@ -3007,20 +3140,6 @@ module C3 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg__upsample_bicubic2d_aa_vec"
       (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs__upsample_bicubic2d_aa_vec_out =
-    foreign
-      "atg__upsample_bicubic2d_aa_vec_out"
-      (ptr t
-       @-> t
        @-> t
        @-> ptr int64_t
        @-> int
@@ -3080,49 +3199,6 @@ module C3 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs__upsample_bilinear2d_aa_backward_vec =
-    foreign
-      "atg__upsample_bilinear2d_aa_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs__upsample_bilinear2d_aa_backward_vec_out =
-    foreign
-      "atg__upsample_bilinear2d_aa_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-end
-
-module C4 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
-
   let stubs__upsample_bilinear2d_aa_out =
     foreign
       "atg__upsample_bilinear2d_aa_out"
@@ -3143,20 +3219,6 @@ module C4 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg__upsample_bilinear2d_aa_vec"
       (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs__upsample_bilinear2d_aa_vec_out =
-    foreign
-      "atg__upsample_bilinear2d_aa_vec_out"
-      (ptr t
-       @-> t
        @-> t
        @-> ptr int64_t
        @-> int
@@ -3201,35 +3263,6 @@ module C4 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs__upsample_nearest_exact1d_backward_vec =
-    foreign
-      "atg__upsample_nearest_exact1d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs__upsample_nearest_exact1d_backward_vec_out =
-    foreign
-      "atg__upsample_nearest_exact1d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs__upsample_nearest_exact1d_out =
     foreign
       "atg__upsample_nearest_exact1d_out"
@@ -3240,12 +3273,6 @@ module C4 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg__upsample_nearest_exact1d_vec"
       (ptr t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
-  ;;
-
-  let stubs__upsample_nearest_exact1d_vec_out =
-    foreign
-      "atg__upsample_nearest_exact1d_vec_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
   ;;
 
   let stubs__upsample_nearest_exact2d =
@@ -3295,35 +3322,6 @@ module C4 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs__upsample_nearest_exact2d_backward_vec =
-    foreign
-      "atg__upsample_nearest_exact2d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs__upsample_nearest_exact2d_backward_vec_out =
-    foreign
-      "atg__upsample_nearest_exact2d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs__upsample_nearest_exact2d_out =
     foreign
       "atg__upsample_nearest_exact2d_out"
@@ -3343,12 +3341,6 @@ module C4 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg__upsample_nearest_exact2d_vec"
       (ptr t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
-  ;;
-
-  let stubs__upsample_nearest_exact2d_vec_out =
-    foreign
-      "atg__upsample_nearest_exact2d_vec_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
   ;;
 
   let stubs__upsample_nearest_exact3d =
@@ -3404,35 +3396,6 @@ module C4 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs__upsample_nearest_exact3d_backward_vec =
-    foreign
-      "atg__upsample_nearest_exact3d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs__upsample_nearest_exact3d_backward_vec_out =
-    foreign
-      "atg__upsample_nearest_exact3d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs__upsample_nearest_exact3d_out =
     foreign
       "atg__upsample_nearest_exact3d_out"
@@ -3454,12 +3417,6 @@ module C4 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg__upsample_nearest_exact3d_vec"
       (ptr t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
-  ;;
-
-  let stubs__upsample_nearest_exact3d_vec_out =
-    foreign
-      "atg__upsample_nearest_exact3d_vec_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
   ;;
 
   let stubs__use_cudnn_ctc_loss =
@@ -3730,6 +3687,7 @@ module C4 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_alias = foreign "atg_alias" (ptr t @-> t @-> returning void)
+  let stubs_alias_copy = foreign "atg_alias_copy" (ptr t @-> t @-> returning void)
 end
 
 module C5 (F : Cstubs.FOREIGN) = struct
@@ -3742,7 +3700,6 @@ module C5 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
-  let stubs_alias_copy = foreign "atg_alias_copy" (ptr t @-> t @-> returning void)
 
   let stubs_alias_copy_out =
     foreign "atg_alias_copy_out" (ptr t @-> t @-> t @-> returning void)
@@ -4241,6 +4198,12 @@ module C5 (F : Cstubs.FOREIGN) = struct
       "atg_batch_norm_backward_elemt"
       (ptr t @-> t @-> t @-> t @-> t @-> t @-> t @-> t @-> t @-> returning void)
   ;;
+
+  let stubs_batch_norm_backward_elemt_out =
+    foreign
+      "atg_batch_norm_backward_elemt_out"
+      (ptr t @-> t @-> t @-> t @-> t @-> t @-> t @-> t @-> t @-> t @-> returning void)
+  ;;
 end
 
 module C6 (F : Cstubs.FOREIGN) = struct
@@ -4253,12 +4216,6 @@ module C6 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
-
-  let stubs_batch_norm_backward_elemt_out =
-    foreign
-      "atg_batch_norm_backward_elemt_out"
-      (ptr t @-> t @-> t @-> t @-> t @-> t @-> t @-> t @-> t @-> t @-> returning void)
-  ;;
 
   let stubs_batch_norm_backward_reduce =
     foreign
@@ -4746,6 +4703,7 @@ module C6 (F : Cstubs.FOREIGN) = struct
   let stubs_ceil = foreign "atg_ceil" (ptr t @-> t @-> returning void)
   let stubs_ceil_ = foreign "atg_ceil_" (ptr t @-> t @-> returning void)
   let stubs_ceil_out = foreign "atg_ceil_out" (ptr t @-> t @-> t @-> returning void)
+  let stubs_celu = foreign "atg_celu" (ptr t @-> t @-> returning void)
 end
 
 module C7 (F : Cstubs.FOREIGN) = struct
@@ -4758,7 +4716,6 @@ module C7 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
-  let stubs_celu = foreign "atg_celu" (ptr t @-> t @-> returning void)
   let stubs_celu_ = foreign "atg_celu_" (ptr t @-> t @-> returning void)
   let stubs_celu_out = foreign "atg_celu_out" (ptr t @-> t @-> t @-> returning void)
 
@@ -5346,6 +5303,12 @@ module C7 (F : Cstubs.FOREIGN) = struct
   let stubs_cosh = foreign "atg_cosh" (ptr t @-> t @-> returning void)
   let stubs_cosh_ = foreign "atg_cosh_" (ptr t @-> t @-> returning void)
   let stubs_cosh_out = foreign "atg_cosh_out" (ptr t @-> t @-> t @-> returning void)
+
+  let stubs_cosine_embedding_loss =
+    foreign
+      "atg_cosine_embedding_loss"
+      (ptr t @-> t @-> t @-> t @-> double @-> int64_t @-> returning void)
+  ;;
 end
 
 module C8 (F : Cstubs.FOREIGN) = struct
@@ -5358,12 +5321,6 @@ module C8 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
-
-  let stubs_cosine_embedding_loss =
-    foreign
-      "atg_cosine_embedding_loss"
-      (ptr t @-> t @-> t @-> t @-> double @-> int64_t @-> returning void)
-  ;;
 
   let stubs_cosine_similarity =
     foreign
@@ -5793,12 +5750,6 @@ module C8 (F : Cstubs.FOREIGN) = struct
 
   let stubs_diag = foreign "atg_diag" (ptr t @-> t @-> int64_t @-> returning void)
 
-  let stubs_diag_backward =
-    foreign
-      "atg_diag_backward"
-      (ptr t @-> t @-> ptr int64_t @-> int @-> int64_t @-> returning void)
-  ;;
-
   let stubs_diag_embed =
     foreign
       "atg_diag_embed"
@@ -5949,6 +5900,16 @@ module C8 (F : Cstubs.FOREIGN) = struct
   let stubs_divide_scalar_ =
     foreign "atg_divide_scalar_" (ptr t @-> t @-> scalar @-> returning void)
   ;;
+
+  let stubs_divide_scalar_mode =
+    foreign "atg_divide_scalar_mode" (ptr t @-> t @-> scalar @-> string @-> returning void)
+  ;;
+
+  let stubs_divide_scalar_mode_ =
+    foreign
+      "atg_divide_scalar_mode_"
+      (ptr t @-> t @-> scalar @-> string @-> returning void)
+  ;;
 end
 
 module C9 (F : Cstubs.FOREIGN) = struct
@@ -5961,16 +5922,6 @@ module C9 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
-
-  let stubs_divide_scalar_mode =
-    foreign "atg_divide_scalar_mode" (ptr t @-> t @-> scalar @-> string @-> returning void)
-  ;;
-
-  let stubs_divide_scalar_mode_ =
-    foreign
-      "atg_divide_scalar_mode_"
-      (ptr t @-> t @-> scalar @-> string @-> returning void)
-  ;;
 
   let stubs_divide_tensor_mode =
     foreign "atg_divide_tensor_mode" (ptr t @-> t @-> t @-> string @-> returning void)
@@ -6420,18 +6371,6 @@ module C9 (F : Cstubs.FOREIGN) = struct
        @-> string
        @-> returning void)
   ;;
-end
-
-module C10 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs_fft_fftn_out =
     foreign
@@ -6450,6 +6389,18 @@ module C10 (F : Cstubs.FOREIGN) = struct
   let stubs_fft_fftshift =
     foreign "atg_fft_fftshift" (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
   ;;
+end
+
+module C10 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
 
   let stubs_fft_hfft =
     foreign
@@ -7041,11 +6992,9 @@ module C10 (F : Cstubs.FOREIGN) = struct
     foreign "atg_frexp_tensor_out" (ptr t @-> t @-> t @-> t @-> returning void)
   ;;
 
-  let stubs_frobenius_norm = foreign "atg_frobenius_norm" (ptr t @-> t @-> returning void)
-
-  let stubs_frobenius_norm_dim =
+  let stubs_frobenius_norm =
     foreign
-      "atg_frobenius_norm_dim"
+      "atg_frobenius_norm"
       (ptr t @-> t @-> ptr int64_t @-> int @-> int @-> returning void)
   ;;
 
@@ -7104,18 +7053,6 @@ module C10 (F : Cstubs.FOREIGN) = struct
        @-> int
        @-> returning void)
   ;;
-end
-
-module C11 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs_gather =
     foreign "atg_gather" (ptr t @-> t @-> int64_t @-> t @-> int @-> returning void)
@@ -7132,7 +7069,18 @@ module C11 (F : Cstubs.FOREIGN) = struct
       "atg_gather_out"
       (ptr t @-> t @-> t @-> int64_t @-> t @-> int @-> returning void)
   ;;
+end
 
+module C11 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
   let stubs_gcd = foreign "atg_gcd" (ptr t @-> t @-> t @-> returning void)
   let stubs_gcd_ = foreign "atg_gcd_" (ptr t @-> t @-> t @-> returning void)
   let stubs_gcd_out = foreign "atg_gcd_out" (ptr t @-> t @-> t @-> t @-> returning void)
@@ -7510,6 +7458,16 @@ module C11 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_hspmm = foreign "atg_hspmm" (ptr t @-> t @-> t @-> returning void)
+
+  let stubs_hspmm_out =
+    foreign "atg_hspmm_out" (ptr t @-> t @-> t @-> t @-> returning void)
+  ;;
+
+  let stubs_hstack = foreign "atg_hstack" (ptr t @-> ptr t @-> int @-> returning void)
+
+  let stubs_hstack_out =
+    foreign "atg_hstack_out" (ptr t @-> t @-> ptr t @-> int @-> returning void)
+  ;;
 end
 
 module C12 (F : Cstubs.FOREIGN) = struct
@@ -7522,16 +7480,6 @@ module C12 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
-
-  let stubs_hspmm_out =
-    foreign "atg_hspmm_out" (ptr t @-> t @-> t @-> t @-> returning void)
-  ;;
-
-  let stubs_hstack = foreign "atg_hstack" (ptr t @-> ptr t @-> int @-> returning void)
-
-  let stubs_hstack_out =
-    foreign "atg_hstack_out" (ptr t @-> t @-> ptr t @-> int @-> returning void)
-  ;;
 
   let stubs_huber_loss =
     foreign "atg_huber_loss" (ptr t @-> t @-> t @-> int64_t @-> double @-> returning void)
@@ -7922,18 +7870,6 @@ module C12 (F : Cstubs.FOREIGN) = struct
   let stubs_l1_loss =
     foreign "atg_l1_loss" (ptr t @-> t @-> t @-> int64_t @-> returning void)
   ;;
-end
-
-module C13 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs_layer_norm =
     foreign
@@ -7951,6 +7887,18 @@ module C13 (F : Cstubs.FOREIGN) = struct
 
   let stubs_lcm = foreign "atg_lcm" (ptr t @-> t @-> t @-> returning void)
   let stubs_lcm_ = foreign "atg_lcm_" (ptr t @-> t @-> t @-> returning void)
+end
+
+module C13 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
   let stubs_lcm_out = foreign "atg_lcm_out" (ptr t @-> t @-> t @-> t @-> returning void)
   let stubs_ldexp = foreign "atg_ldexp" (ptr t @-> t @-> t @-> returning void)
   let stubs_ldexp_ = foreign "atg_ldexp_" (ptr t @-> t @-> t @-> returning void)
@@ -8331,18 +8279,6 @@ module C13 (F : Cstubs.FOREIGN) = struct
       "atg_linalg_matrix_rank_out_tol_tensor"
       (ptr t @-> t @-> t @-> t @-> int @-> returning void)
   ;;
-end
-
-module C14 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs_linalg_matrix_rank_tol_tensor =
     foreign
@@ -8357,6 +8293,18 @@ module C14 (F : Cstubs.FOREIGN) = struct
   let stubs_linalg_multi_dot_out =
     foreign "atg_linalg_multi_dot_out" (ptr t @-> t @-> ptr t @-> int @-> returning void)
   ;;
+end
+
+module C14 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
 
   let stubs_linalg_pinv =
     foreign "atg_linalg_pinv" (ptr t @-> t @-> double @-> int @-> returning void)
@@ -8726,6 +8674,7 @@ module C14 (F : Cstubs.FOREIGN) = struct
        @-> t
        @-> t
        @-> t
+       @-> t
        @-> ptr t
        @-> int
        @-> ptr t
@@ -8774,18 +8723,6 @@ module C14 (F : Cstubs.FOREIGN) = struct
       "atg_margin_ranking_loss"
       (ptr t @-> t @-> t @-> t @-> double @-> int64_t @-> returning void)
   ;;
-end
-
-module C15 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs_masked_fill =
     foreign "atg_masked_fill" (ptr t @-> t @-> t @-> scalar @-> returning void)
@@ -8800,6 +8737,18 @@ module C15 (F : Cstubs.FOREIGN) = struct
       "atg_masked_fill_scalar_out"
       (ptr t @-> t @-> t @-> t @-> scalar @-> returning void)
   ;;
+end
+
+module C15 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
 
   let stubs_masked_fill_tensor =
     foreign "atg_masked_fill_tensor" (ptr t @-> t @-> t @-> t @-> returning void)
@@ -8912,6 +8861,43 @@ module C15 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg_max_pool2d"
       (ptr t
+       @-> t
+       @-> ptr int64_t
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> int
+       @-> returning void)
+  ;;
+
+  let stubs_max_pool2d_backward =
+    foreign
+      "atg_max_pool2d_backward"
+      (ptr t
+       @-> t
+       @-> t
+       @-> ptr int64_t
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> int
+       @-> returning void)
+  ;;
+
+  let stubs_max_pool2d_backward_out =
+    foreign
+      "atg_max_pool2d_backward_out"
+      (ptr t
+       @-> t
+       @-> t
        @-> t
        @-> ptr int64_t
        @-> int
@@ -9090,6 +9076,10 @@ module C15 (F : Cstubs.FOREIGN) = struct
        @-> int
        @-> int
        @-> returning void)
+  ;;
+
+  let stubs_max_unary_out =
+    foreign "atg_max_unary_out" (ptr t @-> t @-> t @-> returning void)
   ;;
 
   let stubs_max_unpool2d =
@@ -9720,6 +9710,8 @@ module C15 (F : Cstubs.FOREIGN) = struct
        @-> ptr int64_t
        @-> int
        @-> int64_t
+       @-> ptr int64_t
+       @-> int
        @-> returning void)
   ;;
 
@@ -9736,6 +9728,8 @@ module C15 (F : Cstubs.FOREIGN) = struct
        @-> ptr int64_t
        @-> int
        @-> int64_t
+       @-> ptr int64_t
+       @-> int
        @-> returning void)
   ;;
 
@@ -9782,6 +9776,127 @@ module C16 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
+  let stubs_mkldnn_rnn_layer =
+    foreign
+      "atg_mkldnn_rnn_layer"
+      (ptr t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> int64_t
+       @-> int64_t
+       @-> int64_t
+       @-> int
+       @-> int
+       @-> int
+       @-> int
+       @-> returning void)
+  ;;
+
+  let stubs_mkldnn_rnn_layer_backward =
+    foreign
+      "atg_mkldnn_rnn_layer_backward"
+      (ptr t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> int
+       @-> int64_t
+       @-> int64_t
+       @-> int64_t
+       @-> int
+       @-> int
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> int
+       @-> t
+       @-> returning void)
+  ;;
+
+  let stubs_mkldnn_rnn_layer_backward_out =
+    foreign
+      "atg_mkldnn_rnn_layer_backward_out"
+      (ptr t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> int
+       @-> int64_t
+       @-> int64_t
+       @-> int64_t
+       @-> int
+       @-> int
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> int
+       @-> t
+       @-> returning void)
+  ;;
+
+  let stubs_mkldnn_rnn_layer_out =
+    foreign
+      "atg_mkldnn_rnn_layer_out"
+      (ptr t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> t
+       @-> int
+       @-> ptr int64_t
+       @-> int
+       @-> int64_t
+       @-> int64_t
+       @-> int64_t
+       @-> int
+       @-> int
+       @-> int
+       @-> int
+       @-> returning void)
+  ;;
+
   let stubs_mm = foreign "atg_mm" (ptr t @-> t @-> t @-> returning void)
   let stubs_mm_out = foreign "atg_mm_out" (ptr t @-> t @-> t @-> t @-> returning void)
   let stubs_mode = foreign "atg_mode" (ptr t @-> t @-> int64_t @-> int @-> returning void)
@@ -9810,43 +9925,6 @@ module C16 (F : Cstubs.FOREIGN) = struct
 
   let stubs_movedim_int =
     foreign "atg_movedim_int" (ptr t @-> t @-> int64_t @-> int64_t @-> returning void)
-  ;;
-
-  let stubs_mps_max_pool2d_backward =
-    foreign
-      "atg_mps_max_pool2d_backward"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_mps_max_pool2d_backward_out =
-    foreign
-      "atg_mps_max_pool2d_backward_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> returning void)
   ;;
 
   let stubs_mse_loss =
@@ -10343,14 +10421,6 @@ module C16 (F : Cstubs.FOREIGN) = struct
       "atg_new_zeros"
       (ptr t @-> t @-> ptr int64_t @-> int @-> int @-> int @-> returning void)
   ;;
-
-  let stubs_new_zeros_out =
-    foreign
-      "atg_new_zeros_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> returning void)
-  ;;
-
-  let stubs_nextafter = foreign "atg_nextafter" (ptr t @-> t @-> t @-> returning void)
 end
 
 module C17 (F : Cstubs.FOREIGN) = struct
@@ -10363,6 +10433,14 @@ module C17 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
+
+  let stubs_new_zeros_out =
+    foreign
+      "atg_new_zeros_out"
+      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> returning void)
+  ;;
+
+  let stubs_nextafter = foreign "atg_nextafter" (ptr t @-> t @-> t @-> returning void)
   let stubs_nextafter_ = foreign "atg_nextafter_" (ptr t @-> t @-> t @-> returning void)
 
   let stubs_nextafter_out =
@@ -10701,21 +10779,6 @@ module C17 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_prelu = foreign "atg_prelu" (ptr t @-> t @-> t @-> returning void)
-
-  let stubs_prelu_backward =
-    foreign "atg_prelu_backward" (ptr t @-> t @-> t @-> t @-> returning void)
-  ;;
-
-  let stubs_prelu_backward_out =
-    foreign
-      "atg_prelu_backward_out"
-      (ptr t @-> t @-> t @-> t @-> t @-> t @-> returning void)
-  ;;
-
-  let stubs_prelu_out =
-    foreign "atg_prelu_out" (ptr t @-> t @-> t @-> t @-> returning void)
-  ;;
-
   let stubs_prod = foreign "atg_prod" (ptr t @-> t @-> int @-> returning void)
 
   let stubs_prod_dim_int =
@@ -10773,6 +10836,12 @@ module C17 (F : Cstubs.FOREIGN) = struct
       "atg_quantile_out"
       (ptr t @-> t @-> t @-> t @-> int64_t @-> int @-> int @-> string @-> returning void)
   ;;
+
+  let stubs_quantile_scalar =
+    foreign
+      "atg_quantile_scalar"
+      (ptr t @-> t @-> double @-> int64_t @-> int @-> int @-> string @-> returning void)
+  ;;
 end
 
 module C18 (F : Cstubs.FOREIGN) = struct
@@ -10785,12 +10854,6 @@ module C18 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
-
-  let stubs_quantile_scalar =
-    foreign
-      "atg_quantile_scalar"
-      (ptr t @-> t @-> double @-> int64_t @-> int @-> int @-> string @-> returning void)
-  ;;
 
   let stubs_quantile_scalar_out =
     foreign
@@ -11383,6 +11446,12 @@ module C18 (F : Cstubs.FOREIGN) = struct
       "atg_replication_pad2d"
       (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
   ;;
+
+  let stubs_replication_pad2d_backward =
+    foreign
+      "atg_replication_pad2d_backward"
+      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> returning void)
+  ;;
 end
 
 module C19 (F : Cstubs.FOREIGN) = struct
@@ -11395,12 +11464,6 @@ module C19 (F : Cstubs.FOREIGN) = struct
   type scalar = unit ptr
 
   let scalar : scalar typ = ptr void
-
-  let stubs_replication_pad2d_backward =
-    foreign
-      "atg_replication_pad2d_backward"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> returning void)
-  ;;
 
   let stubs_replication_pad2d_backward_grad_input =
     foreign
@@ -11687,6 +11750,12 @@ module C19 (F : Cstubs.FOREIGN) = struct
 
   let stubs_scalar_tensor_out =
     foreign "atg_scalar_tensor_out" (ptr t @-> t @-> scalar @-> returning void)
+  ;;
+
+  let stubs_scaled_dot_product_attention =
+    foreign
+      "atg_scaled_dot_product_attention"
+      (ptr t @-> t @-> t @-> t @-> t @-> double @-> int @-> returning void)
   ;;
 
   let stubs_scatter =
@@ -13395,6 +13464,18 @@ module C22 (F : Cstubs.FOREIGN) = struct
     foreign "atg_squeeze_copy_dim_out" (ptr t @-> t @-> t @-> int64_t @-> returning void)
   ;;
 
+  let stubs_squeeze_copy_dims =
+    foreign
+      "atg_squeeze_copy_dims"
+      (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
+  ;;
+
+  let stubs_squeeze_copy_dims_out =
+    foreign
+      "atg_squeeze_copy_dims_out"
+      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> returning void)
+  ;;
+
   let stubs_squeeze_copy_out =
     foreign "atg_squeeze_copy_out" (ptr t @-> t @-> t @-> returning void)
   ;;
@@ -13405,6 +13486,14 @@ module C22 (F : Cstubs.FOREIGN) = struct
 
   let stubs_squeeze_dim_ =
     foreign "atg_squeeze_dim_" (ptr t @-> t @-> int64_t @-> returning void)
+  ;;
+
+  let stubs_squeeze_dims =
+    foreign "atg_squeeze_dims" (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
+  ;;
+
+  let stubs_squeeze_dims_ =
+    foreign "atg_squeeze_dims_" (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
   ;;
 
   let stubs_sspaddmm = foreign "atg_sspaddmm" (ptr t @-> t @-> t @-> t @-> returning void)
@@ -13483,6 +13572,18 @@ module C22 (F : Cstubs.FOREIGN) = struct
       "atg_std_out"
       (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> int @-> int @-> returning void)
   ;;
+end
+
+module C23 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
 
   let stubs_stft =
     foreign
@@ -13522,18 +13623,6 @@ module C22 (F : Cstubs.FOREIGN) = struct
 
   let stubs_stride = foreign "atg_stride" (t @-> int64_t @-> returning int64_t)
   let stubs_sub = foreign "atg_sub" (ptr t @-> t @-> t @-> returning void)
-end
-
-module C23 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
   let stubs_sub_ = foreign "atg_sub_" (ptr t @-> t @-> t @-> returning void)
   let stubs_sub_out = foreign "atg_sub_out" (ptr t @-> t @-> t @-> t @-> returning void)
 
@@ -13604,12 +13693,6 @@ module C23 (F : Cstubs.FOREIGN) = struct
 
   let stubs_swapdims_ =
     foreign "atg_swapdims_" (ptr t @-> t @-> int64_t @-> int64_t @-> returning void)
-  ;;
-
-  let stubs_symeig = foreign "atg_symeig" (ptr t @-> t @-> int @-> int @-> returning void)
-
-  let stubs_symeig_e =
-    foreign "atg_symeig_e" (ptr t @-> t @-> t @-> t @-> int @-> int @-> returning void)
   ;;
 
   let stubs_tr = foreign "atg_t" (ptr t @-> t @-> returning void)
@@ -13765,54 +13848,6 @@ module C23 (F : Cstubs.FOREIGN) = struct
       (ptr t @-> t @-> t @-> double @-> ptr int64_t @-> int @-> returning void)
   ;;
 
-  let stubs_to_sparse = foreign "atg_to_sparse" (ptr t @-> t @-> returning void)
-
-  let stubs_to_sparse_bsc =
-    foreign "atg_to_sparse_bsc" (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
-  ;;
-
-  let stubs_to_sparse_bsc_out =
-    foreign
-      "atg_to_sparse_bsc_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> returning void)
-  ;;
-
-  let stubs_to_sparse_bsr =
-    foreign "atg_to_sparse_bsr" (ptr t @-> t @-> ptr int64_t @-> int @-> returning void)
-  ;;
-
-  let stubs_to_sparse_bsr_out =
-    foreign
-      "atg_to_sparse_bsr_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> returning void)
-  ;;
-
-  let stubs_to_sparse_csc = foreign "atg_to_sparse_csc" (ptr t @-> t @-> returning void)
-
-  let stubs_to_sparse_csc_out =
-    foreign "atg_to_sparse_csc_out" (ptr t @-> t @-> t @-> returning void)
-  ;;
-
-  let stubs_to_sparse_csr = foreign "atg_to_sparse_csr" (ptr t @-> t @-> returning void)
-
-  let stubs_to_sparse_csr_out =
-    foreign "atg_to_sparse_csr_out" (ptr t @-> t @-> t @-> returning void)
-  ;;
-
-  let stubs_to_sparse_out =
-    foreign "atg_to_sparse_out" (ptr t @-> t @-> t @-> returning void)
-  ;;
-
-  let stubs_to_sparse_sparse_dim =
-    foreign "atg_to_sparse_sparse_dim" (ptr t @-> t @-> int64_t @-> returning void)
-  ;;
-
-  let stubs_to_sparse_sparse_dim_out =
-    foreign
-      "atg_to_sparse_sparse_dim_out"
-      (ptr t @-> t @-> t @-> int64_t @-> returning void)
-  ;;
-
   let stubs_topk =
     foreign
       "atg_topk"
@@ -13926,18 +13961,6 @@ module C23 (F : Cstubs.FOREIGN) = struct
       "atg_triu_indices_out"
       (ptr t @-> t @-> int64_t @-> int64_t @-> int64_t @-> returning void)
   ;;
-end
-
-module C24 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs_triu_out =
     foreign "atg_triu_out" (ptr t @-> t @-> t @-> int64_t @-> returning void)
@@ -13965,6 +13988,18 @@ module C24 (F : Cstubs.FOREIGN) = struct
   let stubs_trunc_ = foreign "atg_trunc_" (ptr t @-> t @-> returning void)
   let stubs_trunc_out = foreign "atg_trunc_out" (ptr t @-> t @-> t @-> returning void)
   let stubs_type_as = foreign "atg_type_as" (ptr t @-> t @-> t @-> returning void)
+end
+
+module C24 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
   let stubs_unbind = foreign "atg_unbind" (t @-> int64_t @-> returning (ptr t))
   let stubs_unbind_copy = foreign "atg_unbind_copy" (t @-> int64_t @-> returning (ptr t))
 
@@ -14185,37 +14220,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_upsample_bicubic2d_backward_vec =
-    foreign
-      "atg_upsample_bicubic2d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_bicubic2d_backward_vec_out =
-    foreign
-      "atg_upsample_bicubic2d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs_upsample_bicubic2d_out =
     foreign
       "atg_upsample_bicubic2d_out"
@@ -14236,20 +14240,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg_upsample_bicubic2d_vec"
       (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_bicubic2d_vec_out =
-    foreign
-      "atg_upsample_bicubic2d_vec_out"
-      (ptr t
-       @-> t
        @-> t
        @-> ptr int64_t
        @-> int
@@ -14309,37 +14299,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_upsample_bilinear2d_backward_vec =
-    foreign
-      "atg_upsample_bilinear2d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_bilinear2d_backward_vec_out =
-    foreign
-      "atg_upsample_bilinear2d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs_upsample_bilinear2d_out =
     foreign
       "atg_upsample_bilinear2d_out"
@@ -14360,20 +14319,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg_upsample_bilinear2d_vec"
       (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_bilinear2d_vec_out =
-    foreign
-      "atg_upsample_bilinear2d_vec_out"
-      (ptr t
-       @-> t
        @-> t
        @-> ptr int64_t
        @-> int
@@ -14420,37 +14365,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_upsample_linear1d_backward_vec =
-    foreign
-      "atg_upsample_linear1d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_linear1d_backward_vec_out =
-    foreign
-      "atg_upsample_linear1d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs_upsample_linear1d_out =
     foreign
       "atg_upsample_linear1d_out"
@@ -14469,20 +14383,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg_upsample_linear1d_vec"
       (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_linear1d_vec_out =
-    foreign
-      "atg_upsample_linear1d_vec_out"
-      (ptr t
-       @-> t
        @-> t
        @-> ptr int64_t
        @-> int
@@ -14527,35 +14427,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_upsample_nearest1d_backward_vec =
-    foreign
-      "atg_upsample_nearest1d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_nearest1d_backward_vec_out =
-    foreign
-      "atg_upsample_nearest1d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs_upsample_nearest1d_out =
     foreign
       "atg_upsample_nearest1d_out"
@@ -14566,12 +14437,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg_upsample_nearest1d_vec"
       (ptr t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
-  ;;
-
-  let stubs_upsample_nearest1d_vec_out =
-    foreign
-      "atg_upsample_nearest1d_vec_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
   ;;
 
   let stubs_upsample_nearest2d =
@@ -14621,35 +14486,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_upsample_nearest2d_backward_vec =
-    foreign
-      "atg_upsample_nearest2d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_nearest2d_backward_vec_out =
-    foreign
-      "atg_upsample_nearest2d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs_upsample_nearest2d_out =
     foreign
       "atg_upsample_nearest2d_out"
@@ -14669,12 +14505,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg_upsample_nearest2d_vec"
       (ptr t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
-  ;;
-
-  let stubs_upsample_nearest2d_vec_out =
-    foreign
-      "atg_upsample_nearest2d_vec_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
   ;;
 
   let stubs_upsample_nearest3d =
@@ -14730,35 +14560,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_upsample_nearest3d_backward_vec =
-    foreign
-      "atg_upsample_nearest3d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_nearest3d_backward_vec_out =
-    foreign
-      "atg_upsample_nearest3d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs_upsample_nearest3d_out =
     foreign
       "atg_upsample_nearest3d_out"
@@ -14780,12 +14581,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
     foreign
       "atg_upsample_nearest3d_vec"
       (ptr t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
-  ;;
-
-  let stubs_upsample_nearest3d_vec_out =
-    foreign
-      "atg_upsample_nearest3d_vec_out"
-      (ptr t @-> t @-> t @-> ptr int64_t @-> int @-> ptr double @-> int @-> returning void)
   ;;
 
   let stubs_upsample_trilinear3d =
@@ -14844,37 +14639,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_upsample_trilinear3d_backward_vec =
-    foreign
-      "atg_upsample_trilinear3d_backward_vec"
-      (ptr t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
-  let stubs_upsample_trilinear3d_backward_vec_out =
-    foreign
-      "atg_upsample_trilinear3d_backward_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs_upsample_trilinear3d_out =
     foreign
       "atg_upsample_trilinear3d_out"
@@ -14906,20 +14670,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_upsample_trilinear3d_vec_out =
-    foreign
-      "atg_upsample_trilinear3d_vec_out"
-      (ptr t
-       @-> t
-       @-> t
-       @-> ptr int64_t
-       @-> int
-       @-> int
-       @-> ptr double
-       @-> int
-       @-> returning void)
-  ;;
-
   let stubs_value_selecting_reduction_backward =
     foreign
       "atg_value_selecting_reduction_backward"
@@ -14938,18 +14688,6 @@ module C24 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_var = foreign "atg_var" (ptr t @-> t @-> int @-> returning void)
-end
-
-module C25 (F : Cstubs.FOREIGN) = struct
-  open F
-
-  type t = unit ptr
-
-  let t : t typ = ptr void
-
-  type scalar = unit ptr
-
-  let scalar : scalar typ = ptr void
 
   let stubs_var_correction =
     foreign
@@ -15087,6 +14825,18 @@ module C25 (F : Cstubs.FOREIGN) = struct
   let stubs_where_scalarself =
     foreign "atg_where_scalarself" (ptr t @-> t @-> scalar @-> t @-> returning void)
   ;;
+end
+
+module C25 (F : Cstubs.FOREIGN) = struct
+  open F
+
+  type t = unit ptr
+
+  let t : t typ = ptr void
+
+  type scalar = unit ptr
+
+  let scalar : scalar typ = ptr void
 
   let stubs_where_self =
     foreign "atg_where_self" (ptr t @-> t @-> t @-> t @-> returning void)
