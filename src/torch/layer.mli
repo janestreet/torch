@@ -60,11 +60,13 @@ val forward_ : t_with_training -> Tensor.t -> is_training:bool -> Tensor.t
 *)
 type activation =
   | Relu
+  | Gelu
   | Softmax
   | Log_softmax
   | Tanh
   | Leaky_relu
   | Sigmoid
+  | Hardsigmoid
 
 (** [linear vs ~input_dim output_dim] returns a linear layer. When using
     [forward], the input tensor has to use a shape of [batch_size * input_dim].
@@ -75,6 +77,43 @@ val linear
   -> ?activation:activation (* default: no activation *)
   -> ?use_bias:bool (* default: true *)
   -> ?w_init:Var_store.Init.t
+  -> input_dim:int
+  -> int
+  -> t
+
+(** [conv1d vs ~ksize ~stride ~input_dim output_dim] returns a 1 dimension
+    convolution layer.  [ksize] specifies the kernel size and [stride] the
+    stride.
+    When using [forward], the input tensor should have a shape
+    [batch_size * input_dim * l] and the returned tensor will have a
+    shape [batch_size * output_dim * l'].
+*)
+val conv1d
+  :  Var_store.t
+  -> ksize:int
+  -> stride:int
+  -> ?activation:activation (* default: no activation *)
+  -> ?use_bias:bool (* default: true *)
+  -> ?w_init:Var_store.Init.t
+  -> ?padding:int
+  -> ?groups:int
+  -> input_dim:int
+  -> int
+  -> t
+
+(** [conv1d_] is similar to [conv1d] but uses the same kernel size,
+    stride, and padding on both the height and width dimensions, so a
+    single integer needs to be specified for these parameters.
+*)
+val conv1d_
+  :  Var_store.t
+  -> ksize:int
+  -> stride:int
+  -> ?activation:activation (* default: no activation *)
+  -> ?use_bias:bool (* default: true *)
+  -> ?w_init:Var_store.Init.t
+  -> ?padding:int
+  -> ?groups:int
   -> input_dim:int
   -> int
   -> t
@@ -116,6 +155,78 @@ val conv2d_
   -> int
   -> t
 
+(** [conv3d vs ~ksize ~stride ~input_dim output_dim] returns a 3 dimension
+    convolution layer.  [ksize] specifies the kernel size and [stride] the
+    stride.
+    When using [forward], the input tensor should have a shape
+    [batch_size * input_dim * h * w * d] and the returned tensor will have a
+    shape [batch_size * output_dim * h' * w' * d'].
+*)
+val conv3d
+  :  Var_store.t
+  -> ksize:int * int * int
+  -> stride:int * int * int
+  -> ?activation:activation (* default: no activation *)
+  -> ?use_bias:bool (* default: true *)
+  -> ?w_init:Var_store.Init.t
+  -> ?padding:int * int * int
+  -> ?groups:int
+  -> input_dim:int
+  -> int
+  -> t
+
+(** [conv3d_] is similar to [conv3d] but uses the same kernel size,
+    stride, and padding on both the height and width dimensions, so a
+    single integer needs to be specified for these parameters.
+*)
+val conv3d_
+  :  Var_store.t
+  -> ksize:int
+  -> stride:int
+  -> ?activation:activation (* default: no activation *)
+  -> ?use_bias:bool (* default: true *)
+  -> ?w_init:Var_store.Init.t
+  -> ?padding:int
+  -> ?groups:int
+  -> input_dim:int
+  -> int
+  -> t
+
+(** [conv_transpose1d] creates a 1D transposed convolution layer, this
+    is sometimes also called 'deconvolution'.
+*)
+val conv_transpose1d
+  :  Var_store.t
+  -> ksize:int
+  -> stride:int
+  -> ?activation:activation (* default: no activation *)
+  -> ?use_bias:bool (* default: true *)
+  -> ?w_init:Var_store.Init.t
+  -> ?padding:int 
+  -> ?output_padding:int
+  -> ?groups:int
+  -> input_dim:int
+  -> int
+  -> t
+
+(** [conv_transpose1d_] is similar to [conv_transpose1d] but uses a single
+    value for the height and width dimension for the kernel size, stride,
+    padding and output padding.
+*)
+val conv_transpose1d_
+  :  Var_store.t
+  -> ksize:int
+  -> stride:int
+  -> ?activation:activation (* default: no activation *)
+  -> ?use_bias:bool (* default: true *)
+  -> ?w_init:Var_store.Init.t
+  -> ?padding:int
+  -> ?output_padding:int
+  -> ?groups:int
+  -> input_dim:int
+  -> int
+  -> t
+
 (** [conv_transpose2d] creates a 2D transposed convolution layer, this
     is sometimes also called 'deconvolution'.
 *)
@@ -151,6 +262,41 @@ val conv_transpose2d_
   -> int
   -> t
 
+(** [conv_transpose3d] creates a 3D transposed convolution layer, this
+    is sometimes also called 'deconvolution'.
+*)
+val conv_transpose3d
+  :  Var_store.t
+  -> ksize:int * int * int 
+  -> stride:int * int * int
+  -> ?activation:activation (* default: no activation *)
+  -> ?use_bias:bool (* default: true *)
+  -> ?w_init:Var_store.Init.t
+  -> ?padding:int * int * int 
+  -> ?output_padding:int * int * int
+  -> ?groups:int
+  -> input_dim:int
+  -> int
+  -> t
+
+(** [conv_transpose3d_] is similar to [conv_transpose3d] but uses a single
+    value for the height and width dimension for the kernel size, stride,
+    padding and output padding.
+*)
+val conv_transpose3d_
+  :  Var_store.t
+  -> ksize:int
+  -> stride:int
+  -> ?activation:activation (* default: no activation *)
+  -> ?use_bias:bool (* default: true *)
+  -> ?w_init:Var_store.Init.t
+  -> ?padding:int
+  -> ?output_padding:int
+  -> ?groups:int
+  -> input_dim:int
+  -> int
+  -> t
+
 (** {3 Normalization } *)
 
 (** [batch_norm2d vs dim] creates a batch norm 2D layer. This layer
@@ -166,7 +312,24 @@ val batch_norm2d
   -> int
   -> t_with_training
 
+(** [layer_norm vs dim] creates a layer norm layer. This layer
+    applies Layer Normalization over a N-Dimensional input
+    [batch_size * num_features]. The returned tensor has the same shape.
+*)
 val layer_norm : Var_store.t -> ?cudnn_enable:bool -> ?eps:float -> int -> t
+
+(** [instance_norm2d vs dim] creates a instance norm 2D layer. This layer
+    applies Instance Normalization over a 4D input
+    [batch_size * dim * h * w]. The returned tensor has the same shape.
+*)
+val instance_norm2d
+  :  Var_store.t
+  -> ?w_init:Var_store.Init.t
+  -> ?cudnn_enabled:bool
+  -> ?eps:float
+  -> ?momentum:float
+  -> int
+  -> t_with_training
 
 (** {3 Recurrent Neural Networks } *)
 
