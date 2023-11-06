@@ -6,3 +6,4 @@ type t =
 
 val to_int : t -> int
 val of_int : int -> t
+val option_to_int : t option -> int

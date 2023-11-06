@@ -30,11 +30,18 @@ c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(torch::Tensor **vs,
   return c10::List<c10::optional<torch::Tensor>>(result);
 }
 
-at::Device device_of_int(int d) {
-  if (d < 0)
-    return at::Device(at::kCPU);
-  return at::Device(at::kCUDA, /*index=*/d);
+c10::optional<at::Device> optional_device_of_int(int d) {
+  if (d == -2)
+    return c10::optional<at::Device>();
+  else if (d == -1)
+    return c10::optional<at::Device>(at::Device(at::kCPU));
+  else if (d >= 0)
+    return c10::optional<at::Device>(at::Device(at::kCUDA, /*index=*/d));
+  else
+    throw std::invalid_argument("unknown device index");
 }
+
+at::Device device_of_int(int d) { return optional_device_of_int(d).value(); }
 
 tensor at_new_tensor() {
   PROTECT(return new torch::Tensor();)
@@ -544,14 +551,16 @@ void atc_set_benchmark_cudnn(int b) {
   at::globalContext().setBenchmarkCuDNN(b);
 }
 
-module atm_load(char *filename) {
-  PROTECT(return new torch::jit::script::Module(torch::jit::load(filename));)
+module atm_load(char *filename, int device) {
+  PROTECT(return new torch::jit::script::Module(torch::jit::load(
+      filename, optional_device_of_int(device)));)
   return nullptr;
 }
 
-module atm_load_str(char *data, size_t sz) {
+module atm_load_str(char *data, size_t sz, int device) {
   PROTECT(std::istringstream stream(std::string(data, sz));
-          return new torch::jit::script::Module(torch::jit::load(stream));)
+          return new torch::jit::script::Module(
+              torch::jit::load(stream, optional_device_of_int(device)));)
   return nullptr;
 }
 

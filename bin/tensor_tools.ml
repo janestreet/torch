@@ -77,6 +77,15 @@ let pytorch_to_npz pytorch_src npz_dst =
   Npy.Npz.close_out npz_file
 ;;
 
+let load_and_run_dummy_module device =
+  let device = Torch.Device.of_string device in
+  let n = 10000 in
+  let module_ = Torch.Module.load ~device "dummy.pt" in
+  let input = Torch.Tensor.ones ~device [ n; n ] in
+  let _output = Torch.Module.forward module_ [ input ] in
+  ()
+;;
+
 let () =
   let open Cmdliner in
   let ls_cmd =
@@ -146,13 +155,30 @@ let () =
     ( Term.(const pytorch_to_npz $ pytorch_src $ npz_dst)
     , Cmd.info "pytorch-to-npz" ~sdocs:"" ~doc ~man )
   in
+  let load_module_command =
+    let device =
+      Arg.(
+        required
+        & pos 0 (some string) None
+        & info [] ~docv:"DEVICE" ~doc:"which device to run on")
+    in
+    let doc =
+      "load a dummy.pt (from save_dummy_model.py) module on a specific device and run it"
+    in
+    Term.(const load_and_run_dummy_module $ device), Cmd.info "load-module" ~doc
+  in
   let default_cmd = Term.(ret (const (`Help (`Pager, None)))) in
   let info =
     let doc = "tools for Npz tools and PyTorch archives" in
     Cmd.info "tensor_tools" ~version:"0.0.1" ~sdocs:"" ~doc
   in
   let cmds =
-    [ ls_cmd; npz_to_pytorch_cmd; pytorch_to_npz_cmd; image_to_tensor ]
+    [ ls_cmd
+    ; npz_to_pytorch_cmd
+    ; pytorch_to_npz_cmd
+    ; image_to_tensor
+    ; load_module_command
+    ]
     |> List.map ~f:(fun (cmd, info) -> Cmd.v info cmd)
   in
   let main_cmd = Cmd.group info ~default:default_cmd cmds in

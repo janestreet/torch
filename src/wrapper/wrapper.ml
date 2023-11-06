@@ -511,14 +511,14 @@ module Module = struct
     List.combine names tensors |> Base.Map.of_alist_exn (module Base.String)
   ;;
 
-  let load filename =
-    let m = load filename in
+  let load ?device filename =
+    let m = load filename (Device.option_to_int device) in
     Gc.finalise free m;
     m
   ;;
 
-  let load_str str =
-    let m = load_str str (String.length str) in
+  let load_str ?device str =
+    let m = load_str str (String.length str) (Device.option_to_int device) in
     Gc.finalise free m;
     m
   ;;

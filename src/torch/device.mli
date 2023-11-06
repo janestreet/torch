@@ -3,6 +3,7 @@ type t = Torch_core.Device.t =
   | Cuda of int
 [@@deriving bin_io, sexp]
 
+val of_string : string -> t
 val cuda_if_available : unit -> t
 val is_cuda : t -> bool
 val get_num_threads : unit -> int
