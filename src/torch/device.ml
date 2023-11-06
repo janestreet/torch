@@ -5,6 +5,13 @@ type t = Torch_core.Device.t =
   | Cuda of int
 [@@deriving bin_io, sexp]
 
+let of_string device =
+  match String.split device ~on:':' with
+  | [ "cpu" ] -> Cpu
+  | [ "cuda"; x ] -> Cuda (Int.of_string x)
+  | _ -> raise_s [%message "cannot parse device" (device : string)]
+;;
+
 let cuda_if_available () = if Cuda.is_available () then Cuda 0 else Cpu
 
 let is_cuda = function

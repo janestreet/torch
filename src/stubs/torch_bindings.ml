@@ -253,8 +253,8 @@ module C (F : Cstubs.FOREIGN) = struct
     type t = unit ptr
 
     let t : t typ = ptr void
-    let load = foreign "atm_load" (string @-> returning t)
-    let load_str = foreign "atm_load_str" (string @-> int @-> returning t)
+    let load = foreign "atm_load" (string @-> int @-> returning t)
+    let load_str = foreign "atm_load_str" (string @-> int @-> int @-> returning t)
     let forward = foreign "atm_forward" (t @-> ptr Tensor.t @-> int @-> returning Tensor.t)
 
     let forward_ =
