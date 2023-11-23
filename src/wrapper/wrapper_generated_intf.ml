@@ -107,14 +107,6 @@ module type S = sig
   val _cdist_backward_out : out:t -> grad:t -> x1:t -> x2:t -> p:float -> cdist:t -> t
   val _cholesky_solve_helper : t -> a:t -> upper:bool -> t
   val _cholesky_solve_helper_out : out:t -> t -> a:t -> upper:bool -> t
-
-  val _chunk_grad_outputs_efficient_attention
-    :  query:t
-    -> key:t
-    -> value:t
-    -> is_causal:bool
-    -> bool
-
   val _coalesce : t -> t
   val _coalesce_out : out:t -> t -> t
   val _coalesced : t -> coalesced:bool -> t
@@ -229,6 +221,14 @@ module type S = sig
   val _copy_from_and_resize : t -> dst:t -> t
   val _copy_from_and_resize_out : out:t -> t -> dst:t -> t
   val _copy_from_out : out:t -> t -> dst:t -> non_blocking:bool -> t
+  val _cslt_compress : t -> t
+
+  val _cslt_sparse_mm
+    :  compressed_a:t
+    -> dense_b:t
+    -> bias:t option
+    -> transpose_result:bool
+    -> t
 
   val _ctc_loss
     :  log_probs:t
@@ -421,8 +421,6 @@ module type S = sig
     -> dropout_state:t option
     -> t * t * t * t * t
 
-  val _cufft_get_plan_cache_max_size : device_index:int -> int64
-  val _cufft_get_plan_cache_size : device_index:int -> int64
   val _debug_has_internal_overlap : t -> int64
   val _dim_arange : like:t -> dim:int -> t
   val _dimi : t -> int64
@@ -435,11 +433,21 @@ module type S = sig
     -> query:t
     -> key:t
     -> value:t
+    -> bias:t option
     -> out:t
+    -> cu_seqlens_q:t option
+    -> cu_seqlens_k:t option
+    -> max_seqlen_k:int
+    -> max_seqlen_q:int
     -> logsumexp:t
-    -> is_causal:bool
-    -> chunk_grad_outputs:bool
-    -> t * t * t
+    -> dropout_p:float
+    -> philox_seed:t
+    -> philox_offset:t
+    -> custom_mask_type:int
+    -> bias_requires_grad:bool
+    -> scale:float option
+    -> num_splits_key:int option
+    -> t * t * t * t
 
   val _efficientzerotensor : size:int list -> options:Kind.packed * Device.t -> t
   val _efficientzerotensor_out : out:t -> size:int list -> t
@@ -704,6 +712,7 @@ module type S = sig
 
   val _fft_r2c : t -> dim:int list -> normalization:int -> onesided:bool -> t
   val _fft_r2c_out : out:t -> t -> dim:int list -> normalization:int -> onesided:bool -> t
+  val _fill_mem_eff_dropout_mask_ : t -> dropout_p:float -> seed:int -> offset:int -> t
 
   val _flash_attention_backward
     :  grad_out:t
@@ -718,12 +727,28 @@ module type S = sig
     -> max_k:int
     -> dropout_p:float
     -> is_causal:bool
-    -> philox_seed:int
-    -> philox_offset:int
+    -> philox_seed:t
+    -> philox_offset:t
+    -> scale:float option
     -> t * t * t
 
   val _foobar : t -> arg1:bool -> arg2:bool -> arg3:bool -> t
   val _foobar_out : out:t -> t -> arg1:bool -> arg2:bool -> arg3:bool -> t
+  val _functional_assert_async : t -> assert_msg:string -> dep_token:t -> t
+
+  val _functional_sym_constrain_range
+    :  size:'a scalar
+    -> min:int option
+    -> max:int option
+    -> dep_token:t
+    -> t
+
+  val _functional_sym_constrain_range_for_size
+    :  size:'a scalar
+    -> min:int option
+    -> max:int option
+    -> dep_token:t
+    -> t
 
   val _fused_adam
     :  out:t list
@@ -762,6 +787,43 @@ module type S = sig
     -> found_inf:t option
     -> unit
 
+  val _fused_adam_tensor_lr_
+    :  t list
+    -> grads:t list
+    -> exp_avgs:t list
+    -> exp_avg_sqs:t list
+    -> max_exp_avg_sqs:t list
+    -> state_steps:t list
+    -> lr:t
+    -> beta1:float
+    -> beta2:float
+    -> weight_decay:float
+    -> eps:float
+    -> amsgrad:bool
+    -> maximize:bool
+    -> grad_scale:t option
+    -> found_inf:t option
+    -> unit
+
+  val _fused_adam_tensor_lr_out
+    :  out:t list
+    -> t list
+    -> grads:t list
+    -> exp_avgs:t list
+    -> exp_avg_sqs:t list
+    -> max_exp_avg_sqs:t list
+    -> state_steps:t list
+    -> lr:t
+    -> beta1:float
+    -> beta2:float
+    -> weight_decay:float
+    -> eps:float
+    -> amsgrad:bool
+    -> maximize:bool
+    -> grad_scale:t option
+    -> found_inf:t option
+    -> unit
+
   val _fused_adamw
     :  out:t list
     -> t list
@@ -789,6 +851,43 @@ module type S = sig
     -> max_exp_avg_sqs:t list
     -> state_steps:t list
     -> lr:float
+    -> beta1:float
+    -> beta2:float
+    -> weight_decay:float
+    -> eps:float
+    -> amsgrad:bool
+    -> maximize:bool
+    -> grad_scale:t option
+    -> found_inf:t option
+    -> unit
+
+  val _fused_adamw_tensor_lr_
+    :  t list
+    -> grads:t list
+    -> exp_avgs:t list
+    -> exp_avg_sqs:t list
+    -> max_exp_avg_sqs:t list
+    -> state_steps:t list
+    -> lr:t
+    -> beta1:float
+    -> beta2:float
+    -> weight_decay:float
+    -> eps:float
+    -> amsgrad:bool
+    -> maximize:bool
+    -> grad_scale:t option
+    -> found_inf:t option
+    -> unit
+
+  val _fused_adamw_tensor_lr_out
+    :  out:t list
+    -> t list
+    -> grads:t list
+    -> exp_avgs:t list
+    -> exp_avg_sqs:t list
+    -> max_exp_avg_sqs:t list
+    -> state_steps:t list
+    -> lr:t
     -> beta1:float
     -> beta2:float
     -> weight_decay:float
@@ -859,6 +958,7 @@ module type S = sig
     -> attn_mask:t option
     -> dropout_p:float
     -> is_causal:bool
+    -> scale:float option
     -> int64
 
   val _fw_primal : t -> level:int -> t
@@ -972,6 +1072,8 @@ module type S = sig
   val _indices : t -> t
   val _indices_copy : t -> t
   val _indices_copy_out : out:t -> t -> t
+  val _int_mm : t -> mat2:t -> t
+  val _int_mm_out : out:t -> t -> mat2:t -> t
   val _is_all_true : t -> t
   val _is_any_true : t -> t
   val _is_zerotensor : t -> bool
@@ -1080,6 +1182,7 @@ module type S = sig
     -> t * t * t * t * t * t
 
   val _lu_with_info : t -> pivot:bool -> check_errors:bool -> t * t * t
+  val _make_dep_token : options:Kind.packed * Device.t -> t
   val _make_dual : primal:t -> tangent:t -> level:int -> t
   val _make_dual_copy : primal:t -> tangent:t -> level:int -> t
   val _make_dual_copy_out : out:t -> primal:t -> tangent:t -> level:int -> t
@@ -1220,6 +1323,29 @@ module type S = sig
     -> eps:float
     -> t * t * t
 
+  val _native_batch_norm_legit_no_training
+    :  t
+    -> weight:t option
+    -> bias:t option
+    -> running_mean:t
+    -> running_var:t
+    -> momentum:float
+    -> eps:float
+    -> t * t * t
+
+  val _native_batch_norm_legit_no_training_out
+    :  out0:t
+    -> out1:t
+    -> out2:t
+    -> t
+    -> weight:t option
+    -> bias:t option
+    -> running_mean:t
+    -> running_var:t
+    -> momentum:float
+    -> eps:float
+    -> t * t * t
+
   val _native_batch_norm_legit_out
     :  out:t
     -> save_mean:t
@@ -1233,44 +1359,6 @@ module type S = sig
     -> momentum:float
     -> eps:float
     -> t * t * t
-
-  val _native_decoder_only_multi_head_attention
-    :  query:t
-    -> key:t
-    -> value:t
-    -> embed_dim:int
-    -> num_head:int
-    -> qkv_weight:t
-    -> qkv_bias:t
-    -> proj_weight:t
-    -> proj_bias:t
-    -> mask:t option
-    -> incr_key:t option
-    -> incr_value:t option
-    -> need_weights:bool
-    -> average_attn_weights:bool
-    -> t * t * t * t
-
-  val _native_decoder_only_multi_head_attention_out
-    :  out0:t
-    -> out1:t
-    -> out2:t
-    -> out3:t
-    -> query:t
-    -> key:t
-    -> value:t
-    -> embed_dim:int
-    -> num_head:int
-    -> qkv_weight:t
-    -> qkv_bias:t
-    -> proj_weight:t
-    -> proj_bias:t
-    -> mask:t option
-    -> incr_key:t option
-    -> incr_value:t option
-    -> need_weights:bool
-    -> average_attn_weights:bool
-    -> t * t * t * t
 
   val _native_multi_head_attention
     :  query:t
@@ -1328,19 +1416,13 @@ module type S = sig
 
   val _nested_select_backward : grad_output:t -> t -> dim:int -> index:int -> t
   val _nested_sum_backward : grad:t -> t -> dim:int list option -> keepdim:bool -> t
-
-  val _nested_view_from_buffer
-    :  t
-    -> nested_size:t
-    -> nested_strides:t
-    -> offsets:int list
-    -> t
+  val _nested_view_from_buffer : t -> nested_size:t -> nested_strides:t -> offsets:t -> t
 
   val _nested_view_from_buffer_copy
     :  t
     -> nested_size:t
     -> nested_strides:t
-    -> offsets:int list
+    -> offsets:t
     -> t
 
   val _nested_view_from_buffer_copy_out
@@ -1348,7 +1430,7 @@ module type S = sig
     -> t
     -> nested_size:t
     -> nested_strides:t
-    -> offsets:int list
+    -> offsets:t
     -> t
 
   val _new_zeros_with_same_feature_meta : t -> t -> self_num_batch_dims:int -> t
@@ -1414,6 +1496,7 @@ module type S = sig
   val _pin_memory_out : out:t -> t -> device:Device.t -> t
   val _prelu_kernel : t -> weight:t -> t
   val _prelu_kernel_backward : grad_output:t -> t -> weight:t -> t * t
+  val _propagate_xla_data : t -> output:t -> unit
   val _remove_batch_dim : t -> level:int -> batch_size:int -> out_dim:int -> t
   val _reshape_alias : t -> size:int list -> stride:int list -> t
   val _reshape_alias_copy : t -> size:int list -> stride:int list -> t
@@ -1428,16 +1511,6 @@ module type S = sig
   val _sample_dirichlet_out : out:t -> t -> t
   val _saturate_weight_to_fp16 : weight:t -> t
 
-  val _scaled_dot_product_attention
-    :  query:t
-    -> key:t
-    -> value:t
-    -> attn_mask:t option
-    -> dropout_p:float
-    -> need_attn_weights:bool
-    -> is_causal:bool
-    -> t * t
-
   val _scaled_dot_product_attention_math
     :  query:t
     -> key:t
@@ -1446,26 +1519,19 @@ module type S = sig
     -> dropout_p:float
     -> is_causal:bool
     -> dropout_mask:t option
+    -> scale:float option
     -> t * t
 
   val _scaled_dot_product_efficient_attention
     :  query:t
     -> key:t
     -> value:t
+    -> attn_bias:t option
     -> compute_log_sumexp:bool
+    -> dropout_p:float
     -> is_causal:bool
-    -> t * t
-
-  val _scaled_dot_product_efficient_attention_backward
-    :  grad_out_:t
-    -> query:t
-    -> key:t
-    -> value:t
-    -> out:t
-    -> logsumexp:t
-    -> is_causal:bool
-    -> chunk_grad_outputs:bool
-    -> t * t * t
+    -> scale:float option
+    -> t * t * t * t
 
   val _scaled_dot_product_flash_attention_backward
     :  grad_out:t
@@ -1480,9 +1546,32 @@ module type S = sig
     -> max_k:int
     -> dropout_p:float
     -> is_causal:bool
-    -> philox_seed:int
-    -> philox_offset:int
+    -> philox_seed:t
+    -> philox_offset:t
+    -> scale:float option
     -> t * t * t
+
+  val _scaled_mm
+    :  t
+    -> mat2:t
+    -> bias:t option
+    -> out_dtype:Kind.packed
+    -> scale_a:t option
+    -> scale_b:t option
+    -> scale_result:t option
+    -> t * t
+
+  val _scaled_mm_out
+    :  out:t
+    -> out_amax:t
+    -> t
+    -> mat2:t
+    -> bias:t option
+    -> out_dtype:Kind.packed
+    -> scale_a:t option
+    -> scale_b:t option
+    -> scale_result:t option
+    -> t * t
 
   val _scatter_reduce
     :  t
@@ -1621,6 +1710,7 @@ module type S = sig
     -> values:t
     -> size:int list
     -> options:Kind.packed * Device.t
+    -> is_coalesced:bool
     -> t
 
   val _sparse_coo_tensor_with_dims
@@ -1637,6 +1727,7 @@ module type S = sig
     -> indices:t
     -> values:t
     -> options:Kind.packed * Device.t
+    -> is_coalesced:bool
     -> t
 
   val _sparse_coo_tensor_with_dims_and_tensors_out
@@ -1646,6 +1737,7 @@ module type S = sig
     -> size:int list
     -> indices:t
     -> values:t
+    -> is_coalesced:bool
     -> t
 
   val _sparse_coo_tensor_with_dims_out
@@ -1704,9 +1796,20 @@ module type S = sig
 
   val _sparse_log_softmax_int : t -> dim:int -> dtype:Kind.packed -> t
   val _sparse_log_softmax_out : out:t -> t -> dim:int -> half_to_float:bool -> t
+  val _sparse_mask_projection : t -> mask:t -> accumulate_matches:bool -> t
+  val _sparse_mask_projection_out : out:t -> t -> mask:t -> accumulate_matches:bool -> t
   val _sparse_mm : sparse:t -> dense:t -> t
   val _sparse_mm_reduce : sparse:t -> dense:t -> reduce:string -> t
   val _sparse_mm_reduce_impl : t -> t -> reduce:string -> t * t
+
+  val _sparse_semi_structured_linear
+    :  t
+    -> weight:t
+    -> meta:t
+    -> bias:t option
+    -> activation:string
+    -> t
+
   val _sparse_softmax : t -> dim:int -> half_to_float:bool -> t
   val _sparse_softmax_backward_data : grad_output:t -> output:t -> dim:int -> t -> t
 
@@ -1746,6 +1849,8 @@ module type S = sig
   val _test_autograd_multiple_dispatch_view_copy : t -> t
   val _test_autograd_multiple_dispatch_view_copy_out : out:t -> t -> t
   val _test_check_tensor : t -> t
+  val _test_functorch_fallback : t -> t -> t
+  val _test_functorch_fallback_out : out:t -> t -> t -> t
   val _test_optional_filled_intlist : values:t -> addends:int list option -> t
 
   val _test_optional_filled_intlist_out
@@ -1870,8 +1975,17 @@ module type S = sig
   val _to_copy : t -> options:Kind.packed * Device.t -> non_blocking:bool -> t
   val _to_copy_out : out:t -> t -> non_blocking:bool -> t
   val _to_cpu : t list -> t list
-  val _to_dense : t -> dtype:Kind.packed -> t
-  val _to_dense_out : out:t -> t -> dtype:Kind.packed -> t
+  val _to_dense : t -> dtype:Kind.packed -> masked_grad:bool -> t
+  val _to_dense_out : out:t -> t -> dtype:Kind.packed -> masked_grad:bool -> t
+  val _to_sparse_bsc : t -> blocksize:int list -> dense_dim:int option -> t
+  val _to_sparse_bsc_out : out:t -> t -> blocksize:int list -> dense_dim:int option -> t
+  val _to_sparse_bsr : t -> blocksize:int list -> dense_dim:int option -> t
+  val _to_sparse_bsr_out : out:t -> t -> blocksize:int list -> dense_dim:int option -> t
+  val _to_sparse_csc : t -> dense_dim:int option -> t
+  val _to_sparse_csc_out : out:t -> t -> dense_dim:int option -> t
+  val _to_sparse_csr : t -> dense_dim:int option -> t
+  val _to_sparse_csr_out : out:t -> t -> dense_dim:int option -> t
+  val _to_sparse_semi_structured : dense:t -> t * t
   val _transform_bias_rescale_qkv : qkv:t -> qkv_bias:t -> num_heads:int -> t * t * t
 
   val _transform_bias_rescale_qkv_out
@@ -1881,57 +1995,6 @@ module type S = sig
     -> qkv:t
     -> qkv_bias:t
     -> num_heads:int
-    -> t * t * t
-
-  val _transformer_decoder_only_layer_fwd
-    :  src:t
-    -> embed_dim:int
-    -> num_heads:int
-    -> qkv_weight:t
-    -> qkv_bias:t
-    -> proj_weight:t
-    -> proj_bias:t
-    -> use_gelu:bool
-    -> norm_first:bool
-    -> eps:float
-    -> norm_weight_1:t
-    -> norm_bias_1:t
-    -> norm_weight_2:t
-    -> norm_bias_2:t
-    -> ffn_weight_1:t
-    -> ffn_bias_1:t
-    -> ffn_weight_2:t
-    -> ffn_bias_2:t
-    -> mask:t option
-    -> incr_key:t option
-    -> incr_value:t option
-    -> t * t * t
-
-  val _transformer_decoder_only_layer_fwd_out
-    :  out0:t
-    -> out1:t
-    -> out2:t
-    -> src:t
-    -> embed_dim:int
-    -> num_heads:int
-    -> qkv_weight:t
-    -> qkv_bias:t
-    -> proj_weight:t
-    -> proj_bias:t
-    -> use_gelu:bool
-    -> norm_first:bool
-    -> eps:float
-    -> norm_weight_1:t
-    -> norm_bias_1:t
-    -> norm_weight_2:t
-    -> norm_bias_2:t
-    -> ffn_weight_1:t
-    -> ffn_bias_1:t
-    -> ffn_weight_2:t
-    -> ffn_bias_2:t
-    -> mask:t option
-    -> incr_key:t option
-    -> incr_value:t option
     -> t * t * t
 
   val _transformer_encoder_layer_fwd
@@ -2062,6 +2125,8 @@ module type S = sig
 
   val _unique_out : out0:t -> out1:t -> t -> sorted:bool -> return_inverse:bool -> t * t
   val _unpack_dual : dual:t -> level:int -> t * t
+  val _unsafe_index : t -> indices:t option list -> t
+  val _unsafe_index_put : t -> indices:t option list -> values:t -> accumulate:bool -> t
   val _unsafe_view : t -> size:int list -> t
   val _unsafe_view_out : out:t -> t -> size:int list -> t
 
@@ -2679,8 +2744,8 @@ module type S = sig
     -> mean:t
     -> invstd:t
     -> weight:t option
-    -> mean_dy:t
-    -> mean_dy_xmu:t
+    -> sum_dy:t
+    -> sum_dy_xmu:t
     -> count:t
     -> t
 
@@ -2691,8 +2756,8 @@ module type S = sig
     -> mean:t
     -> invstd:t
     -> weight:t option
-    -> mean_dy:t
-    -> mean_dy_xmu:t
+    -> sum_dy:t
+    -> sum_dy_xmu:t
     -> count:t
     -> t
 
@@ -3703,6 +3768,14 @@ module type S = sig
   val empty_like : t -> t
   val empty_like_out : out:t -> t -> t
   val empty_out : out:t -> size:int list -> t
+
+  val empty_permuted
+    :  size:int list
+    -> physical_layout:int list
+    -> options:Kind.packed * Device.t
+    -> t
+
+  val empty_permuted_out : out:t -> size:int list -> physical_layout:int list -> t
   val empty_quantized : size:int list -> qtensor:t -> options:Kind.packed * Device.t -> t
   val empty_quantized_out : out:t -> size:int list -> qtensor:t -> t
 
@@ -5004,7 +5077,7 @@ module type S = sig
     :  out0:t
     -> out1:t list
     -> out2:t list
-    -> grad_y:t
+    -> grad_y:t option
     -> grad_hy:t option
     -> grad_cy:t option
     -> z_state:t
@@ -5269,6 +5342,7 @@ module type S = sig
   val min_dim_min : min:t -> min_indices:t -> t -> dim:int -> keepdim:bool -> t * t
   val min_other : t -> t -> t
   val min_out : out:t -> t -> t -> t
+  val min_unary_out : out:t -> t -> t
   val minimum : t -> t -> t
   val minimum_out : out:t -> t -> t -> t
 
@@ -6140,6 +6214,8 @@ module type S = sig
   val nonzero : t -> t
   val nonzero_numpy : t -> t list
   val nonzero_out : out:t -> t -> t
+  val nonzero_static : t -> size:int -> fill_value:int -> t
+  val nonzero_static_out : out:t -> t -> size:int -> fill_value:int -> t
   val norm : t -> t
 
   val norm_dtype_out
@@ -6426,6 +6502,25 @@ module type S = sig
     -> t
 
   val quantized_max_pool2d_out
+    :  out:t
+    -> t
+    -> kernel_size:int list
+    -> stride:int list
+    -> padding:int list
+    -> dilation:int list
+    -> ceil_mode:bool
+    -> t
+
+  val quantized_max_pool3d
+    :  t
+    -> kernel_size:int list
+    -> stride:int list
+    -> padding:int list
+    -> dilation:int list
+    -> ceil_mode:bool
+    -> t
+
+  val quantized_max_pool3d_out
     :  out:t
     -> t
     -> kernel_size:int list
@@ -6749,6 +6844,7 @@ module type S = sig
     -> attn_mask:t option
     -> dropout_p:float
     -> is_causal:bool
+    -> scale:float option
     -> t
 
   val scatter : t -> dim:int -> index:t -> src:t -> t
@@ -7207,6 +7303,7 @@ module type S = sig
     :  indices:t
     -> values:t
     -> options:Kind.packed * Device.t
+    -> is_coalesced:bool
     -> t
 
   val sparse_coo_tensor_indices_size
@@ -7214,6 +7311,7 @@ module type S = sig
     -> values:t
     -> size:int list
     -> options:Kind.packed * Device.t
+    -> is_coalesced:bool
     -> t
 
   val sparse_coo_tensor_size_out : out:t -> size:int list -> t
@@ -7539,7 +7637,7 @@ module type S = sig
   val std_correction
     :  t
     -> dim:int list option
-    -> correction:int option
+    -> correction:'a scalar
     -> keepdim:bool
     -> t
 
@@ -7547,7 +7645,7 @@ module type S = sig
     :  out:t
     -> t
     -> dim:int list option
-    -> correction:int option
+    -> correction:'a scalar
     -> keepdim:bool
     -> t
 
@@ -7557,7 +7655,7 @@ module type S = sig
   val std_mean_correction
     :  t
     -> dim:int list option
-    -> correction:int option
+    -> correction:'a scalar
     -> keepdim:bool
     -> t * t
 
@@ -7566,7 +7664,7 @@ module type S = sig
     -> out1:t
     -> t
     -> dim:int list option
-    -> correction:int option
+    -> correction:'a scalar
     -> keepdim:bool
     -> t * t
 
@@ -7669,8 +7767,8 @@ module type S = sig
   val threshold_out : out:t -> t -> threshold:'a scalar -> value:'a scalar -> t
   val tile : t -> dims:int list -> t
   val to_ : t -> device:Device.t -> t
-  val to_dense : t -> dtype:Kind.packed -> t
-  val to_dense_backward : grad:t -> t -> t
+  val to_dense : t -> dtype:Kind.packed -> masked_grad:bool -> t
+  val to_dense_backward : grad:t -> t -> masked_grad:bool -> t
 
   val to_device
     :  t
@@ -8189,7 +8287,7 @@ module type S = sig
   val var_correction
     :  t
     -> dim:int list option
-    -> correction:int option
+    -> correction:'a scalar
     -> keepdim:bool
     -> t
 
@@ -8197,7 +8295,7 @@ module type S = sig
     :  out:t
     -> t
     -> dim:int list option
-    -> correction:int option
+    -> correction:'a scalar
     -> keepdim:bool
     -> t
 
@@ -8207,7 +8305,7 @@ module type S = sig
   val var_mean_correction
     :  t
     -> dim:int list option
-    -> correction:int option
+    -> correction:'a scalar
     -> keepdim:bool
     -> t * t
 
@@ -8216,7 +8314,7 @@ module type S = sig
     -> out1:t
     -> t
     -> dim:int list option
-    -> correction:int option
+    -> correction:'a scalar
     -> keepdim:bool
     -> t * t
 

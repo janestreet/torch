@@ -1,8 +1,7 @@
 (library (name torch_core) (public_name torch.core) (c_names torch_stubs)
  (c_library_flags :standard -lstdc++ (:include c_library_flags.sexp))
- (cxx_names torch_api) (cxx_flags -std=c++14 -fPIC (:include cxx_flags.sexp))
- (libraries bigarray ctypes.foreign ctypes.stubs ctypes)
- (preprocess (pps ppx_jane)))
+ (cxx_names torch_api) (cxx_flags -std=c++17 -fPIC (:include cxx_flags.sexp))
+ (libraries ctypes.foreign ctypes.stubs ctypes) (preprocess (pps ppx_jane)))
 
 (rule (targets cxx_flags.sexp c_library_flags.sexp)
  (deps ../config/discover.exe) (action (bash %{deps})))
