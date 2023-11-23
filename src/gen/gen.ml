@@ -44,6 +44,8 @@ let excluded_functions =
     ; "bernoulli_out"
     ; "nested_tensor"
     ; "arange_out"
+    ; "_to_sparse"
+    ; "_to_sparse_out"
     ; "to_sparse_out"
     ; "to_sparse_csr_out"
     ; "to_sparse_csc_out"
@@ -71,7 +73,7 @@ let no_tensor_options =
 ;;
 
 let excluded_prefixes =
-  [ "thnn_"; "th_"; "_foreach"; "_amp_foreach"; "linalg_norm"; "_nested_tensor" ]
+  [ "thnn_"; "th_"; "_foreach"; "_amp_foreach"; "linalg_norm"; "_nested_tensor"; "sym_" ]
 ;;
 
 let excluded_suffixes = [ "_forward"; "_forward_out" ]
@@ -698,7 +700,7 @@ let run ~yaml_filename ~cpp_filename ~stubs_filename ~wrapper_filename =
 
 let () =
   run
-    ~yaml_filename:"third_party/pytorch/Declarations-v2.0.0.yaml"
+    ~yaml_filename:"third_party/pytorch/Declarations-v2.1.0.yaml"
     ~cpp_filename:"src/wrapper/torch_api_generated"
     ~stubs_filename:"src/stubs/torch_bindings_generated.ml"
     ~wrapper_filename:"src/wrapper/wrapper_generated"
