@@ -212,3 +212,22 @@ let%expect_test _ =
   [%expect {|
     (20 10) |}]
 ;;
+
+let%expect_test "argmax" =
+  let t = Tensor.of_float2 [| [| 10.; 20.; 40. |]; [| 60.; 50.; 30. |] |] in
+  let along_dim0 = Tensor.argmax t ~dim:0 in
+  Stdio.printf !"%{sexp: int array}\n" (Tensor.to_int1_exn along_dim0);
+  [%expect {|(1 1 0)|}];
+  let along_dim1 = Tensor.argmax t ~dim:1 in
+  Stdio.printf !"%{sexp: int array}\n" (Tensor.to_int1_exn along_dim1);
+  [%expect {|(2 0)|}]
+;;
+
+let%expect_test "nan_to_num" =
+  let t = Tensor.of_float1 [| Float.nan; Float.infinity; Float.neg_infinity; 4.0 |] in
+  let with_nans_replaced =
+    Tensor.nan_to_num ~nan:(Some 1.0) ~posinf:(Some 2.0) ~neginf:(Some 3.0) t
+  in
+  Stdio.printf !"%{sexp: float array}\n" (Tensor.to_float1_exn with_nans_replaced);
+  [%expect {| (1 2 3 4) |}]
+;;

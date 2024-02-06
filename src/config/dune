@@ -1,2 +1,6 @@
-(executables (names discover) (libraries base dune-configurator)
- (preprocess (pps ppx_jane)))
+(executables
+ (modes byte exe)
+ (names discover)
+ (libraries base dune-configurator)
+ (preprocess
+  (pps ppx_jane)))

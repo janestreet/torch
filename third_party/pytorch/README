@@ -1,3 +1,4 @@
-The Declarations-B.yaml files included in this directory have been obtained
-by compiling PyTorch from source using the code in branch B from the official
-GitHub repo: https://github.com/pytorch/pytorch
+Populate this directory with Declarations-$VERSION.yaml files to be used by
+gen.exe. Declarations files can be obtained by compiling PyTorch from source
+using the branch for $VERSION from the official GitHub repo:
+https://github.com/pytorch/pytorch

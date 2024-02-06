@@ -1,2 +1,5 @@
-(library (name torch_tests) (libraries unix sexplib stdio torch torch_vision)
- (preprocess (pps ppx_jane)))
+(library
+ (name torch_tests)
+ (libraries unix sexplib stdio torch torch_vision)
+ (preprocess
+  (pps ppx_jane)))
