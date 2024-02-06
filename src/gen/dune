@@ -1,2 +1,6 @@
-(executables (names gen) (libraries base stdio yaml)
- (preprocess (pps ppx_string)))
+(executables
+ (modes byte exe)
+ (names gen)
+ (libraries base stdio yaml)
+ (preprocess
+  (pps ppx_string)))

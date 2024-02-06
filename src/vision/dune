@@ -1,5 +1,11 @@
-(library (name torch_vision) (public_name torch.vision)
- (c_names ml_stb_image ml_stb_image_resize ml_stb_image_write)
- (c_flags :standard -Wno-unused-parameter -Wno-unused-variable
-  -Wno-type-limits -Wno-maybe-uninitialized)
- (libraries base stdio torch_core torch) (preprocess (pps ppx_jane)))
+(library
+ (foreign_stubs
+  (language c)
+  (names ml_stb_image ml_stb_image_resize ml_stb_image_write)
+  (flags :standard -Wno-unused-parameter -Wno-unused-variable
+    -Wno-type-limits -Wno-maybe-uninitialized))
+ (name torch_vision)
+ (public_name torch.vision)
+ (libraries base stdio torch_core torch)
+ (preprocess
+  (pps ppx_jane)))

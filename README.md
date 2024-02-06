@@ -5,14 +5,14 @@ differentiation.
 
 These bindings use the [PyTorch C++ API](https://pytorch.org/cppdocs/) and are
 mostly automatically generated.
-The current GitHub tip corresponds to PyTorch **v2.0**.
+The current GitHub tip corresponds to PyTorch **v2.1**.
 
 ## Installation with Libtorch
 
-Torch depends on libtorch, so when you opam install this package, it will try linking to
+Torch depends on libtorch, so when you install this package, it will try linking to
 libtorch depending on your environment variables.
 The code for discovering libtorch is in `src/config/discover.ml`.
-In order to change how torch binds to libtorch, you must uninstall and reinstall libtorch.
+In order to change how torch binds to libtorch, you must uninstall and reinstall torch.
 
 To install with any of these methods, after configuring your environment, you may either
 
@@ -24,13 +24,11 @@ cd torch
 make all
 ```
 
-On Linux note that you will need the libtorch version using the appropriate cxx11
-abi depending on your g++ version.
-
 ### Option 1: OPAM switch (CPU only)
 
-The [opam](https://opam.ocaml.org/) libtorch package (an optional dependency) can be installed, and torch will automatically detect it and build with it.
-However, it might not suit your needs if you use any of these:
+The [opam](https://opam.ocaml.org/) libtorch package (an optional dependency) can be
+installed, and torch will automatically detect it and build with it. However, it might not
+suit your needs if you use any of these:
 * Windows operating system,
 * ARM processors, or
 * GPUs.
@@ -42,12 +40,12 @@ the `CONDA_PREFIX` set before installing.
 
 ### Option 3: System Libraries
 
-If you have libtorch installed as a system library (e.g. RPM), run `export
-LIBTORCH_USE_SYSTEM=1` before installing.
+If you have libtorch installed as a system library (e.g. RPM), set `LIBTORCH_USE_SYSTEM=1`
+before installing.
 
 ### Option 4: Custom Libtorch Location
-If you have [downloaded libtorch](https://pytorch.org) somewhere, run `export
-LIBTORCH=/path/to/libtorch/` before installing.
+If you have [downloaded libtorch](https://pytorch.org) somewhere, set
+`LIBTORCH=/path/to/libtorch/` before installing.
 
 ## Examples
 

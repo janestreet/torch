@@ -28,7 +28,7 @@ depopts: [
 ]
 available: arch != "arm32" & arch != "x86_32"
 conflicts: [
-  "libtorch" {< "1.13.0" | >= "1.14.0"}
+  "libtorch" {< "2.1.0" | >= "2.2.0"}
 ]
 synopsis: "Torch bindings for OCaml"
 description: "
