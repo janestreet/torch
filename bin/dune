@@ -1,6 +1,6 @@
-(executables
- (modes byte exe)
- (names tensor_tools)
- (libraries base cmdliner npy torch_core stdio torch torch_vision)
- (preprocess
-  (pps ppx_jane)))
+; (executables
+;  (modes byte exe)
+;  (names tensor_tools)
+;  (libraries base cmdliner npy torch_core stdio torch torch_vision)
+;  (preprocess
+;   (pps ppx_jane)))
