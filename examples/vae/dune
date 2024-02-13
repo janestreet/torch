@@ -1,0 +1,3 @@
+(executables
+ (names vae)
+ (libraries torch torch_vision))

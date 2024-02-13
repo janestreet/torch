@@ -208,8 +208,8 @@ let preprocess () =
     let img =
       (* RGB to grey conversion. *)
       Tensor.(d 0 ~factor:0.299 + d 1 ~factor:0.587 + d 2 ~factor:0.114)
-      |> Tensor.slice ~dim:0 ~start:0 ~end_:210 ~step:2
-      |> Tensor.slice ~dim:1 ~start:0 ~end_:160 ~step:2
+      |> Tensor.slice ~dim:0 ~start:(Some 0) ~end_:(Some 210) ~step:2
+      |> Tensor.slice ~dim:1 ~start:(Some 0) ~end_:(Some 160) ~step:2
       |> Tensor.to_type ~type_:(T Uint8)
       |> Tensor.flip ~dims:[ 0; 1 ]
     in
@@ -254,9 +254,10 @@ module E = struct
     let actions = Env_gym_pyml.actions env in
     Stdio.printf "actions: %s\n%!" (String.concat ~sep:"," actions);
     let fire_action =
-      List.find_mapi actions ~f:(fun i -> function
-        | "FIRE" -> Some i
-        | _ -> None)
+      List.find_mapi actions ~f:(fun i ->
+          function
+          | "FIRE" -> Some i
+          | _ -> None)
     in
     { fire_action
     ; nactions = List.length actions

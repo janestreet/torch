@@ -1,0 +1,3 @@
+(executables
+ (names mnist_gan gan_stability)
+ (libraries torch))

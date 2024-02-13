@@ -78,7 +78,10 @@ let () =
       (Tensor.float_value content_loss);
     Stdlib.Gc.full_major ();
     if step_idx % 10 = 0
-    then Imagenet.write_image input_var ~filename:(Printf.sprintf "out%d.png" step_idx)
+    then
+      Imagenet.write_image
+        (Tensor.to_device ~device:Device.Cpu input_var)
+        ~filename:(Printf.sprintf "out%d.png" step_idx)
   done;
   Imagenet.write_image input_var ~filename:"out.png"
 ;;

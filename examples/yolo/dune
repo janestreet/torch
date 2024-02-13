@@ -1,0 +1,3 @@
+(executables
+ (names yolo)
+ (libraries torch torch_vision))
