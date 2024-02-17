@@ -115,6 +115,8 @@ module C (F : Cstubs.FOREIGN) = struct
     type t = unit ptr
 
     let t : t typ = ptr void
+    let to_int64 = foreign "ats_to_int" (t @-> returning int64_t)
+    let to_float = foreign "ats_to_float" (t @-> returning float)
     let int = foreign "ats_int" (int64_t @-> returning t)
     let float = foreign "ats_float" (float @-> returning t)
     let free = foreign "ats_free" (t @-> returning void)
