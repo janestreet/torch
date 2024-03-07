@@ -16,6 +16,7 @@ depends: [
   "ppx_bench"
   "ppx_inline_test"
   "ppx_jane"
+  "ppx_string"
   "stdio"
   "ctypes"              {>= "0.18.0"}
   "ctypes-foreign"

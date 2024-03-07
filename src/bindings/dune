@@ -1,0 +1,6 @@
+(library
+ (name torch_bindings)
+ (public_name torch.bindings)
+ (libraries ctypes.stubs)
+ (preprocess
+  (pps ppx_jane)))

@@ -1,6 +1,6 @@
 (executables
  (modes byte exe)
- (names gen)
- (libraries base stdio yaml)
+ (names gen_stubs)
+ (libraries ctypes.stubs torch_bindings)
  (preprocess
   (pps ppx_string)))

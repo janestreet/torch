@@ -1,6 +1,0 @@
-(executables
- (modes byte exe)
- (names torch_gen)
- (libraries ctypes.stubs)
- (preprocess
-  (pps ppx_jane)))
