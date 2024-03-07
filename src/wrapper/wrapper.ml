@@ -1,4 +1,6 @@
 open Ctypes
+open Torch_stubs
+open Torch_bindings.Type_defs
 
 let ptr_of_string str =
   let len = String.length str in
@@ -19,7 +21,9 @@ module Tensor = struct
   include Wrapper_generated
   open! C.Tensor
 
-  type nonrec t = t
+  type t = gc_tensor
+
+  let new_tensor () = new_tensor () |> with_tensor_gc
 
   let float_vec ?(kind = `float) values =
     let values_len = List.length values in
@@ -31,8 +35,7 @@ module Tensor = struct
       | `half -> Kind.T Half
     in
     let t = float_vec values values_len (Kind.packed_to_int kind) in
-    Gc.finalise free t;
-    t
+    with_tensor_gc t
   ;;
 
   let int_vec ?(kind = `int) values =
@@ -47,8 +50,7 @@ module Tensor = struct
       | `int64 -> Kind.T Int64
     in
     let t = int_vec values values_len (Kind.packed_to_int kind) in
-    Gc.finalise free t;
-    t
+    with_tensor_gc t
   ;;
 
   let of_bigarray (type a b) (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
@@ -78,8 +80,7 @@ module Tensor = struct
         (Bigarray.kind_size_in_bytes kind)
         (Kind.packed_to_int tensor_kind)
     in
-    Gc.finalise free t;
-    t
+    with_tensor_gc t
   ;;
 
   let copy_to_bigarray (type a b) t (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
@@ -135,8 +136,7 @@ module Tensor = struct
 
   let get t index =
     let t = get t index in
-    Gc.finalise free t;
-    t
+    with_tensor_gc t
   ;;
 
   let float_value t = double_value t (from_voidp int null) 0
@@ -184,30 +184,22 @@ module Tensor = struct
   let defined = defined
   let device t = device t |> Device.of_int
 
-  let new_tensor () =
-    let t = new_tensor () in
-    Gc.finalise free t;
-    t
-  ;;
-
   let run_backward ?keep_graph ?(create_graph = false) tensors inputs =
     let keep_graph =
       match keep_graph with
       | None -> create_graph
       | Some keep_graph -> keep_graph
     in
-    let out_ = CArray.make t (List.length inputs) in
+    let out_ = CArray.make raw_tensor (List.length inputs) in
     run_backward
-      (CArray.of_list t tensors |> CArray.start)
+      (CArray.of_list gc_tensor tensors |> CArray.start)
       (List.length tensors)
-      (CArray.of_list t inputs |> CArray.start)
+      (CArray.of_list gc_tensor inputs |> CArray.start)
       (List.length inputs)
       (CArray.start out_)
       (if keep_graph then 1 else 0)
       (if create_graph then 1 else 0);
-    let out_ = CArray.to_list out_ in
-    List.iter (Gc.finalise free) out_;
-    out_
+    List.map with_tensor_gc (CArray.to_list out_)
   ;;
 
   let sum t = sum t ~dtype:(kind t)
@@ -215,16 +207,10 @@ module Tensor = struct
 end
 
 module Scalar = struct
-  module S = Wrapper_generated.C.Scalar
+  module S = C.Scalar
+  include (S : module type of S)
 
-  include (
-    S :
-      module type of struct
-        include S
-      end
-      with type t := S.t)
-
-  type nonrec _ t = S.t
+  type nonrec _ t = scalar
 
   let int i =
     let t = int (Int64.of_int i) in
@@ -240,7 +226,9 @@ module Scalar = struct
 end
 
 module Optimizer = struct
-  include Wrapper_generated.C.Optimizer
+  include C.Optimizer
+
+  type t = optimizer
 
   let adam ~learning_rate ~beta1 ~beta2 ~weight_decay ~eps =
     let t = adam learning_rate beta1 beta2 weight_decay eps in
@@ -262,15 +250,12 @@ module Optimizer = struct
   ;;
 
   let add_parameters t tensors =
-    add_parameters
-      t
-      CArray.(of_list Wrapper_generated.C.Tensor.t tensors |> start)
-      (List.length tensors)
+    add_parameters t CArray.(of_list gc_tensor tensors |> start) (List.length tensors)
   ;;
 end
 
 module Serialize = struct
-  include Wrapper_generated.C.Serialize
+  include C.Serialize
 
   let save t ~filename = save t filename
 
@@ -290,17 +275,13 @@ module Serialize = struct
       s
   ;;
 
-  let load ~filename =
-    let t = load filename in
-    Gc.finalise Wrapper_generated.C.Tensor.free t;
-    t
-  ;;
+  let load ~filename = load filename |> with_tensor_gc
 
   let save_multi ~named_tensors ~filename =
     let names, tensors = List.split named_tensors in
     let names = List.map escape names in
     save_multi
-      CArray.(of_list Wrapper_generated.C.Tensor.t tensors |> start)
+      CArray.(of_list gc_tensor tensors |> start)
       (ptr_of_strings names)
       (List.length named_tensors)
       filename
@@ -309,10 +290,9 @@ module Serialize = struct
   let load_multi ~names ~filename =
     let names = List.map escape names in
     let ntensors = List.length names in
-    let tensors = CArray.make Wrapper_generated.C.Tensor.t ntensors in
+    let tensors = CArray.make raw_tensor ntensors in
     load_multi (CArray.start tensors) (ptr_of_strings names) ntensors filename;
-    let tensors = CArray.to_list tensors in
-    List.iter (Gc.finalise Wrapper_generated.C.Tensor.free) tensors;
+    let tensors = List.map with_tensor_gc (CArray.to_list tensors) in
     tensors
   ;;
 
@@ -320,7 +300,7 @@ module Serialize = struct
     let names, tensors = List.split named_tensors in
     let names = List.map escape names in
     load_multi_
-      CArray.(of_list Wrapper_generated.C.Tensor.t tensors |> start)
+      CArray.(of_list gc_tensor tensors |> start)
       (ptr_of_strings names)
       (List.length named_tensors)
       filename
@@ -330,11 +310,10 @@ module Serialize = struct
     let all_tensors = ref [] in
     let callback =
       coerce
-        (Foreign.funptr (string @-> Wrapper_generated.C.Tensor.t @-> returning void))
-        (static_funptr (string @-> Wrapper_generated.C.Tensor.t @-> returning void))
+        (Foreign.funptr (string @-> raw_tensor @-> returning void))
+        (static_funptr (string @-> raw_tensor @-> returning void))
         (fun tensor_name tensor ->
-          Gc.finalise Wrapper_generated.C.Tensor.free tensor;
-          all_tensors := (unescape tensor_name, tensor) :: !all_tensors)
+          all_tensors := (unescape tensor_name, with_tensor_gc tensor) :: !all_tensors)
       [@alert "-deprecated"]
     in
     load_callback filename callback;
@@ -343,7 +322,7 @@ module Serialize = struct
 end
 
 module Cuda = struct
-  include Wrapper_generated.C.Cuda
+  include C.Cuda
 
   let is_available () = is_available () <> 0
   let cudnn_is_available () = cudnn_is_available () <> 0
@@ -368,7 +347,9 @@ module Ivalue = struct
       | GenericDict
   end
 
-  include Wrapper_generated.C.Ivalue
+  include C.Ivalue
+
+  type t = ivalue
 
   let none () =
     let t = none () in
@@ -401,17 +382,13 @@ module Ivalue = struct
   ;;
 
   let tuple ts =
-    let t = tuple CArray.(of_list t ts |> start) (List.length ts) in
+    let t = tuple CArray.(of_list ivalue ts |> start) (List.length ts) in
     Gc.finalise free t;
     t
   ;;
 
   let tensor_list ts =
-    let t =
-      tensor_list
-        CArray.(of_list Wrapper_generated.C.Tensor.t ts |> start)
-        (List.length ts)
-    in
+    let t = tensor_list CArray.(of_list gc_tensor ts |> start) (List.length ts) in
     Gc.finalise free t;
     t
   ;;
@@ -441,16 +418,11 @@ module Ivalue = struct
   ;;
 
   let to_bool t = to_bool t <> 0
-
-  let to_tensor t =
-    let tensor = to_tensor t in
-    Gc.finalise Wrapper_generated.C.Tensor.free tensor;
-    tensor
-  ;;
+  let to_tensor t = to_tensor t |> with_tensor_gc
 
   let to_tuple t =
     let noutputs = tuple_length t in
-    let outputs = CArray.make Wrapper_generated.C.Tensor.t noutputs in
+    let outputs = CArray.make ivalue noutputs in
     to_tuple t (CArray.start outputs) noutputs;
     let outputs = CArray.to_list outputs in
     List.iter (Gc.finalise free) outputs;
@@ -459,55 +431,43 @@ module Ivalue = struct
 
   let to_tensor_list t =
     let noutputs = list_length t in
-    let outputs = CArray.make Wrapper_generated.C.Tensor.t noutputs in
-    Wrapper_generated.C.Ivalue.to_tensor_list t (CArray.start outputs) noutputs;
-    let outputs = CArray.to_list outputs in
-    (* free calls ati_free which destructs an Ivalue. Here we need to destruct a Tensor. *)
-    List.iter (Gc.finalise Wrapper_generated.C.Tensor.free) outputs;
-    outputs
+    let outputs = CArray.make raw_tensor noutputs in
+    C.Ivalue.to_tensor_list t (CArray.start outputs) noutputs;
+    CArray.to_list outputs |> List.map with_tensor_gc
   ;;
 end
 
 module Module = struct
-  include Wrapper_generated.C.Module
+  include C.Module
+
+  type t = module_
 
   let forward t tensors =
-    let tensor =
-      forward
-        t
-        CArray.(of_list Wrapper_generated.C.Tensor.t tensors |> start)
-        (List.length tensors)
-    in
-    Gc.finalise Wrapper_generated.C.Tensor.free tensor;
-    tensor
+    forward t CArray.(of_list gc_tensor tensors |> start) (List.length tensors)
+    |> with_tensor_gc
   ;;
 
   let forward_ t ivalues =
     let ivalue =
-      forward_
-        t
-        CArray.(of_list Wrapper_generated.C.Ivalue.t ivalues |> start)
-        (List.length ivalues)
+      forward_ t CArray.(of_list ivalue ivalues |> start) (List.length ivalues)
     in
-    Gc.finalise Wrapper_generated.C.Ivalue.free ivalue;
+    Gc.finalise C.Ivalue.free ivalue;
     ivalue
   ;;
 
   let named_buffers t =
     let wrapper_ivalue = named_buffers t in
-    let names_and_tensors = CArray.make Wrapper_generated.C.Ivalue.t 2 in
-    Wrapper_generated.C.Ivalue.to_tuple wrapper_ivalue (CArray.start names_and_tensors) 2;
+    let names_and_tensors = CArray.make ivalue 2 in
+    C.Ivalue.to_tuple wrapper_ivalue (CArray.start names_and_tensors) 2;
     let names_ivalue = CArray.get names_and_tensors 0
     and tensors_ivalue = CArray.get names_and_tensors 1 in
-    let len = Wrapper_generated.C.Ivalue.list_length tensors_ivalue in
-    let names = CArray.make Wrapper_generated.C.Ivalue.t len
-    and tensors = CArray.make Wrapper_generated.C.Ivalue.t len in
-    Wrapper_generated.C.Ivalue.to_generic_list names_ivalue (CArray.start names) len;
-    Wrapper_generated.C.Ivalue.to_generic_list tensors_ivalue (CArray.start tensors) len;
-    let names = names |> CArray.to_list |> List.map Wrapper_generated.C.Ivalue.to_string
-    and tensors =
-      tensors |> CArray.to_list |> List.map Wrapper_generated.C.Ivalue.to_tensor
-    in
+    let len = C.Ivalue.list_length tensors_ivalue in
+    let names = CArray.make ivalue len
+    and tensors = CArray.make ivalue len in
+    C.Ivalue.to_generic_list names_ivalue (CArray.start names) len;
+    C.Ivalue.to_generic_list tensors_ivalue (CArray.start tensors) len;
+    let names = names |> CArray.to_list |> List.map C.Ivalue.to_string
+    and tensors = tensors |> CArray.to_list |> List.map Ivalue.to_tensor in
     List.combine names tensors |> Base.Map.of_alist_exn (module Base.String)
   ;;
 
@@ -524,6 +484,6 @@ module Module = struct
   ;;
 end
 
-let manual_seed seed = Wrapper_generated.C.manual_seed (Int64.of_int seed)
-let set_num_threads = Wrapper_generated.C.set_num_threads
-let get_num_threads = Wrapper_generated.C.get_num_threads
+let manual_seed seed = C.manual_seed (Int64.of_int seed)
+let set_num_threads = C.set_num_threads
+let get_num_threads = C.get_num_threads

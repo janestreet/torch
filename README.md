@@ -134,6 +134,11 @@ Running the pre-trained models on sample images can the easily be done via:
 dune exec examples/pretrained/predict.exe path/to/resnet18.ot images/tiger.jpg
 ```
 
+## Internals
+
+ocaml-torch uses extensive code generation to produce bindings to thousands of torch C++ functions.
+Read [internals.md](./internals.md) for details.
+
 ## Acknowledgements
 
 Many thanks to [@LaurentMazare](https://github.com/LaurentMazare) for the [original

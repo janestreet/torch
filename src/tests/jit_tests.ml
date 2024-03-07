@@ -37,6 +37,50 @@ let%expect_test _ =
       |}]
 ;;
 
+(*
+   test module generated with these Python code:
+
+   import torch
+   @torch.jit.script
+   def would_raise(x):
+   raise RuntimeError("Raising expcetion on purpose")
+   return x
+   torch.jit.save(would_raise, '/tmp/raise.pt')
+*)
+let%expect_test "test exception raise in torch script can be properly caught in OCaml" =
+  let model = Module.load "raise.pt" in
+  try
+    let output = Module.forward model [ Tensor.of_float0 0. ] in
+    ignore output
+  with
+  | Failure failure ->
+    Stdio.print_s [%message "Exception raised and caught" (failure : string)];
+    ();
+    [%expect
+      {|
+        ("Exception raised and caught"
+         (failure
+           "The following operation failed in the TorchScript interpreter.\
+          \nTraceback of TorchScript, serialized code (most recent call last):\
+          \n  File \"code/__torch__.py\", line 8, in forward\
+          \n    x: Tensor) -> NoneType:\
+          \n    _0 = uninitialized(NoneType)\
+          \n    ops.prim.RaiseException(\"Raising expcetion on purpose\", \"builtins.RuntimeError\")\
+          \n    ~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE\
+          \n    return _0\
+          \n\
+          \nTraceback of TorchScript, original code (most recent call last):\
+          \n  File \"/tmp/ipykernel_741402/1182469162.py\", line 5, in forward\
+          \n@torch.jit.script\
+          \ndef would_raise(x):\
+          \n    raise RuntimeError(\"Raising expcetion on purpose\")\
+          \n    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE\
+          \n    return x\
+          \nbuiltins.RuntimeError: Raising expcetion on purpose\
+          \n"))
+      |}]
+;;
+
 let%expect_test _ =
   (* test that we can list all the buffers in a module, modify them, and get different results *)
   (* This model just adds all the buffers and parameters together. *)

@@ -4,6 +4,10 @@
 open Base
 open Stdio
 
+let cpp_filename = "torch_api_generated"
+let bindings_filename = "torch_bindings_generated.ml"
+let wrapper_filename = "wrapper_generated"
+
 let excluded_functions =
   Set.of_list
     (module String)
@@ -193,7 +197,7 @@ module Func = struct
         Printf.sprintf "int64_t *%s_data, int %s_len" arg_name arg_name
       | DoubleList -> Printf.sprintf "double *%s_data, int %s_len" arg_name arg_name
       | TensorOptList | TensorList ->
-        Printf.sprintf "tensor *%s_data, int %s_len" arg_name arg_name
+        Printf.sprintf "gc_tensor *%s_data, int %s_len" arg_name arg_name
       | TensorOptions -> Printf.sprintf "int %s_kind, int %s_device" arg_name arg_name
       | Int64Option -> Printf.sprintf "int64_t %s_v, int %s_null" arg_name arg_name
       | DoubleOption -> Printf.sprintf "double %s_v, int %s_null" arg_name arg_name
@@ -203,8 +207,7 @@ module Func = struct
           | Bool -> "int"
           | Int64 -> "int64_t"
           | Double -> "double"
-          | Tensor -> "tensor"
-          | TensorOption -> "tensor"
+          | Tensor | TensorOption -> "gc_tensor"
           | ScalarType -> "int"
           | Device -> "int"
           | Scalar -> "scalar"
@@ -225,8 +228,10 @@ module Func = struct
   let c_args_list args =
     List.map args ~f:(fun { arg_name; arg_type; _ } ->
       match arg_type with
-      | Scalar | Tensor -> "*" ^ arg_name
-      | TensorOption -> [%string "(%{arg_name} ? *%{arg_name} : torch::Tensor())"]
+      | Scalar -> "*" ^ arg_name
+      | Tensor -> [%string "*tensor_ptr_from_ocaml(%{arg_name})"]
+      | TensorOption ->
+        [%string "(%{arg_name} ? tensor_from_ocaml(%{arg_name}) : torch::Tensor())"]
       | Bool -> "(bool)" ^ arg_name
       | IntList -> [%string "torch::IntArrayRef(%{arg_name}_data, %{arg_name}_len)"]
       | IntListOption ->
@@ -258,7 +263,13 @@ module Func = struct
     | `function_ -> [%string "torch::%{t.name}(%{c_args_list t.args})"]
     | `method_ ->
       (match t.args with
-       | head :: tail -> [%string "%{head.arg_name}->%{t.name}(%{c_args_list tail})"]
+       | head :: tail ->
+         let obj =
+           match head.arg_type with
+           | Tensor -> [%string "tensor_ptr_from_ocaml(%{head.arg_name})"]
+           | _ -> head.arg_name
+         in
+         [%string "%{obj}->%{t.name}(%{c_args_list tail})"]
        | [] ->
          failwith [%string "Method calls should have at least one argument %{t.name}"])
   ;;
@@ -273,7 +284,7 @@ module Func = struct
     | other -> other
   ;;
 
-  let stubs_signature t =
+  let bindings_signature t =
     let args =
       List.concat_map t.args ~f:(fun arg ->
         match arg.arg_type with
@@ -282,30 +293,30 @@ module Func = struct
         | Int64Option -> [ "int64_t"; "int" ]
         | Double -> [ "double" ]
         | DoubleOption -> [ "double"; "int" ]
-        | Tensor -> [ "t" ]
-        | TensorOption -> [ "t" ]
+        | Tensor | TensorOption -> [ "gc_tensor" ]
         | TensorOptions -> [ "int"; "int" ]
         | ScalarType -> [ "int" ]
         | Device -> [ "int" ]
         | IntList | IntListOption -> [ "ptr int64_t"; "int" ]
         | DoubleList -> [ "ptr double"; "int" ]
-        | TensorOptList | TensorList -> [ "ptr t"; "int" ]
+        | TensorOptList | TensorList -> [ "ptr gc_tensor"; "int" ]
         | String -> [ "string" ]
         | Scalar -> [ "scalar" ])
       |> String.concat ~sep:" @-> "
     in
-    let simple_stub args return_type =
+    let simple_binding args return_type =
       if String.length args > 0
       then [%string "%{args} @-> returning %{return_type}"]
       else [%string "void @-> returning %{return_type}"]
     in
     match t.returns with
-    | `fixed _ -> [%string "ptr t @-> %{args} @-> returning void"]
-    | `dynamic -> [%string "%{args} @-> returning (ptr t)"]
-    | `nothing -> simple_stub args "void"
-    | `bool -> simple_stub args "bool"
-    | `int64_t -> simple_stub args "int64_t"
-    | `double -> simple_stub args "double"
+    | `fixed 1 -> [%string "%{args} @-> returning raw_tensor"]
+    | `fixed _ -> [%string "ptr raw_tensor @-> %{args} @-> returning void"]
+    | `dynamic -> [%string "%{args} @-> returning (ptr raw_tensor)"]
+    | `nothing -> simple_binding args "void"
+    | `bool -> simple_binding args "bool"
+    | `int64_t -> simple_binding args "int64_t"
+    | `double -> simple_binding args "double"
   ;;
 
   let replace_map =
@@ -343,11 +354,12 @@ module Func = struct
         [%string
           {|(%{name} |> CArray.of_list double |> CArray.start) (List.length %{name})|}]
       | TensorList ->
-        [%string "(CArray.of_list t %{name} |> CArray.start) (List.length %{name})"]
+        [%string
+          "(CArray.of_list gc_tensor %{name} |> CArray.start) (List.length %{name})"]
       | TensorOptList ->
         [%string
-          "(List.map (function Some x -> x | None -> null) %{name} |> CArray.of_list t \
-           |> CArray.start) (List.length %{name})"]
+          "(List.map (function Some x -> x | None -> none_gc_tensor) %{name} |> \
+           CArray.of_list gc_tensor |> CArray.start) (List.length %{name})"]
       | Bool -> [%string "(if %{name} then 1 else 0)"]
       | ScalarType -> [%string "(Kind.packed_to_int %{name})"]
       | TensorOptions ->
@@ -357,7 +369,8 @@ module Func = struct
         if String.( = ) name "reduction"
         then "(Reduction.to_int reduction |> Int64.of_int)"
         else [%string "(Int64.of_int %{name})"]
-      | TensorOption -> [%string "(match %{name} with | Some v -> v | None -> null)"]
+      | TensorOption ->
+        [%string "(match %{name} with | Some v -> v | None -> none_gc_tensor)"]
       | Double | String | Scalar | Tensor -> name)
     |> String.concat ~sep:" "
   ;;
@@ -466,7 +479,7 @@ let p out_channel s =
 ;;
 
 let write_cpp funcs filename =
-  Out_channel.with_file (filename ^ ".cpp.h") ~f:(fun out_cpp ->
+  Out_channel.with_file (filename ^ ".cpp") ~f:(fun out_cpp ->
     Out_channel.with_file (filename ^ ".h") ~f:(fun out_h ->
       let pc s = p out_cpp s in
       let ph s = p out_h s in
@@ -478,22 +491,20 @@ let write_cpp funcs filename =
         let c_typed_args_list = Func.c_typed_args_list func in
         match func.returns with
         | `dynamic ->
-          pc "tensor *atg_%s(%s) {" exported_name c_typed_args_list;
+          pc "raw_tensor *atg_%s(%s) {" exported_name c_typed_args_list;
           pc "  PROTECT(";
-          pc "    auto outputs__ = %s;" (Func.c_call func);
+          pc "    auto results__ = %s;" (Func.c_call func);
           (* the returned type is a C++ vector of tensors *)
-          pc "    int sz = outputs__.size();";
-          pc
-            "    torch::Tensor **out__ = (torch::Tensor**)malloc((sz + 1) * \
-             sizeof(torch::Tensor*));";
+          pc "    int sz = results__.size();";
+          pc "    raw_tensor *out__ = (raw_tensor*)malloc((sz + 1) * sizeof(raw_tensor));";
           pc "    for (int i = 0; i < sz; ++i)";
-          pc "      out__[i] = new torch::Tensor(outputs__[i]);";
+          pc "      out__[i] = tensor_to_ocaml(results__[i]);";
           pc "    out__[sz] = nullptr;";
           pc "    return out__;";
           pc "  )";
           pc "}";
           pc "";
-          ph "tensor *atg_%s(%s);" exported_name c_typed_args_list
+          ph "raw_tensor *atg_%s(%s);" exported_name c_typed_args_list
         | `nothing ->
           pc "void atg_%s(%s) {" exported_name c_typed_args_list;
           pc "  PROTECT(";
@@ -502,20 +513,26 @@ let write_cpp funcs filename =
           pc "}";
           pc "";
           ph "void atg_%s(%s);" exported_name c_typed_args_list
-        | `fixed ntensors ->
-          pc "void atg_%s(tensor *out__, %s) {" exported_name c_typed_args_list;
+        | `fixed 1 ->
+          pc "raw_tensor atg_%s(%s) {" exported_name c_typed_args_list;
           pc "  PROTECT(";
-          pc "    auto outputs__ = %s;" (Func.c_call func);
-          if ntensors = 1
-          then pc "    out__[0] = new torch::Tensor(outputs__);"
-          else
-            for i = 0 to ntensors - 1 do
-              pc "    out__[%d] = new torch::Tensor(std::get<%d>(outputs__));" i i
-            done;
+          pc "    torch::Tensor results__ = %s;" (Func.c_call func);
+          pc "    return tensor_to_ocaml(results__);";
           pc "  )";
           pc "}";
           pc "";
-          ph "void atg_%s(tensor *, %s);" exported_name c_typed_args_list
+          ph "raw_tensor atg_%s(%s);" exported_name c_typed_args_list
+        | `fixed ntensors ->
+          pc "void atg_%s(raw_tensor *out__, %s) {" exported_name c_typed_args_list;
+          pc "  PROTECT(";
+          pc "    auto results__ = %s;" (Func.c_call func);
+          for i = 0 to ntensors - 1 do
+            pc "    out__[%d] = tensor_to_ocaml(std::get<%d>(results__));" i i
+          done;
+          pc "  )";
+          pc "}";
+          pc "";
+          ph "void atg_%s(raw_tensor *, %s);" exported_name c_typed_args_list
         | (`bool | `int64_t | `double) as returns ->
           let c_type =
             match returns with
@@ -533,7 +550,7 @@ let write_cpp funcs filename =
           ph "%s atg_%s(%s);" c_type exported_name c_typed_args_list)))
 ;;
 
-let write_stubs funcs filename =
+let write_bindings funcs filename =
   Out_channel.with_file filename ~f:(fun out_channel ->
     let p s = p out_channel s in
     p "(* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND! *)";
@@ -544,14 +561,11 @@ let write_stubs funcs filename =
     List.iteri funcs ~f:(fun idx funcs ->
       p "module C%d(F: Cstubs.FOREIGN) = struct" idx;
       p "  open F";
-      p "  type t = unit ptr";
-      p "  let t : t typ = ptr void";
-      p "  type scalar = unit ptr";
-      p "  let scalar : scalar typ = ptr void";
+      p "  open Type_defs";
       List.iter funcs ~f:(fun (exported_name, func) ->
         p "  let stubs_%s =" (Func.caml_name exported_name);
         p "    foreign \"atg_%s\"" exported_name;
-        p "    (%s)" (Func.stubs_signature func);
+        p "    (%s)" (Func.bindings_signature func);
         p "");
       p "end");
     p "module C(F: Cstubs.FOREIGN) = struct";
@@ -567,23 +581,9 @@ let write_wrapper funcs filename =
       pm "(* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND! *)";
       pm "";
       pm "open Ctypes";
-      pm "";
-      pm "module C = Torch_bindings.C(Torch_generated)";
-      pm "open C.TensorG";
-      pm "";
-      pm "let to_tensor_list ptr =";
-      pm "  let rec loop ptr acc =";
-      pm "    let tensor = !@ptr in";
-      pm "    if is_null tensor";
-      pm "    then acc";
-      pm "    else begin";
-      pm "      Gc.finalise C.Tensor.free tensor;";
-      pm "      loop (ptr +@ 1) (tensor :: acc)";
-      pm "    end";
-      pm "  in";
-      pm "  let result = loop ptr [] in";
-      pm "  C.free (to_voidp ptr);";
-      pm "  List.rev result";
+      pm "open Torch_bindings.Type_defs";
+      pm "open Torch_stubs";
+      pm "open C.Generated";
       pm "";
       pi "(* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND! *)";
       pi "";
@@ -597,15 +597,16 @@ let write_wrapper funcs filename =
         (match func.returns with
          | `nothing | `bool | `int64_t | `double ->
            pm "  stubs_%s %s" caml_name (Func.caml_binding_args func)
+         | `fixed 1 ->
+           pm "  stubs_%s %s |> with_tensor_gc" caml_name (Func.caml_binding_args func)
          | `fixed ntensors ->
-           pm "  let out__ = CArray.make t %d in" ntensors;
+           pm "  let out__ = CArray.make raw_tensor %d in" ntensors;
            pm
              "  stubs_%s (CArray.start out__) %s;"
              caml_name
              (Func.caml_binding_args func);
            for i = 0 to ntensors - 1 do
-             pm "  let t%d = CArray.get out__ %d in" i i;
-             pm "  Gc.finalise C.Tensor.free t%d;" i
+             pm "  let t%d = CArray.get out__ %d |> with_tensor_gc in" i i
            done;
            pm
              "  %s"
@@ -659,8 +660,8 @@ let methods =
   ]
 ;;
 
-let run ~yaml_filename ~cpp_filename ~stubs_filename ~wrapper_filename =
-  let funcs = read_yaml yaml_filename in
+let run ~declarations_filename ~gen_bindings ~gen_wrappers =
+  let funcs = read_yaml declarations_filename in
   let funcs = methods @ funcs in
   printf "Generating code for %d functions.\n%!" (List.length funcs);
   (* Generate some unique names for overloaded functions. *)
@@ -694,15 +695,24 @@ let run ~yaml_filename ~cpp_filename ~stubs_filename ~wrapper_filename =
                 name, func))
     |> Map.of_alist_exn (module String)
   in
-  write_cpp funcs cpp_filename;
-  write_stubs funcs stubs_filename;
-  write_wrapper funcs wrapper_filename
+  if gen_bindings then write_bindings funcs bindings_filename;
+  if gen_wrappers
+  then (
+    write_cpp funcs cpp_filename;
+    write_wrapper funcs wrapper_filename)
 ;;
 
-let () =
-  run
-    ~yaml_filename:"third_party/pytorch/Declarations-v2.1.0.yaml"
-    ~cpp_filename:"src/wrapper/torch_api_generated"
-    ~stubs_filename:"src/stubs/torch_bindings_generated.ml"
-    ~wrapper_filename:"src/wrapper/wrapper_generated"
+let command =
+  Command.basic
+    ~summary:"generate bindings or wrapper code for toch functions"
+    (let%map_open.Command declarations_filename =
+       flag "declarations" (required string) ~doc:"PATH path to Declarations.yaml"
+     and gen_bindings =
+       flag "bindings" no_arg ~doc:"if passed in, generate ctypes bindings OCaml code"
+     and gen_wrappers =
+       flag "wrappers" no_arg ~doc:"if passed in, generate wrapper C++ and OCaml code"
+     in
+     fun () -> run ~declarations_filename ~gen_bindings ~gen_wrappers)
 ;;
+
+let () = Command_unix.run command

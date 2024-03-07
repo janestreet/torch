@@ -1,0 +1,6 @@
+(executables
+ (modes byte exe)
+ (names gen)
+ (libraries core.command core_unix.command_unix stdio yaml)
+ (preprocess
+  (pps ppx_let ppx_string)))

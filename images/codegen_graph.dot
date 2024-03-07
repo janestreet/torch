@@ -1,0 +1,59 @@
+digraph {
+  subgraph cluster_binding_gen {
+    style=filled
+    color=lightgrey
+    label="binding generation"
+    declarations [label="declarations (yaml)"]
+    bindinggen [label="binding gen exe"];
+  }
+  subgraph cluster_bindings {
+    style=filled
+    color=lightgrey
+    label="stub generation and bindings"
+    bindings [label="bindings (manual)"]
+    bindingsg [label="bindings (generated)"]
+    stubgen [label="ctypes stub gen exe"];
+  }
+  subgraph cluster_wrapper {
+    style=filled
+    color=lightgrey
+    label="wrapper"
+    {rank=same;
+    stubsml [label="OCaml stubs (manual)", group=g1];
+    stubsmlg [label="OCaml stubs (generated)", group=g2];
+    }
+    {rank=same;
+    stubsc [label="C stubs (manual)", group=g1];
+    stubscg [label="C stubs (generated)", group=g2];
+    }
+    {rank=same;
+    apiml [label="OCaml wrapper (manual)", group=g1];
+    apimlg [label="OCaml wrapper (generated)", group=g2];
+    }
+    {rank=same;
+    apic [label="C/C++ API (manual)", group=g1];
+    apicg [label="C/C++ API (generated)", group=g2];
+    }
+  }
+
+
+  // GENERATION
+  bindinggen -> bindingsg [penwidth=2];
+  bindinggen -> apimlg [penwidth=2];
+  bindinggen -> apicg [penwidth=2];
+  stubgen -> stubscg [penwidth=2];
+  stubgen -> stubsmlg [penwidth=2];
+
+  // DEPENDENCY
+  declarations -> bindinggen[style="dashed"];
+  bindings -> stubgen[style="dashed"];
+  bindingsg -> stubgen[style="dashed"];
+  apic -> stubsc[style="dashed"];
+  apic -> stubscg[style="dashed"];
+  apicg -> stubscg[style="dashed"];
+  stubsc -> stubsml[style="dashed"];
+  stubscg -> stubsmlg[style="dashed"];
+  stubsml -> apiml[style="dashed"];
+  stubsml -> apimlg[style="dashed"];
+  stubsmlg -> apimlg[style="dashed"];
+}

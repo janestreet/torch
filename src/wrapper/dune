@@ -8,14 +8,14 @@
    (:include cxx_flags.sexp)))
  (foreign_stubs
   (language c)
-  (names torch_stubs))
+  (names torch_stubs torch_stubs_generated))
  (name torch_core)
  (public_name torch.core)
  (c_library_flags
   :standard
   -lstdc++
   (:include c_library_flags.sexp))
- (libraries ctypes.foreign ctypes.stubs ctypes)
+ (libraries ctypes.foreign torch_bindings)
  (preprocess
   (pps ppx_jane)))
 
@@ -26,19 +26,7 @@
   (bash %{deps})))
 
 (rule
- (targets torch_bindings.ml)
- (deps ../stubs/torch_bindings.ml)
- (action
-  (bash "cp ../stubs/torch_bindings.ml torch_bindings.ml")))
-
-(rule
- (targets torch_bindings_generated.ml)
- (deps ../stubs/torch_bindings_generated.ml)
- (action
-  (bash "cp ../stubs/torch_bindings_generated.ml torch_bindings_generated.ml")))
-
-(rule
- (targets torch_stubs.c torch_generated.ml)
- (deps ../stubs/torch_gen.exe)
+ (targets torch_stubs_generated.c torch_stubs_generated.ml)
+ (deps ../gen_stubs/gen_stubs.exe)
  (action
   (bash ./%{deps})))
