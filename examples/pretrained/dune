@@ -1,0 +1,3 @@
+(executables
+ (names finetuning)
+ (libraries torch torch_vision))

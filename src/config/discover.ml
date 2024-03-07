@@ -24,6 +24,7 @@ let or_else o ~f =
 
 let torch_flags () =
   let dynamic_links = [ "c10"; "torch_cpu"; "torch" ] in
+  let dynamic_link_flags = List.map ~f:(fun lib -> [%string "-l%{lib}"]) dynamic_links in
   let config ~include_dir ~lib_dir =
     let cflags =
       [ "-isystem"
@@ -34,9 +35,7 @@ let torch_flags () =
     in
     let libs =
       [ Printf.sprintf "-Wl,-rpath,%s" lib_dir; Printf.sprintf "-L%s" lib_dir ]
-      @ List.map
-          ~f:(fun lib -> [%string "-l%{lib_dir}"] /^ [%string "lib%{lib}.so"])
-          dynamic_links
+      @ dynamic_link_flags
     in
     { C.Pkg_config.cflags; libs }
   in
@@ -69,7 +68,7 @@ let torch_flags () =
          | Some "1" ->
            Some
              { C.Pkg_config.cflags = []
-             ; libs = List.map ~f:(fun lib -> [%string "-l%{lib}"]) dynamic_links
+             ; libs = dynamic_link_flags
              }
          | _ -> None)
     (* try conda environment *)

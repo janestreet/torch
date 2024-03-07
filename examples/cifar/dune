@@ -1,0 +1,3 @@
+(executables
+ (names cifar_train)
+ (libraries torch))

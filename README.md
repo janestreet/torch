@@ -88,12 +88,15 @@ not work on macos).
 ### Demos
 
 * [MNIST tutorial](./examples/mnist/README.md).
-* [Finetuning a ResNet-18 model](./examples/pretrained/README.md).
+* [Finetuning a ResNet-18 model](./examples/pretrained/README.md) (*).
 * [Generative Adversarial Networks](./examples/gan/README.md).
 * [Running some Python model](./examples/jit/README.md).
-* [ResNet examples on CIFAR-10](./examples/cifar/README.md).
+* [ResNet examples on CIFAR-10](./examples/cifar/README.md) (*).
 * [Character-level RNN](./examples/char_rnn/README.md)
 * [Neural Style Transfer](./examples/neural_transfer/README.md)
+* [Reinforcement Learning](./examples/reinforcement-learning/README.md)
+
+Examples with (*) may encounter runtime exception related to `Torch.argmax`.
 
 Some more advanced applications from external repos:
 
@@ -105,6 +108,10 @@ Some more advanced applications from external repos:
 
 Various pre-trained computer vision models are implemented in the vision library.
 The weight files can be downloaded at the following links:
+
+Updated models
+* ResNet-18 [weights](https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet18.ot).
+* VGG-16 [weights](https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot).
 
 
 * ResNet-18 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot).

@@ -1,0 +1,3 @@
+(executables
+ (names dqn_atari dqn_pong)
+ (libraries torch torch_vision pyml))

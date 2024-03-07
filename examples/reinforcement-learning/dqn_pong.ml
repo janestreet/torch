@@ -176,8 +176,8 @@ let preprocess () =
       (* RGB to grey conversion. *)
       Tensor.(d 0 ~factor:0.299 + d 1 ~factor:0.587 + d 2 ~factor:0.114)
       |> Tensor.narrow ~dim:0 ~start:35 ~length:160
-      |> Tensor.slice ~dim:0 ~start:0 ~end_:160 ~step:2
-      |> Tensor.slice ~dim:1 ~start:0 ~end_:160 ~step:2
+      |> Tensor.slice ~dim:0 ~start:(Some 0) ~end_:(Some 160) ~step:2
+      |> Tensor.slice ~dim:1 ~start:(Some 0) ~end_:(Some 160) ~step:2
       |> Tensor.unsqueeze ~dim:0
     in
     let diff =
