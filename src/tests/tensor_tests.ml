@@ -5,18 +5,12 @@ open Torch
 let%expect_test _ =
   let t = Tensor.(f 41. + f 1.) in
   Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn t);
-  [%expect {|
-        42
-      |}];
+  [%expect {| 42 |}];
   let t = Tensor.float_vec [ 1.; 42.; 1337. ] in
   Stdio.printf !"%{sexp:float array}\n" Tensor.(to_float1_exn (t * t));
-  [%expect {|
-        (1 1764 1787569)
-      |}];
+  [%expect {| (1 1764 1787569) |}];
   Stdio.printf !"%{sexp:float array}\n" Tensor.(to_float1_exn (t + f 1.5));
-  [%expect {|
-        (2.5 43.5 1338.5)
-      |}]
+  [%expect {| (2.5 43.5 1338.5) |}]
 ;;
 
 let%expect_test _ =
@@ -29,11 +23,11 @@ let%expect_test _ =
   done;
   [%expect
     {|
-        0.000000 0.000000
-        0.000000 42.000000
-        0.000000 0.000000
-        1.337000 0.000000
-      |}]
+    0.000000 0.000000
+    0.000000 42.000000
+    0.000000 0.000000
+    1.337000 0.000000
+    |}]
 ;;
 
 let%expect_test _ =
@@ -54,7 +48,8 @@ let%expect_test _ =
   Stdio.printf !"%{sexp:float array}\n" array_narrow;
   [%expect {|
     (0 1 2 3 4)
-    (1 2 3) |}]
+    (1 2 3)
+    |}]
 ;;
 
 let%expect_test _ =
@@ -154,7 +149,8 @@ let%expect_test _ =
   |> List.iter ~f:(fun t -> Tensor.to_int1_exn t |> Stdio.printf !"%{sexp:int array}\n");
   [%expect {|
     (3 1 4)
-    (1 5 9) |}];
+    (1 5 9)
+    |}];
   assert (Tensor.device t = Cpu)
 ;;
 
@@ -176,7 +172,8 @@ let%expect_test _ =
     (3 1)
     (1 5)
     (4 9)
-    23 |}]
+    23
+    |}]
 ;;
 
 let%expect_test _ =
@@ -187,7 +184,8 @@ let%expect_test _ =
   Stdio.printf !"%{sexp:bool}\n" (Torch.Tensor.is_floating_point int_t);
   [%expect {|
     true
-    false |}]
+    false
+    |}]
 ;;
 
 let%expect_test _ =
@@ -198,29 +196,28 @@ let%expect_test _ =
   Stdio.printf !"%{sexp:int64}\n" (Torch.Tensor._version t);
   [%expect {|
     0
-    1 |}]
+    1
+    |}]
 ;;
 
 let%expect_test _ =
   let dst = Tensor.rand [ 10 ] in
   Stdio.printf !"%{sexp:int list}\n" (Torch.Tensor.shape dst);
-  [%expect {|
-    (10) |}];
+  [%expect {| (10) |}];
   let src = Tensor.rand [ 20; 10 ] in
   Tensor.set_data dst ~src;
   Stdio.printf !"%{sexp:int list}\n" (Torch.Tensor.shape dst);
-  [%expect {|
-    (20 10) |}]
+  [%expect {| (20 10) |}]
 ;;
 
 let%expect_test "argmax" =
   let t = Tensor.of_float2 [| [| 10.; 20.; 40. |]; [| 60.; 50.; 30. |] |] in
   let along_dim0 = Tensor.argmax t ~dim:0 in
   Stdio.printf !"%{sexp: int array}\n" (Tensor.to_int1_exn along_dim0);
-  [%expect {|(1 1 0)|}];
+  [%expect {| (1 1 0) |}];
   let along_dim1 = Tensor.argmax t ~dim:1 in
   Stdio.printf !"%{sexp: int array}\n" (Tensor.to_int1_exn along_dim1);
-  [%expect {|(2 0)|}]
+  [%expect {| (2 0) |}]
 ;;
 
 let%expect_test "nan_to_num" =

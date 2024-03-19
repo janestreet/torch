@@ -1,0 +1,6 @@
+(executables
+ (modes byte exe)
+ (names dqn policy_gradient)
+ (libraries pyml torch torch_vision unix)
+ (preprocess
+  (pps ppx_jane)))

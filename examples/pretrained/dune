@@ -1,0 +1,6 @@
+(executables
+ (modes byte exe)
+ (names finetuning predict)
+ (libraries torch torch_vision unix)
+ (preprocess
+  (pps ppx_jane)))

@@ -3,6 +3,9 @@ type t = Torch_core.Device.t =
   | Cuda of int
 [@@deriving bin_io, sexp]
 
+include Core.Comparable.S_binable with type t := t
+include Core.Hashable.S_binable with type t := t
+
 val of_string : string -> t
 val cuda_if_available : unit -> t
 val is_cuda : t -> bool

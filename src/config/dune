@@ -1,6 +1,6 @@
 (executables
  (modes byte exe)
  (names discover)
- (libraries base dune-configurator)
+ (libraries base dune-configurator core_unix.sys_unix)
  (preprocess
   (pps ppx_jane)))

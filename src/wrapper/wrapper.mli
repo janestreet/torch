@@ -9,6 +9,8 @@ module Scalar : sig
 
   val int : int -> int t
   val float : float -> float t
+  val to_int64 : int t -> int64
+  val to_float : float t -> float
 end
 
 module Tensor : sig

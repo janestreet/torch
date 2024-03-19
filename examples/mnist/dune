@@ -1,0 +1,6 @@
+(executables
+ (modes byte exe)
+ (names conv linear nn)
+ (libraries torch unix)
+ (preprocess
+  (pps ppx_jane)))

@@ -14,25 +14,17 @@ let%expect_test _ =
   let print_tensor tensor = Stdio.printf "%d\n" (Tensor.to_int0_exn tensor) in
   Tensor.randint ~high:42 ~size:[ 3; 1; 4 ] ~options:(T Int64, Cpu)
   |> write_and_read ~print_tensor;
-  [%expect {|
-        0
-      |}];
+  [%expect {| 0 |}];
   write_and_read (Tensor.of_int0 1337) ~print_tensor;
-  [%expect {|
-        0
-      |}]
+  [%expect {| 0 |}]
 ;;
 
 let%expect_test _ =
   let print_tensor tensor = Stdio.printf "%f\n" (Tensor.to_float0_exn tensor) in
   write_and_read (Tensor.randn [ 42; 27 ]) ~print_tensor;
-  [%expect {|
-        0.000000
-      |}];
+  [%expect {| 0.000000 |}];
   write_and_read (Tensor.of_float0 1337.) ~print_tensor;
-  [%expect {|
-        0.000000
-      |}]
+  [%expect {| 0.000000 |}]
 ;;
 
 let write_and_read named_tensors =
@@ -56,10 +48,9 @@ let%expect_test _ =
     ; "another", Tensor.of_int0 42
     ; "and yet another", Tensor.of_int2 [| [| 3; -1; -51234 |]; [| 2718; 2818; 28 |] |]
     ];
-  [%expect
-    {|
-        tensor-1 0.000000
-        another 0
-        and yet another 0
-      |}]
+  [%expect {|
+    tensor-1 0.000000
+    another 0
+    and yet another 0
+    |}]
 ;;
