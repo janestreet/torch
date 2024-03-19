@@ -1,5 +1,12 @@
 # Reinforcement Learning Examples
 
+For the Python scripts, prepare your environment:
+
+```
+pip install gym
+pip install "gymnasium[atari, accept-rom-license]"
+```
+
 These examples illustrate how to implement a couple reinforcement learning
 algorithms to play Atari games.
 More details on the DQN examples can be found on this

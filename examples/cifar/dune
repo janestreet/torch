@@ -1,0 +1,6 @@
+(executables
+ (modes byte exe)
+ (names cifar_train)
+ (libraries torch unix)
+ (preprocess
+  (pps ppx_jane)))

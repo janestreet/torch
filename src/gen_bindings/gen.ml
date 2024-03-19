@@ -704,7 +704,7 @@ let run ~declarations_filename ~gen_bindings ~gen_wrappers =
 
 let command =
   Command.basic
-    ~summary:"generate bindings or wrapper code for toch functions"
+    ~summary:"generate bindings or wrapper code for torch functions"
     (let%map_open.Command declarations_filename =
        flag "declarations" (required string) ~doc:"PATH path to Declarations.yaml"
      and gen_bindings =

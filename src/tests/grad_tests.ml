@@ -12,9 +12,7 @@ let%expect_test _ =
   Tensor.backward y;
   let dy_over_dx = Tensor.grad x in
   Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn dy_over_dx);
-  [%expect {|
-        5376
-      |}]
+  [%expect {| 5376 |}]
 ;;
 
 let%expect_test _ =
@@ -27,9 +25,7 @@ let%expect_test _ =
   Tensor.backward dy_over_dx;
   let dy_over_dx2 = Tensor.grad x in
   Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn dy_over_dx2);
-  [%expect {|
-        254
-      |}]
+  [%expect {| 254 |}]
 ;;
 
 let%expect_test _ =
@@ -37,9 +33,7 @@ let%expect_test _ =
   let y = Tensor.((x * x * x) + (x * x)) in
   let dy_over_dx = Tensor.run_backward [ y ] [ x ] |> List.hd_exn in
   Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn dy_over_dx);
-  [%expect {|
-        5376
-      |}]
+  [%expect {| 5376 |}]
 ;;
 
 let%expect_test _ =
@@ -47,12 +41,8 @@ let%expect_test _ =
   let y = Tensor.((x * x * x) + (x * x)) in
   let dy_over_dx = Tensor.run_backward [ y ] [ x ] ~create_graph:true |> List.hd_exn in
   Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn dy_over_dx);
-  [%expect {|
-        5376
-      |}];
+  [%expect {| 5376 |}];
   let dy_over_dx2 = Tensor.run_backward [ dy_over_dx ] [ x ] |> List.hd_exn in
   Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn dy_over_dx2);
-  [%expect {|
-        254
-      |}]
+  [%expect {| 254 |}]
 ;;

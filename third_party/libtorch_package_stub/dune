@@ -1,0 +1,7 @@
+(library
+ (name torch_optional_package_stub)
+ (libraries)
+ (optional)
+ (virtual_deps libtorch)
+ (preprocess
+  (pps ppx_jane)))

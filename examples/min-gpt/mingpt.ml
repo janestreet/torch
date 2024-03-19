@@ -74,7 +74,7 @@ let block vs cfg =
     let ys =
       Layer.forward ln2 xs
       |> Layer.forward lin1
-      |> Tensor.gelu
+      |> Tensor.gelu ~approximate:"none"
       |> Layer.forward lin2
       |> Tensor.dropout ~p:resid_pdrop ~is_training
     in

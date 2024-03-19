@@ -31,7 +31,8 @@ let%expect_test _ =
   Stdio.printf !"%{sexp:int list}\n" (Tensor.shape c);
   [%expect {|
     (5 4)
-    (5 4) |}];
+    (5 4)
+    |}];
   let input = Tensor.randn [ batch_size; seq_len; input_dim ] in
   let out, _ = Layer.Lstm.seq lstm input ~is_training:false in
   Stdio.printf !"%{sexp:int list}\n" (Tensor.shape out);

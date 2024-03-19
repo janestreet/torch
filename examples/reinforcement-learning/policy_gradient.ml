@@ -103,7 +103,7 @@ let () =
       Tensor.(
         sum_dim_intlist
           (action_mask * log_softmax logits ~dim:1 ~dtype:(T Float))
-          ~dim:[ 1 ]
+          ~dim:(Some [ 1 ])
           ~keepdim:false
           ~dtype:(T Float))
     in

@@ -1,0 +1,6 @@
+(executables
+ (modes byte exe)
+ (names a2c dqn policy_gradient ppo dqn_atari dqn_pong)
+ (libraries pyml torch torch_vision unix)
+ (preprocess
+  (pps ppx_jane)))

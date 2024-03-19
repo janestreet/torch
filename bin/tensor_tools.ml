@@ -1,14 +1,14 @@
 open Base
 open Torch
-include Npy_lib
+open Npy
 
 let npz_tensors ~filename ~f =
-  let npz_file = Npy.Npz.open_in filename in
+  let npz_file = Npz.open_in filename in
   let named_tensors =
-    Npy.Npz.entries npz_file
-    |> List.map ~f:(fun tensor_name -> f tensor_name (Npy.Npz.read npz_file tensor_name))
+    Npz.entries npz_file
+    |> List.map ~f:(fun tensor_name -> f tensor_name (Npz.read npz_file tensor_name))
   in
-  Npy.Npz.close_in npz_file;
+  Npz.close_in npz_file;
   named_tensors
 ;;
 
@@ -20,7 +20,7 @@ let ls files =
       then
         npz_tensors ~filename ~f:(fun tensor_name packed_tensor ->
           match packed_tensor with
-          | Npy.P tensor ->
+          | P tensor ->
             let tensor_shape = Bigarray.Genarray.dims tensor |> Array.to_list in
             tensor_name, tensor_shape)
       else
@@ -36,7 +36,7 @@ let npz_to_pytorch npz_src pytorch_dst =
   let named_tensors =
     npz_tensors ~filename:npz_src ~f:(fun tensor_name packed_tensor ->
       match packed_tensor with
-      | Npy.P tensor ->
+      | P tensor ->
         (match Bigarray.Genarray.layout tensor with
          | Bigarray.C_layout -> tensor_name, Tensor.of_bigarray tensor
          | Bigarray.Fortran_layout -> failwith "fortran layout is not supported"))
@@ -62,11 +62,11 @@ let image_to_tensor image_src pytorch_dst resize =
 
 let pytorch_to_npz pytorch_src npz_dst =
   let named_tensors = Serialize.load_all ~filename:pytorch_src in
-  let npz_file = Npy.Npz.open_out npz_dst in
+  let npz_file = Npz.open_out npz_dst in
   List.iter named_tensors ~f:(fun (tensor_name, tensor) ->
     let write kind =
       let tensor = Tensor.to_bigarray tensor ~kind in
-      Npy.Npz.write npz_file tensor_name tensor
+      Npz.write npz_file tensor_name tensor
     in
     match Tensor.kind tensor with
     | T Float -> write Bigarray.float32
@@ -74,7 +74,7 @@ let pytorch_to_npz pytorch_src npz_dst =
     | T Int -> write Bigarray.int32
     | T Int64 -> write Bigarray.int64
     | _ -> Printf.failwithf "unsupported tensor kind for %s" tensor_name ());
-  Npy.Npz.close_out npz_file
+  Npz.close_out npz_file
 ;;
 
 let load_and_run_dummy_module device =

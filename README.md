@@ -94,6 +94,7 @@ not work on macos).
 * [ResNet examples on CIFAR-10](./examples/cifar/README.md).
 * [Character-level RNN](./examples/char_rnn/README.md)
 * [Neural Style Transfer](./examples/neural_transfer/README.md)
+* [Reinforcement Learning](./examples/reinforcement-learning/README.md)
 
 Some more advanced applications from external repos:
 
@@ -107,7 +108,7 @@ Various pre-trained computer vision models are implemented in the vision library
 The weight files can be downloaded at the following links:
 
 
-* ResNet-18 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot).
+* ResNet-18 [weights](https://github.com/LaurentMazare/tch-rs/releases/download/mw/resnet18.ot).
 * ResNet-34 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet34.ot).
 * ResNet-50 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet50.ot).
 * ResNet-101 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet101.ot).
@@ -118,7 +119,7 @@ The weight files can be downloaded at the following links:
 * SqueezeNet 1.0 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_0.ot).
 * SqueezeNet 1.1 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/squeezenet1_1.ot).
 * VGG-13 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg13.ot).
-* VGG-16 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/vgg16.ot).
+* VGG-16 [weights](https://github.com/LaurentMazare/tch-rs/releases/download/mw/vgg16.ot).
 * AlexNet [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/alexnet.ot).
 * Inception-v3 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/inception-v3.ot).
 * MobileNet-v2 [weights](https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/mobilenet-v2.ot).

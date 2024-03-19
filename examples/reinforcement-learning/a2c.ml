@@ -7,7 +7,6 @@
 *)
 open Base
 open Torch
-module E = Vec_env_gym_pyml
 
 let atari_game = "SpaceInvadersNoFrameskip-v4"
 let num_steps = 5
@@ -65,7 +64,7 @@ let train ~device =
     let dist_entropy =
       Tensor.(
         ~-(log_probs * probs)
-        |> sum_dim_intlist ~dim:[ -1 ] ~keepdim:false ~dtype:(T Float)
+        |> sum_dim_intlist ~dim:(Some [ -1 ]) ~keepdim:false ~dtype:(T Float)
         |> mean)
     in
     let advantages =
@@ -98,7 +97,7 @@ let valid ~filename ~device =
   let vs = Var_store.create ~frozen:true ~name:"a2c" () ~device in
   let model = model vs ~actions:action_space in
   Serialize.load_multi_ ~named_tensors:(Var_store.all_vars vs) ~filename;
-  let _ = Rollout.run rollout ~model in
+  let (_ : Rollout.rollout) = Rollout.run rollout ~model in
   let { Rollout.rewards = r; episodes = e } = Rollout.get_and_reset_totals rollout in
   Stdio.printf "%f (%.0f episodes)\n%!" (r /. e) e
 ;;

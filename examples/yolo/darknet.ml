@@ -192,11 +192,9 @@ let detect xs ~image_height ~anchors ~classes ~device =
     |> Tensor.unsqueeze ~dim:0
   in
   slice_apply_and_set xs ~start:2 ~length:2 ~f:Tensor.(fun xs -> exp xs * anchors);
-  slice_apply_and_set
-    xs
-    ~start:0
-    ~length:4
-    ~f:Tensor.(fun xs -> xs * f (Float.of_int stride));
+  slice_apply_and_set xs ~start:0 ~length:4 ~f:(fun xs ->
+    let stride_float = Float.of_int stride in
+    Tensor.(xs * f stride_float));
   xs
 ;;
 

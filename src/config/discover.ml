@@ -22,9 +22,20 @@ let or_else o ~f =
   | None -> f ()
 ;;
 
+let required_libs = [ "c10"; "torch_cpu"; "torch" ]
+
+let choose_dynamic_links ~lib_dir =
+  let optional_libs = [ "torch_cuda" ] in
+  required_libs
+  @ List.filter optional_libs ~f:(fun lib ->
+      match Sys_unix.file_exists [%string "%{lib_dir}/lib%{lib}.so"] with
+      | `Yes -> true
+      | _ -> false)
+;;
+
 let torch_flags () =
-  let dynamic_links = [ "c10"; "torch_cpu"; "torch" ] in
   let config ~include_dir ~lib_dir =
+    let dynamic_links = choose_dynamic_links ~lib_dir in
     let cflags =
       [ "-isystem"
       ; Printf.sprintf "%s" include_dir
@@ -34,9 +45,7 @@ let torch_flags () =
     in
     let libs =
       [ Printf.sprintf "-Wl,-rpath,%s" lib_dir; Printf.sprintf "-L%s" lib_dir ]
-      @ List.map
-          ~f:(fun lib -> [%string "-l%{lib_dir}"] /^ [%string "lib%{lib}.so"])
-          dynamic_links
+      @ List.map ~f:(fun lib -> [%string "-l%{lib}"]) dynamic_links
     in
     { C.Pkg_config.cflags; libs }
   in
@@ -67,6 +76,7 @@ let torch_flags () =
     |> or_else ~f:(fun () ->
          match Stdlib.Sys.getenv_opt "LIBTORCH_USE_SYSTEM" with
          | Some "1" ->
+           let dynamic_links = required_libs in
            Some
              { C.Pkg_config.cflags = []
              ; libs = List.map ~f:(fun lib -> [%string "-l%{lib}"]) dynamic_links

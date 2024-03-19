@@ -129,6 +129,8 @@ module C (F : Cstubs.FOREIGN) = struct
   end
 
   module Scalar = struct
+    let to_int64 = foreign "ats_to_int" (scalar @-> returning int64_t)
+    let to_float = foreign "ats_to_float" (scalar @-> returning float)
     let int = foreign "ats_int" (int64_t @-> returning scalar)
     let float = foreign "ats_float" (float @-> returning scalar)
     let free = foreign "ats_free" (scalar @-> returning void)
