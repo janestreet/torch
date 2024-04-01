@@ -2,7 +2,7 @@ open Base
 open Sexplib.Conv
 open Torch
 
-let%expect_test _ =
+let%expect_test "zero grad" =
   (* why we need this cuda check:
      https://github.com/pytorch/pytorch/issues/35736#issuecomment-688078143 *)
   let (_ : bool) = Torch.Cuda.is_available () in
@@ -15,7 +15,7 @@ let%expect_test _ =
   [%expect {| 5376 |}]
 ;;
 
-let%expect_test _ =
+let%expect_test "create graph" =
   let x = Tensor.f 42. |> Tensor.set_requires_grad ~r:true in
   let y = Tensor.((x * x * x) + (x * x)) in
   Tensor.zero_grad x;
@@ -28,7 +28,7 @@ let%expect_test _ =
   [%expect {| 254 |}]
 ;;
 
-let%expect_test _ =
+let%expect_test "run backward" =
   let x = Tensor.f 42. |> Tensor.set_requires_grad ~r:true in
   let y = Tensor.((x * x * x) + (x * x)) in
   let dy_over_dx = Tensor.run_backward [ y ] [ x ] |> List.hd_exn in
@@ -36,7 +36,7 @@ let%expect_test _ =
   [%expect {| 5376 |}]
 ;;
 
-let%expect_test _ =
+let%expect_test "2nd order derivatives" =
   let x = Tensor.f 42. |> Tensor.set_requires_grad ~r:true in
   let y = Tensor.((x * x * x) + (x * x)) in
   let dy_over_dx = Tensor.run_backward [ y ] [ x ] ~create_graph:true |> List.hd_exn in

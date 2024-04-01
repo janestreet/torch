@@ -112,7 +112,6 @@ module C (F : Cstubs.FOREIGN) = struct
     let fill_int64 = foreign "at_fill_int64" (gc_tensor @-> int64_t @-> returning void)
     let print = foreign "at_print" (gc_tensor @-> returning void)
     let to_string = foreign "at_to_string" (gc_tensor @-> int @-> returning string)
-    let free = foreign "at_free" (gc_tensor @-> returning void)
 
     let run_backward =
       foreign

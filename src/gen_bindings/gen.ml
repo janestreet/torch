@@ -127,11 +127,13 @@ module Func = struct
     | ScalarType
     | Device
     | String
+    | StringOption
 
   type arg =
     { arg_name : string
     ; arg_type : arg_type
     ; default_value : string option
+    ; is_const : bool
     }
 
   let ml_arg_type arg =
@@ -153,6 +155,7 @@ module Func = struct
     | ScalarType -> "Kind.packed"
     | Device -> "Device.t"
     | String -> "string"
+    | StringOption -> "string option"
   ;;
 
   let named_arg arg =
@@ -186,7 +189,7 @@ module Func = struct
     | "at::device" -> Some Device
     | "const at::scalar &" | "at::scalar" -> Some Scalar
     | "at::scalartype" -> Some ScalarType
-    | "c10::string_view" -> Some String
+    | "c10::string_view" -> Some (if is_nullable then StringOption else String)
     | _ -> None
   ;;
 
@@ -201,6 +204,7 @@ module Func = struct
       | TensorOptions -> Printf.sprintf "int %s_kind, int %s_device" arg_name arg_name
       | Int64Option -> Printf.sprintf "int64_t %s_v, int %s_null" arg_name arg_name
       | DoubleOption -> Printf.sprintf "double %s_v, int %s_null" arg_name arg_name
+      | StringOption -> Printf.sprintf "char * %s_v, int %s_null" arg_name arg_name
       | otherwise ->
         let simple_type_cstring =
           match otherwise with
@@ -219,42 +223,49 @@ module Func = struct
           | DoubleList
           | TensorOptList
           | TensorList
-          | TensorOptions -> assert false
+          | TensorOptions
+          | StringOption -> assert false
         in
         Printf.sprintf "%s %s" simple_type_cstring arg_name)
     |> String.concat ~sep:", "
   ;;
 
   let c_args_list args =
-    List.map args ~f:(fun { arg_name; arg_type; _ } ->
-      match arg_type with
-      | Scalar -> "*" ^ arg_name
-      | Tensor -> [%string "*tensor_ptr_from_ocaml(%{arg_name})"]
-      | TensorOption ->
-        [%string "(%{arg_name} ? tensor_from_ocaml(%{arg_name}) : torch::Tensor())"]
-      | Bool -> "(bool)" ^ arg_name
-      | IntList -> [%string "torch::IntArrayRef(%{arg_name}_data, %{arg_name}_len)"]
-      | IntListOption ->
+    List.map args ~f:(fun { arg_name; arg_type; is_const; _ } ->
+      match arg_type, is_const with
+      | Scalar, _ -> "*" ^ arg_name
+      | Tensor, true -> [%string "tensor_from_ocaml(%{arg_name})"]
+      | Tensor, false | TensorOption, false -> [%string "%{arg_name}_local"]
+      | TensorOption, _ ->
+        [%string "%{arg_name} ? tensor_from_ocaml(%{arg_name}) : torch::Tensor()"]
+      | Bool, _ -> "(bool)" ^ arg_name
+      | IntList, _ -> [%string "torch::IntArrayRef(%{arg_name}_data, %{arg_name}_len)"]
+      | IntListOption, _ ->
         [%string
           "%{arg_name}_data == nullptr ? c10::nullopt : \
            c10::optional<torch::IntArrayRef>(torch::IntArrayRef(%{arg_name}_data, \
            %{arg_name}_len))"]
-      | DoubleList -> [%string "at::ArrayRef<double>(%{arg_name}_data, %{arg_name}_len)"]
-      | String -> [%string "std::string(%{arg_name})"]
-      | TensorList -> [%string "of_carray_tensor(%{arg_name}_data, %{arg_name}_len)"]
-      | TensorOptList ->
+      | DoubleList, _ ->
+        [%string "at::ArrayRef<double>(%{arg_name}_data, %{arg_name}_len)"]
+      | String, _ -> [%string "std::string(%{arg_name})"]
+      | StringOption, _ ->
+        [%string
+          "%{arg_name}_null ? c10::nullopt : \
+           c10::optional<c10::string_view>(%{arg_name}_v)"]
+      | TensorList, _ -> [%string "of_carray_tensor(%{arg_name}_data, %{arg_name}_len)"]
+      | TensorOptList, _ ->
         Printf.sprintf "of_carray_tensor_opt(%s_data, %s_len)" arg_name arg_name
-      | TensorOptions ->
+      | TensorOptions, _ ->
         [%string
           "at::device(device_of_int(%{arg_name}_device)).dtype(at::ScalarType(%{arg_name}_kind))"]
-      | Int64Option ->
+      | Int64Option, _ ->
         [%string
           "%{arg_name}_null ? c10::nullopt : c10::optional<int64_t>(%{arg_name}_v)"]
-      | DoubleOption ->
+      | DoubleOption, _ ->
         [%string "%{arg_name}_null ? c10::nullopt : c10::optional<double>(%{arg_name}_v)"]
-      | ScalarType -> [%string "torch::ScalarType(%{arg_name})"]
-      | Device -> [%string "device_of_int(%{arg_name})"]
-      | Int64 | Double -> arg_name)
+      | ScalarType, _ -> [%string "torch::ScalarType(%{arg_name})"]
+      | Device, _ -> [%string "device_of_int(%{arg_name})"]
+      | Int64, _ | Double, _ -> arg_name)
     |> String.concat ~sep:", "
   ;;
 
@@ -266,12 +277,22 @@ module Func = struct
        | head :: tail ->
          let obj =
            match head.arg_type with
-           | Tensor -> [%string "tensor_ptr_from_ocaml(%{head.arg_name})"]
-           | _ -> head.arg_name
+           | Tensor -> [%string "tensor_from_ocaml(%{head.arg_name})."]
+           | _ -> [%string "%{head.arg_name}->"]
          in
-         [%string "%{obj}->%{t.name}(%{c_args_list tail})"]
+         [%string "%{obj}%{t.name}(%{c_args_list tail})"]
        | [] ->
          failwith [%string "Method calls should have at least one argument %{t.name}"])
+  ;;
+
+  let reclaim_tensor_statements args =
+    List.filter_map args ~f:(fun { arg_name; arg_type; is_const; _ } ->
+      match arg_type, is_const with
+      | Tensor, false | TensorOption, false ->
+        Some
+          [%string "  torch::Tensor %{arg_name}_local = tensor_from_ocaml(%{arg_name});"]
+      | _ -> None)
+    |> String.concat ~sep:"\n"
   ;;
 
   let operator_name t =
@@ -301,6 +322,7 @@ module Func = struct
         | DoubleList -> [ "ptr double"; "int" ]
         | TensorOptList | TensorList -> [ "ptr gc_tensor"; "int" ]
         | String -> [ "string" ]
+        | StringOption -> [ "string"; "int" ]
         | Scalar -> [ "scalar" ])
       |> String.concat ~sep:" @-> "
     in
@@ -350,6 +372,9 @@ module Func = struct
       | DoubleOption ->
         [%string
           {| (Option.value %{name} ~default:0.0) (match %{name} with | Some _ -> 0 | None -> 1) |}]
+      | StringOption ->
+        [%string
+          {| (Option.value %{name} ~default:"") (match %{name} with | Some _ -> 0 | None -> 1) |}]
       | DoubleList ->
         [%string
           {|(%{name} |> CArray.of_list double |> CArray.start) (List.length %{name})|}]
@@ -447,6 +472,11 @@ let read_yaml filename =
                  let arg = extract_map arg in
                  let arg_name = Map.find_exn arg "name" |> extract_string in
                  let arg_type = Map.find_exn arg "dynamic_type" |> extract_string in
+                 let is_const =
+                   Map.find_exn arg "type"
+                   |> extract_string
+                   |> String.is_prefix ~prefix:"const "
+                 in
                  let is_nullable =
                    Map.find arg "is_nullable"
                    |> Option.value_map ~default:false ~f:extract_bool
@@ -460,7 +490,8 @@ let read_yaml filename =
                  | Some TensorOptions
                    when Option.is_some default_value && Set.mem no_tensor_options name ->
                    None
-                 | Some arg_type -> Some { Func.arg_name; arg_type; default_value }
+                 | Some arg_type ->
+                   Some { Func.arg_name; arg_type; default_value; is_const }
                  | None ->
                    if Option.is_some default_value then None else raise Not_a_simple_arg)
              in
@@ -489,9 +520,14 @@ let write_cpp funcs filename =
       ph "";
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:func ->
         let c_typed_args_list = Func.c_typed_args_list func in
+        let reclaim_tensors () =
+          let statements = Func.reclaim_tensor_statements func.args in
+          if not (String.is_empty statements) then pc "%s" statements
+        in
         match func.returns with
         | `dynamic ->
           pc "raw_tensor *atg_%s(%s) {" exported_name c_typed_args_list;
+          reclaim_tensors ();
           pc "  PROTECT(";
           pc "    auto results__ = %s;" (Func.c_call func);
           (* the returned type is a C++ vector of tensors *)
@@ -507,6 +543,7 @@ let write_cpp funcs filename =
           ph "raw_tensor *atg_%s(%s);" exported_name c_typed_args_list
         | `nothing ->
           pc "void atg_%s(%s) {" exported_name c_typed_args_list;
+          reclaim_tensors ();
           pc "  PROTECT(";
           pc "    %s;" (Func.c_call func);
           pc "  )";
@@ -515,6 +552,7 @@ let write_cpp funcs filename =
           ph "void atg_%s(%s);" exported_name c_typed_args_list
         | `fixed 1 ->
           pc "raw_tensor atg_%s(%s) {" exported_name c_typed_args_list;
+          reclaim_tensors ();
           pc "  PROTECT(";
           pc "    torch::Tensor results__ = %s;" (Func.c_call func);
           pc "    return tensor_to_ocaml(results__);";
@@ -524,6 +562,7 @@ let write_cpp funcs filename =
           ph "raw_tensor atg_%s(%s);" exported_name c_typed_args_list
         | `fixed ntensors ->
           pc "void atg_%s(raw_tensor *out__, %s) {" exported_name c_typed_args_list;
+          reclaim_tensors ();
           pc "  PROTECT(";
           pc "    auto results__ = %s;" (Func.c_call func);
           for i = 0 to ntensors - 1 do
@@ -541,6 +580,7 @@ let write_cpp funcs filename =
             | `double -> "double"
           in
           pc "%s atg_%s(%s) {" c_type exported_name c_typed_args_list;
+          reclaim_tensors ();
           pc "  PROTECT(";
           pc "    return %s;" (Func.c_call func);
           pc "  )";
@@ -652,7 +692,9 @@ let methods =
     ; kind = `method_
     }
   in
-  let ca arg_name arg_type = { Func.arg_name; arg_type; default_value = None } in
+  let ca arg_name arg_type =
+    { Func.arg_name; arg_type; default_value = None; is_const = true }
+  in
   [ c "grad" [ ca "self" Tensor ]
   ; c "set_requires_grad" [ ca "self" Tensor; ca "r" Bool ]
   ; c "toType" [ ca "self" Tensor; ca "scalar_type" ScalarType ]

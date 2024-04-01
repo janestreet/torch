@@ -1117,7 +1117,7 @@ module type S = sig
     :  a:t
     -> full_matrices:bool
     -> compute_uv:bool
-    -> driver:string
+    -> driver:string option
     -> t * t * t
 
   val _linalg_svd_u
@@ -1127,7 +1127,7 @@ module type S = sig
     -> a:t
     -> full_matrices:bool
     -> compute_uv:bool
-    -> driver:string
+    -> driver:string option
     -> t * t * t
 
   val _log_softmax : t -> dim:int -> half_to_float:bool -> t
@@ -1807,7 +1807,7 @@ module type S = sig
     -> weight:t
     -> meta:t
     -> bias:t option
-    -> activation:string
+    -> activation:string option
     -> t
 
   val _sparse_softmax : t -> dim:int -> half_to_float:bool -> t
@@ -3627,25 +3627,25 @@ module type S = sig
   val div : t -> t -> t
   val div_ : t -> t -> t
   val div_out : out:t -> t -> t -> t
-  val div_out_mode : out:t -> t -> t -> rounding_mode:string -> t
+  val div_out_mode : out:t -> t -> t -> rounding_mode:string option -> t
   val div_scalar : t -> 'a scalar -> t
   val div_scalar_ : t -> 'a scalar -> t
-  val div_scalar_mode : t -> 'a scalar -> rounding_mode:string -> t
-  val div_scalar_mode_ : t -> 'a scalar -> rounding_mode:string -> t
-  val div_scalar_mode_out : out:t -> t -> 'a scalar -> rounding_mode:string -> t
+  val div_scalar_mode : t -> 'a scalar -> rounding_mode:string option -> t
+  val div_scalar_mode_ : t -> 'a scalar -> rounding_mode:string option -> t
+  val div_scalar_mode_out : out:t -> t -> 'a scalar -> rounding_mode:string option -> t
   val div_scalar_out : out:t -> t -> 'a scalar -> t
-  val div_tensor_mode : t -> t -> rounding_mode:string -> t
-  val div_tensor_mode_ : t -> t -> rounding_mode:string -> t
+  val div_tensor_mode : t -> t -> rounding_mode:string option -> t
+  val div_tensor_mode_ : t -> t -> rounding_mode:string option -> t
   val divide : t -> t -> t
   val divide_ : t -> t -> t
   val divide_out : out:t -> t -> t -> t
-  val divide_out_mode : out:t -> t -> t -> rounding_mode:string -> t
+  val divide_out_mode : out:t -> t -> t -> rounding_mode:string option -> t
   val divide_scalar : t -> 'a scalar -> t
   val divide_scalar_ : t -> 'a scalar -> t
-  val divide_scalar_mode : t -> 'a scalar -> rounding_mode:string -> t
-  val divide_scalar_mode_ : t -> 'a scalar -> rounding_mode:string -> t
-  val divide_tensor_mode : t -> t -> rounding_mode:string -> t
-  val divide_tensor_mode_ : t -> t -> rounding_mode:string -> t
+  val divide_scalar_mode : t -> 'a scalar -> rounding_mode:string option -> t
+  val divide_scalar_mode_ : t -> 'a scalar -> rounding_mode:string option -> t
+  val divide_tensor_mode : t -> t -> rounding_mode:string option -> t
+  val divide_tensor_mode_ : t -> t -> rounding_mode:string option -> t
   val dot : t -> t -> t
   val dot_out : out:t -> t -> t -> t
   val dropout : t -> p:float -> train:bool -> t
@@ -3920,94 +3920,154 @@ module type S = sig
   val feature_alpha_dropout_ : t -> p:float -> train:bool -> t
   val feature_dropout : t -> p:float -> train:bool -> t
   val feature_dropout_ : t -> p:float -> train:bool -> t
-  val fft_fft : t -> n:int option -> dim:int -> norm:string -> t
-  val fft_fft2 : t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_fft2_out : out:t -> t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_fft_out : out:t -> t -> n:int option -> dim:int -> norm:string -> t
+  val fft_fft : t -> n:int option -> dim:int -> norm:string option -> t
+  val fft_fft2 : t -> s:int list option -> dim:int list -> norm:string option -> t
+
+  val fft_fft2_out
+    :  out:t
+    -> t
+    -> s:int list option
+    -> dim:int list
+    -> norm:string option
+    -> t
+
+  val fft_fft_out : out:t -> t -> n:int option -> dim:int -> norm:string option -> t
   val fft_fftfreq : n:int -> d:float -> options:Kind.packed * Device.t -> t
   val fft_fftfreq_out : out:t -> n:int -> d:float -> t
-  val fft_fftn : t -> s:int list option -> dim:int list option -> norm:string -> t
+  val fft_fftn : t -> s:int list option -> dim:int list option -> norm:string option -> t
 
   val fft_fftn_out
     :  out:t
     -> t
     -> s:int list option
     -> dim:int list option
-    -> norm:string
+    -> norm:string option
     -> t
 
   val fft_fftshift : t -> dim:int list option -> t
-  val fft_hfft : t -> n:int option -> dim:int -> norm:string -> t
-  val fft_hfft2 : t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_hfft2_out : out:t -> t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_hfft_out : out:t -> t -> n:int option -> dim:int -> norm:string -> t
-  val fft_hfftn : t -> s:int list option -> dim:int list option -> norm:string -> t
+  val fft_hfft : t -> n:int option -> dim:int -> norm:string option -> t
+  val fft_hfft2 : t -> s:int list option -> dim:int list -> norm:string option -> t
+
+  val fft_hfft2_out
+    :  out:t
+    -> t
+    -> s:int list option
+    -> dim:int list
+    -> norm:string option
+    -> t
+
+  val fft_hfft_out : out:t -> t -> n:int option -> dim:int -> norm:string option -> t
+  val fft_hfftn : t -> s:int list option -> dim:int list option -> norm:string option -> t
 
   val fft_hfftn_out
     :  out:t
     -> t
     -> s:int list option
     -> dim:int list option
-    -> norm:string
+    -> norm:string option
     -> t
 
-  val fft_ifft : t -> n:int option -> dim:int -> norm:string -> t
-  val fft_ifft2 : t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_ifft2_out : out:t -> t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_ifft_out : out:t -> t -> n:int option -> dim:int -> norm:string -> t
-  val fft_ifftn : t -> s:int list option -> dim:int list option -> norm:string -> t
+  val fft_ifft : t -> n:int option -> dim:int -> norm:string option -> t
+  val fft_ifft2 : t -> s:int list option -> dim:int list -> norm:string option -> t
+
+  val fft_ifft2_out
+    :  out:t
+    -> t
+    -> s:int list option
+    -> dim:int list
+    -> norm:string option
+    -> t
+
+  val fft_ifft_out : out:t -> t -> n:int option -> dim:int -> norm:string option -> t
+  val fft_ifftn : t -> s:int list option -> dim:int list option -> norm:string option -> t
 
   val fft_ifftn_out
     :  out:t
     -> t
     -> s:int list option
     -> dim:int list option
-    -> norm:string
+    -> norm:string option
     -> t
 
   val fft_ifftshift : t -> dim:int list option -> t
-  val fft_ihfft : t -> n:int option -> dim:int -> norm:string -> t
-  val fft_ihfft2 : t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_ihfft2_out : out:t -> t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_ihfft_out : out:t -> t -> n:int option -> dim:int -> norm:string -> t
-  val fft_ihfftn : t -> s:int list option -> dim:int list option -> norm:string -> t
+  val fft_ihfft : t -> n:int option -> dim:int -> norm:string option -> t
+  val fft_ihfft2 : t -> s:int list option -> dim:int list -> norm:string option -> t
+
+  val fft_ihfft2_out
+    :  out:t
+    -> t
+    -> s:int list option
+    -> dim:int list
+    -> norm:string option
+    -> t
+
+  val fft_ihfft_out : out:t -> t -> n:int option -> dim:int -> norm:string option -> t
+
+  val fft_ihfftn
+    :  t
+    -> s:int list option
+    -> dim:int list option
+    -> norm:string option
+    -> t
 
   val fft_ihfftn_out
     :  out:t
     -> t
     -> s:int list option
     -> dim:int list option
-    -> norm:string
+    -> norm:string option
     -> t
 
-  val fft_irfft : t -> n:int option -> dim:int -> norm:string -> t
-  val fft_irfft2 : t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_irfft2_out : out:t -> t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_irfft_out : out:t -> t -> n:int option -> dim:int -> norm:string -> t
-  val fft_irfftn : t -> s:int list option -> dim:int list option -> norm:string -> t
+  val fft_irfft : t -> n:int option -> dim:int -> norm:string option -> t
+  val fft_irfft2 : t -> s:int list option -> dim:int list -> norm:string option -> t
+
+  val fft_irfft2_out
+    :  out:t
+    -> t
+    -> s:int list option
+    -> dim:int list
+    -> norm:string option
+    -> t
+
+  val fft_irfft_out : out:t -> t -> n:int option -> dim:int -> norm:string option -> t
+
+  val fft_irfftn
+    :  t
+    -> s:int list option
+    -> dim:int list option
+    -> norm:string option
+    -> t
 
   val fft_irfftn_out
     :  out:t
     -> t
     -> s:int list option
     -> dim:int list option
-    -> norm:string
+    -> norm:string option
     -> t
 
-  val fft_rfft : t -> n:int option -> dim:int -> norm:string -> t
-  val fft_rfft2 : t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_rfft2_out : out:t -> t -> s:int list option -> dim:int list -> norm:string -> t
-  val fft_rfft_out : out:t -> t -> n:int option -> dim:int -> norm:string -> t
+  val fft_rfft : t -> n:int option -> dim:int -> norm:string option -> t
+  val fft_rfft2 : t -> s:int list option -> dim:int list -> norm:string option -> t
+
+  val fft_rfft2_out
+    :  out:t
+    -> t
+    -> s:int list option
+    -> dim:int list
+    -> norm:string option
+    -> t
+
+  val fft_rfft_out : out:t -> t -> n:int option -> dim:int -> norm:string option -> t
   val fft_rfftfreq : n:int -> d:float -> options:Kind.packed * Device.t -> t
   val fft_rfftfreq_out : out:t -> n:int -> d:float -> t
-  val fft_rfftn : t -> s:int list option -> dim:int list option -> norm:string -> t
+  val fft_rfftn : t -> s:int list option -> dim:int list option -> norm:string option -> t
 
   val fft_rfftn_out
     :  out:t
     -> t
     -> s:int list option
     -> dim:int list option
-    -> norm:string
+    -> norm:string option
     -> t
 
   val fill : t -> value:'a scalar -> t
@@ -4778,7 +4838,13 @@ module type S = sig
   val linalg_ldl_factor_out : ld:t -> pivots:t -> t -> hermitian:bool -> t * t
   val linalg_ldl_solve : ld:t -> pivots:t -> b:t -> hermitian:bool -> t
   val linalg_ldl_solve_out : out:t -> ld:t -> pivots:t -> b:t -> hermitian:bool -> t
-  val linalg_lstsq : t -> b:t -> rcond:float option -> driver:string -> t * t * t * t
+
+  val linalg_lstsq
+    :  t
+    -> b:t
+    -> rcond:float option
+    -> driver:string option
+    -> t * t * t * t
 
   val linalg_lstsq_out
     :  solution:t
@@ -4788,7 +4854,7 @@ module type S = sig
     -> t
     -> b:t
     -> rcond:float option
-    -> driver:string
+    -> driver:string option
     -> t * t * t * t
 
   val linalg_lu : a:t -> pivot:bool -> t * t * t
@@ -4930,7 +4996,7 @@ module type S = sig
     -> unitriangular:bool
     -> t
 
-  val linalg_svd : a:t -> full_matrices:bool -> driver:string -> t * t * t
+  val linalg_svd : a:t -> full_matrices:bool -> driver:string option -> t * t * t
 
   val linalg_svd_u
     :  u:t
@@ -4938,11 +5004,11 @@ module type S = sig
     -> vh:t
     -> a:t
     -> full_matrices:bool
-    -> driver:string
+    -> driver:string option
     -> t * t * t
 
-  val linalg_svdvals : a:t -> driver:string -> t
-  val linalg_svdvals_out : out:t -> a:t -> driver:string -> t
+  val linalg_svdvals : a:t -> driver:string option -> t
+  val linalg_svdvals_out : out:t -> a:t -> driver:string option -> t
   val linalg_tensorinv : t -> ind:int -> t
   val linalg_tensorinv_out : out:t -> t -> ind:int -> t
   val linalg_tensorsolve : t -> t -> dims:int list option -> t
@@ -6890,7 +6956,7 @@ module type S = sig
     -> t
     -> out_int32:bool
     -> right:bool
-    -> side:string
+    -> side:string option
     -> sorter:t option
     -> t
 
@@ -6899,7 +6965,7 @@ module type S = sig
     -> 'a scalar
     -> out_int32:bool
     -> right:bool
-    -> side:string
+    -> side:string option
     -> sorter:t option
     -> t
 
@@ -6909,7 +6975,7 @@ module type S = sig
     -> 'a scalar
     -> out_int32:bool
     -> right:bool
-    -> side:string
+    -> side:string option
     -> sorter:t option
     -> t
 
@@ -6919,7 +6985,7 @@ module type S = sig
     -> t
     -> out_int32:bool
     -> right:bool
-    -> side:string
+    -> side:string option
     -> sorter:t option
     -> t
 
