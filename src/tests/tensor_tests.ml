@@ -2,7 +2,7 @@ open Base
 open Sexplib.Conv
 open Torch
 
-let%expect_test _ =
+let%expect_test "addition" =
   let t = Tensor.(f 41. + f 1.) in
   Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn t);
   [%expect {| 42 |}];
@@ -227,4 +227,20 @@ let%expect_test "nan_to_num" =
   in
   Stdio.printf !"%{sexp: float array}\n" (Tensor.to_float1_exn with_nans_replaced);
   [%expect {| (1 2 3 4) |}]
+;;
+
+let%expect_test "svd" =
+  let t = Tensor.of_float2 [| [| 1.0; 2.0 |]; [| 3.0; 4.0 |] |] in
+  let u, s, vt = Tensor.linalg_svd ~a:t ~full_matrices:false ~driver:None in
+  Stdio.printf !"U: %{sexp: float array array}\n" (Tensor.to_float2_exn u);
+  Stdio.printf !"Sigma: %{sexp: float array}\n" (Tensor.to_float1_exn s);
+  Stdio.printf !"V^T: %{sexp: float array array}\n" (Tensor.to_float2_exn vt);
+  [%expect
+    {|
+    U: ((-0.40455365180969238 -0.91451436281204224)
+     (-0.914514422416687 0.40455359220504761))
+    Sigma: (5.4649853706359863 0.36596611142158508)
+    V^T: ((-0.57604849338531494 -0.81741553544998169)
+     (0.81741553544998169 -0.57604849338531494))
+    |}]
 ;;

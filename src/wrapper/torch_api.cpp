@@ -12,15 +12,28 @@
 
 using namespace std;
 
-torch::Tensor *tensor_ptr_from_ocaml(gc_tensor t) { return (torch::Tensor *)t; }
-
 torch::Tensor tensor_from_ocaml(gc_tensor t) {
-  return *tensor_ptr_from_ocaml(t);
+  // invoke reclaim_copy to increment the refcount by 1 (until this new Tensor
+  // gets dropped by C++)
+  auto ptr = c10::intrusive_ptr<torch::TensorImpl,
+                                torch::UndefinedTensorImpl>::reclaim_copy(t);
+  return torch::Tensor(ptr);
+}
+
+// It's actually better to pass tensors by reference, sparing some atomic
+// refcount updates. By doing so, newly created tensors passed to this function
+// should have a refcount of exactly 1.
+// https://dev-discuss.pytorch.org/t/we-shouldnt-feel-bad-about-passing-tensor-by-reference/85
+raw_tensor tensor_to_ocaml(const torch::Tensor &cpp_tensor) {
+  auto ptr = cpp_tensor.getIntrusivePtr();
+  return ptr.release();
 }
 
 CAMLprim void finalize_tensor(value block) {
-  gc_tensor t = *(void **)Data_custom_val(block);
-  at_free(t);
+  gc_tensor t = *(gc_tensor *)Data_custom_val(block);
+  // reclaim the tensor and immediately let it go out of scope, decrementing its
+  // refcount
+  c10::intrusive_ptr<torch::TensorImpl, torch::UndefinedTensorImpl>::reclaim(t);
 }
 
 static struct custom_operations ops = {"torch-tensor",
@@ -33,21 +46,22 @@ static struct custom_operations ops = {"torch-tensor",
                                        custom_fixed_length_default};
 
 CAMLprim value with_tensor_gc_internal(raw_tensor t) {
+  // We don't just call tensor_from_ocaml here because we want to steal
+  // ownership of the tensor from the raw tensor, using reclaim instead of
+  // reclaim_copy (leaving the refcount as it was).
+  auto ptr = c10::intrusive_ptr<torch::TensorImpl,
+                                torch::UndefinedTensorImpl>::reclaim(t);
+
+  torch::Tensor tensor = torch::Tensor(ptr);
   // See https://v2.ocaml.org/manual/intfc.html#s%3Ac-custom
   unsigned long int off_heap_cpu_memory_bytes = 0;
-  torch::Tensor *tensor = (torch::Tensor *)t;
-  if (tensor->defined() && tensor->device() == at::kCPU) {
-    off_heap_cpu_memory_bytes = tensor->numel() * tensor->element_size();
+  if (tensor.defined() && tensor.device() == at::kCPU) {
+    off_heap_cpu_memory_bytes = tensor.numel() * tensor.element_size();
   }
-  value new_block = caml_alloc_custom_mem(&ops, sizeof(torch::Tensor *),
-                                          off_heap_cpu_memory_bytes);
-  *(void **)Data_custom_val(new_block) = t;
+  value new_block =
+      caml_alloc_custom_mem(&ops, sizeof(gc_tensor), off_heap_cpu_memory_bytes);
+  *(gc_tensor *)Data_custom_val(new_block) = (gc_tensor)tensor_to_ocaml(tensor);
   return new_block;
-}
-
-raw_tensor tensor_to_ocaml(torch::Tensor cpp_tensor) {
-  torch::Tensor *res = new torch::Tensor(cpp_tensor);
-  return (raw_tensor)res;
 }
 
 void at_manual_seed(int64_t seed) { torch::manual_seed(seed); }
@@ -103,17 +117,17 @@ raw_tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims,
 
 void at_copy_data(gc_tensor t, void *vs, int64_t numel, int elt_size_in_bytes) {
   PROTECT(
-      torch::Tensor *tensor = tensor_ptr_from_ocaml(t);
-      if ((int64_t)elt_size_in_bytes != tensor->element_size()) throw std::
+      torch::Tensor tensor = tensor_from_ocaml(t);
+      if ((int64_t)elt_size_in_bytes != tensor.element_size()) throw std::
           invalid_argument("incoherent element sizes in bytes");
-      if ((int64_t)numel > tensor->numel()) throw std::invalid_argument(
+      if ((int64_t)numel > tensor.numel()) throw std::invalid_argument(
           "target numel is larger than tensor numel");
-      if (tensor->device().type() != at::kCPU) {
-        torch::Tensor tmp_tensor = tensor->to(at::kCPU).contiguous();
+      if (tensor.device().type() != at::kCPU) {
+        torch::Tensor tmp_tensor = tensor.to(at::kCPU).contiguous();
         void *tensor_data = tmp_tensor.data_ptr();
         memcpy(vs, tensor_data, numel * elt_size_in_bytes);
       } else {
-        auto tmp_tensor = tensor->contiguous();
+        auto tmp_tensor = tensor.contiguous();
         void *tensor_data = tmp_tensor.data_ptr();
         memcpy(vs, tensor_data, numel * elt_size_in_bytes);
       })
@@ -134,33 +148,32 @@ raw_tensor at_int_vec(int64_t *vs, int len, int type) {
 }
 
 int at_defined(gc_tensor t) {
-  PROTECT(return tensor_ptr_from_ocaml(t)->defined();)
+  PROTECT(return tensor_from_ocaml(t).defined();)
   return -1;
 }
 
 int at_is_sparse(gc_tensor t) {
-  PROTECT(return tensor_ptr_from_ocaml(t)->is_sparse();)
+  PROTECT(return tensor_from_ocaml(t).is_sparse();)
   return -1;
 }
 
 int at_dim(gc_tensor t) {
-  PROTECT(return tensor_ptr_from_ocaml(t)->dim();)
+  PROTECT(return tensor_from_ocaml(t).dim();)
   return -1;
 }
 
 void at_shape(gc_tensor t, int *dims) {
   PROTECT(int i = 0; for (int dim
-                          : tensor_ptr_from_ocaml(t)->sizes()) dims[i++] = dim;)
+                          : tensor_from_ocaml(t).sizes()) dims[i++] = dim;)
 }
 
 void at_stride(gc_tensor t, int64_t *dims) {
-  PROTECT(int i = 0;
-          for (int64_t dim
-               : tensor_ptr_from_ocaml(t)->strides()) dims[i++] = dim;)
+  PROTECT(int i = 0; for (int64_t dim
+                          : tensor_from_ocaml(t).strides()) dims[i++] = dim;)
 }
 
 int at_scalar_type(gc_tensor t) {
-  PROTECT(return static_cast<int>(tensor_ptr_from_ocaml(t)->scalar_type());)
+  PROTECT(return static_cast<int>(tensor_from_ocaml(t).scalar_type());)
 }
 
 void at_autocast_clear_cache() { at::autocast::clear_cache(); }
@@ -187,14 +200,14 @@ int at_autocast_set_enabled(int b) {
 }
 
 int at_device(gc_tensor t) {
-  PROTECT(auto device = tensor_ptr_from_ocaml(t)->device();
+  PROTECT(auto device = tensor_from_ocaml(t).device();
           if (device.is_cpu()) return -1; return device.index();)
 }
 
 void at_backward(gc_tensor t, int keep_graph, int create_graph) {
   PROTECT(
       caml_release_runtime_system(); try {
-        tensor_ptr_from_ocaml(t)->backward({}, keep_graph, create_graph);
+        tensor_from_ocaml(t).backward({}, keep_graph, create_graph);
       } catch (const exception &) {
         caml_acquire_runtime_system();
         throw;
@@ -202,7 +215,7 @@ void at_backward(gc_tensor t, int keep_graph, int create_graph) {
 }
 
 int at_requires_grad(gc_tensor t) {
-  PROTECT(return tensor_ptr_from_ocaml(t)->requires_grad();)
+  PROTECT(return tensor_from_ocaml(t).requires_grad();)
   return -1;
 }
 
@@ -251,15 +264,15 @@ void at_set_int64_value_at_indexes(gc_tensor t, int *indexes, int indexes_len,
 }
 
 void at_fill_double(gc_tensor t, double v) {
-  PROTECT(tensor_ptr_from_ocaml(t)->fill_(v);)
+  PROTECT(tensor_from_ocaml(t).fill_(v);)
 }
 
 void at_fill_int64(gc_tensor t, int64_t v) {
-  PROTECT(tensor_ptr_from_ocaml(t)->fill_(v);)
+  PROTECT(tensor_from_ocaml(t).fill_(v);)
 }
 
-void at_print(gc_tensor t) {
-  PROTECT(torch::Tensor *tensor = (torch::Tensor *)t; cout << *tensor << endl;)
+void at_print(gc_tensor tensor) {
+  PROTECT(cout << tensor_from_ocaml(tensor) << endl;)
 }
 
 char *at_to_string(gc_tensor t, int line_size) {
@@ -270,10 +283,10 @@ char *at_to_string(gc_tensor t, int line_size) {
 }
 
 void at_copy_(gc_tensor dst, gc_tensor src) {
-  PROTECT(tensor_ptr_from_ocaml(dst)->copy_(tensor_from_ocaml(src));)
+  PROTECT(tensor_from_ocaml(dst).copy_(tensor_from_ocaml(src));)
 }
 void at_set_data(gc_tensor dst, gc_tensor src) {
-  PROTECT(tensor_ptr_from_ocaml(dst)->set_data(tensor_from_ocaml(src));)
+  PROTECT(tensor_from_ocaml(dst).set_data(tensor_from_ocaml(src));)
 }
 
 void at_save(gc_tensor t, char *filename) {
@@ -316,14 +329,14 @@ void at_load_multi_(gc_tensor *tensors, char **tensor_names, int ntensors,
   PROTECT(torch::NoGradGuard no_grad; torch::serialize::InputArchive archive;
           archive.load_from(std::string(filename));
           for (int i = 0; i < ntensors; ++i) {
-            torch::Tensor *tensor_ptr = tensor_ptr_from_ocaml(tensors[i]);
-            if (tensor_ptr->device().type() == at::kCPU)
-              archive.read(std::string(tensor_names[i]), *tensor_ptr);
+            torch::Tensor tensor = tensor_from_ocaml(tensors[i]);
+            if (tensor.device().type() == at::kCPU)
+              archive.read(std::string(tensor_names[i]), tensor);
             else {
               torch::Tensor tmp_tensor =
-                  torch::empty_like(*tensor_ptr, at::device(at::kCPU));
+                  torch::empty_like(tensor, at::device(at::kCPU));
               archive.read(std::string(tensor_names[i]), tmp_tensor);
-              tensor_ptr->copy_(tmp_tensor);
+              tensor.copy_(tmp_tensor);
             }
           })
 }
@@ -352,8 +365,6 @@ void at_set_num_threads(int n_threads) {
   PROTECT(at::set_num_threads(n_threads);)
 }
 
-void at_free(gc_tensor t) { delete (tensor_ptr_from_ocaml(t)); }
-
 void at_run_backward(gc_tensor *tensors, int ntensors, gc_tensor *inputs,
                      int ninputs, raw_tensor *outputs, int keep_graph,
                      int create_graph) {
@@ -363,11 +374,11 @@ void at_run_backward(gc_tensor *tensors, int ntensors, gc_tensor *inputs,
           torch::autograd::impl::gradient_edge(tensor_from_ocaml(tensors[i])));
 
       vector<torch::autograd::Edge> inputs_; for (int i = 0; i < ninputs; ++i) {
-        torch::Tensor *input_ = tensor_ptr_from_ocaml(inputs[i]);
-        if (!input_->requires_grad())
+        torch::Tensor input_ = tensor_from_ocaml(inputs[i]);
+        if (!input_.requires_grad())
           throw std::invalid_argument(
               "one of the input tensor does not use set_requires_grad");
-        inputs_.push_back(torch::autograd::impl::gradient_edge(*input_));
+        inputs_.push_back(torch::autograd::impl::gradient_edge(input_));
       }
 
       vector<torch::autograd::Variable>

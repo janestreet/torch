@@ -2659,7 +2659,10 @@ let _linalg_svd ~a ~full_matrices ~compute_uv ~driver =
     a
     (if full_matrices then 1 else 0)
     (if compute_uv then 1 else 0)
-    driver;
+    (Option.value driver ~default:"")
+    (match driver with
+     | Some _ -> 0
+     | None -> 1);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
@@ -2676,7 +2679,10 @@ let _linalg_svd_u ~u ~s ~vh ~a ~full_matrices ~compute_uv ~driver =
     a
     (if full_matrices then 1 else 0)
     (if compute_uv then 1 else 0)
-    driver;
+    (Option.value driver ~default:"")
+    (match driver with
+     | Some _ -> 0
+     | None -> 1);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
@@ -4290,7 +4296,10 @@ let _sparse_semi_structured_linear input ~weight ~meta ~bias ~activation =
     (match bias with
      | Some v -> v
      | None -> none_gc_tensor)
-    activation
+    (Option.value activation ~default:"")
+    (match activation with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9127,32 +9136,76 @@ let div_ self other = stubs_div_ self other |> with_tensor_gc
 let div_out ~out self other = stubs_div_out out self other |> with_tensor_gc
 
 let div_out_mode ~out self other ~rounding_mode =
-  stubs_div_out_mode out self other rounding_mode |> with_tensor_gc
+  stubs_div_out_mode
+    out
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let div_scalar self other = stubs_div_scalar self other |> with_tensor_gc
 let div_scalar_ self other = stubs_div_scalar_ self other |> with_tensor_gc
 
 let div_scalar_mode self other ~rounding_mode =
-  stubs_div_scalar_mode self other rounding_mode |> with_tensor_gc
+  stubs_div_scalar_mode
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let div_scalar_mode_ self other ~rounding_mode =
-  stubs_div_scalar_mode_ self other rounding_mode |> with_tensor_gc
+  stubs_div_scalar_mode_
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let div_scalar_mode_out ~out self other ~rounding_mode =
-  stubs_div_scalar_mode_out out self other rounding_mode |> with_tensor_gc
+  stubs_div_scalar_mode_out
+    out
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let div_scalar_out ~out self other = stubs_div_scalar_out out self other |> with_tensor_gc
 
 let div_tensor_mode self other ~rounding_mode =
-  stubs_div_tensor_mode self other rounding_mode |> with_tensor_gc
+  stubs_div_tensor_mode
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let div_tensor_mode_ self other ~rounding_mode =
-  stubs_div_tensor_mode_ self other rounding_mode |> with_tensor_gc
+  stubs_div_tensor_mode_
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let divide self other = stubs_divide self other |> with_tensor_gc
@@ -9160,26 +9213,62 @@ let divide_ self other = stubs_divide_ self other |> with_tensor_gc
 let divide_out ~out self other = stubs_divide_out out self other |> with_tensor_gc
 
 let divide_out_mode ~out self other ~rounding_mode =
-  stubs_divide_out_mode out self other rounding_mode |> with_tensor_gc
+  stubs_divide_out_mode
+    out
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let divide_scalar self other = stubs_divide_scalar self other |> with_tensor_gc
 let divide_scalar_ self other = stubs_divide_scalar_ self other |> with_tensor_gc
 
 let divide_scalar_mode self other ~rounding_mode =
-  stubs_divide_scalar_mode self other rounding_mode |> with_tensor_gc
+  stubs_divide_scalar_mode
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let divide_scalar_mode_ self other ~rounding_mode =
-  stubs_divide_scalar_mode_ self other rounding_mode |> with_tensor_gc
+  stubs_divide_scalar_mode_
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let divide_tensor_mode self other ~rounding_mode =
-  stubs_divide_tensor_mode self other rounding_mode |> with_tensor_gc
+  stubs_divide_tensor_mode
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let divide_tensor_mode_ self other ~rounding_mode =
-  stubs_divide_tensor_mode_ self other rounding_mode |> with_tensor_gc
+  stubs_divide_tensor_mode_
+    self
+    other
+    (Option.value rounding_mode ~default:"")
+    (match rounding_mode with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let dot self tensor = stubs_dot self tensor |> with_tensor_gc
@@ -9821,7 +9910,10 @@ let fft_fft self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9836,7 +9928,10 @@ let fft_fft2 self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9852,7 +9947,10 @@ let fft_fft2_out ~out self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9867,7 +9965,10 @@ let fft_fft_out ~out self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9899,7 +10000,10 @@ let fft_fftn self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9919,7 +10023,10 @@ let fft_fftn_out ~out self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9945,7 +10052,10 @@ let fft_hfft self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9960,7 +10070,10 @@ let fft_hfft2 self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9976,7 +10089,10 @@ let fft_hfft2_out ~out self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -9991,7 +10107,10 @@ let fft_hfft_out ~out self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10010,7 +10129,10 @@ let fft_hfftn self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10030,7 +10152,10 @@ let fft_hfftn_out ~out self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10044,7 +10169,10 @@ let fft_ifft self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10059,7 +10187,10 @@ let fft_ifft2 self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10075,7 +10206,10 @@ let fft_ifft2_out ~out self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10090,7 +10224,10 @@ let fft_ifft_out ~out self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10109,7 +10246,10 @@ let fft_ifftn self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10129,7 +10269,10 @@ let fft_ifftn_out ~out self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10155,7 +10298,10 @@ let fft_ihfft self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10170,7 +10316,10 @@ let fft_ihfft2 self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10186,7 +10335,10 @@ let fft_ihfft2_out ~out self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10201,7 +10353,10 @@ let fft_ihfft_out ~out self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10220,7 +10375,10 @@ let fft_ihfftn self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10240,7 +10398,10 @@ let fft_ihfftn_out ~out self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10254,7 +10415,10 @@ let fft_irfft self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10269,7 +10433,10 @@ let fft_irfft2 self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10285,7 +10452,10 @@ let fft_irfft2_out ~out self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10300,7 +10470,10 @@ let fft_irfft_out ~out self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10319,7 +10492,10 @@ let fft_irfftn self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10339,7 +10515,10 @@ let fft_irfftn_out ~out self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10353,7 +10532,10 @@ let fft_rfft self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10368,7 +10550,10 @@ let fft_rfft2 self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10384,7 +10569,10 @@ let fft_rfft2_out ~out self ~s ~dim ~norm =
      | Some v -> List.length v)
     (List.map Int64.of_int dim |> CArray.of_list int64_t |> CArray.start)
     (List.length dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10399,7 +10587,10 @@ let fft_rfft_out ~out self ~n ~dim ~norm =
      | Some _ -> 0
      | None -> 1)
     (Int64.of_int dim)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10431,7 +10622,10 @@ let fft_rfftn self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -10451,7 +10645,10 @@ let fft_rfftn_out ~out self ~s ~dim ~norm =
     (match dim with
      | None -> -1
      | Some v -> List.length v)
-    norm
+    (Option.value norm ~default:"")
+    (match norm with
+     | Some _ -> 0
+     | None -> 1)
   |> with_tensor_gc
 ;;
 
@@ -12135,7 +12332,10 @@ let linalg_lstsq self ~b ~rcond ~driver =
     (match rcond with
      | Some _ -> 0
      | None -> 1)
-    driver;
+    (Option.value driver ~default:"")
+    (match driver with
+     | Some _ -> 0
+     | None -> 1);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
@@ -12157,7 +12357,10 @@ let linalg_lstsq_out ~solution ~residuals ~rank ~singular_values self ~b ~rcond 
     (match rcond with
      | Some _ -> 0
      | None -> 1)
-    driver;
+    (Option.value driver ~default:"")
+    (match driver with
+     | Some _ -> 0
+     | None -> 1);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
@@ -12521,7 +12724,14 @@ let linalg_solve_triangular_out ~out self ~b ~upper ~left ~unitriangular =
 
 let linalg_svd ~a ~full_matrices ~driver =
   let out__ = CArray.make raw_tensor 3 in
-  stubs_linalg_svd (CArray.start out__) a (if full_matrices then 1 else 0) driver;
+  stubs_linalg_svd
+    (CArray.start out__)
+    a
+    (if full_matrices then 1 else 0)
+    (Option.value driver ~default:"")
+    (match driver with
+     | Some _ -> 0
+     | None -> 1);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
@@ -12530,17 +12740,42 @@ let linalg_svd ~a ~full_matrices ~driver =
 
 let linalg_svd_u ~u ~s ~vh ~a ~full_matrices ~driver =
   let out__ = CArray.make raw_tensor 3 in
-  stubs_linalg_svd_u (CArray.start out__) u s vh a (if full_matrices then 1 else 0) driver;
+  stubs_linalg_svd_u
+    (CArray.start out__)
+    u
+    s
+    vh
+    a
+    (if full_matrices then 1 else 0)
+    (Option.value driver ~default:"")
+    (match driver with
+     | Some _ -> 0
+     | None -> 1);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
   t0, t1, t2
 ;;
 
-let linalg_svdvals ~a ~driver = stubs_linalg_svdvals a driver |> with_tensor_gc
+let linalg_svdvals ~a ~driver =
+  stubs_linalg_svdvals
+    a
+    (Option.value driver ~default:"")
+    (match driver with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
+;;
 
 let linalg_svdvals_out ~out ~a ~driver =
-  stubs_linalg_svdvals_out out a driver |> with_tensor_gc
+  stubs_linalg_svdvals_out
+    out
+    a
+    (Option.value driver ~default:"")
+    (match driver with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
 ;;
 
 let linalg_tensorinv self ~ind =
@@ -17370,7 +17605,10 @@ let searchsorted ~sorted_sequence self ~out_int32 ~right ~side ~sorter =
     self
     (if out_int32 then 1 else 0)
     (if right then 1 else 0)
-    side
+    (Option.value side ~default:"")
+    (match side with
+     | Some _ -> 0
+     | None -> 1)
     (match sorter with
      | Some v -> v
      | None -> none_gc_tensor)
@@ -17383,7 +17621,10 @@ let searchsorted_scalar ~sorted_sequence self ~out_int32 ~right ~side ~sorter =
     self
     (if out_int32 then 1 else 0)
     (if right then 1 else 0)
-    side
+    (Option.value side ~default:"")
+    (match side with
+     | Some _ -> 0
+     | None -> 1)
     (match sorter with
      | Some v -> v
      | None -> none_gc_tensor)
@@ -17397,7 +17638,10 @@ let searchsorted_scalar_out ~out ~sorted_sequence self ~out_int32 ~right ~side ~
     self
     (if out_int32 then 1 else 0)
     (if right then 1 else 0)
-    side
+    (Option.value side ~default:"")
+    (match side with
+     | Some _ -> 0
+     | None -> 1)
     (match sorter with
      | Some v -> v
      | None -> none_gc_tensor)
@@ -17411,7 +17655,10 @@ let searchsorted_tensor_out ~out ~sorted_sequence self ~out_int32 ~right ~side ~
     self
     (if out_int32 then 1 else 0)
     (if right then 1 else 0)
-    side
+    (Option.value side ~default:"")
+    (match side with
+     | Some _ -> 0
+     | None -> 1)
     (match sorter with
      | Some v -> v
      | None -> none_gc_tensor)

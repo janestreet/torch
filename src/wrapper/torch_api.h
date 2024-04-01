@@ -10,6 +10,8 @@ typedef torch::Scalar *scalar;
 typedef torch::optim::Optimizer *optimizer;
 typedef torch::jit::script::Module *module;
 typedef torch::jit::IValue *ivalue;
+typedef torch::TensorImpl *raw_tensor;
+typedef torch::TensorImpl *gc_tensor;
 #define PROTECT(x)                                                             \
   try {                                                                        \
     x                                                                          \
@@ -21,10 +23,9 @@ typedef void *optimizer;
 typedef void *scalar;
 typedef void *module;
 typedef void *ivalue;
-#endif
-
 typedef void *raw_tensor;
 typedef void *gc_tensor;
+#endif
 
 value with_tensor_gc_internal(raw_tensor t);
 
@@ -34,6 +35,7 @@ raw_tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims,
                              int element_size_in_bytes, int type);
 void at_copy_data(gc_tensor t, void *vs, int64_t numel,
                   int element_size_in_bytes);
+
 raw_tensor at_float_vec(double *values, int value_len, int type);
 raw_tensor at_int_vec(int64_t *values, int value_len, int type);
 
@@ -87,8 +89,6 @@ void at_load_multi_(gc_tensor *tensors, char **tensor_names, int ntensors,
                     char *filename);
 
 void at_load_callback(char *filename, void (*f)(char *, raw_tensor));
-
-void at_free(gc_tensor);
 
 void at_run_backward(gc_tensor *tensors, int ntensors, gc_tensor *inputs,
                      int ninputs, raw_tensor *outputs, int keep_graph,
