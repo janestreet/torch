@@ -1,14 +1,11 @@
-* Make torch device module `Hashable` and `Comparable` so it can used as key for
-`Hashtbl` and `Map`.
+## Release v0.17.0
 
-* Automatically detect cuda availability for some installation options
-
-* Refactor code generation and clarified stubs vs. bindings
-
-* Require OCaml runtime locks before raising the exception.
-
-* fixed Npy lib misnaming in `tensor_tool.ml`
-
-* Release OCaml during backward passes, potentially improving async performance.
-
-* Amend optional OPAM libtorch dependency to correct version
+* Torch 2.2.
+* Automatically detected cuda availability for some installation options.
+* Released OCaml lock during backward passes, potentially improving async performance.
+* Informed OCaml GC of tensor memory allocations, greatly reducing memory usage.
+* Various compilation fixes in bin and examples.
+* Fixed bug that returned OCaml floats (doubles) in single precision.
+* Fixed bug that performed incorrect reductions in some cases.
+* Added various new functionality, e.g. optional string arguments for generated functions,
+  Scalar.to_int.
