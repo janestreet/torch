@@ -25,6 +25,7 @@ depends: [
   "dune"                {>= "3.11.0"}
   "dune-configurator"
   "ocaml-compiler-libs" {>= "v0.11.0"}
+  "libtorch"            {with-test}
 ]
 depopts: [
   "libtorch"
