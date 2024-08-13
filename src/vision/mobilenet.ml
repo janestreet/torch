@@ -80,9 +80,9 @@ let v2 vs ~num_classes =
       let layer =
         List.range 0 nn
         |> List.map ~f:(fun idx ->
-             Int.incr layer_idx;
-             let input_dim, stride = if idx = 0 then in_dim, s else c, 1 in
-             inv (subi vs_f !layer_idx) ~stride ~expand_ratio:t ~input_dim c)
+          Int.incr layer_idx;
+          let input_dim, stride = if idx = 0 then in_dim, s else c, 1 in
+          inv (subi vs_f !layer_idx) ~stride ~expand_ratio:t ~input_dim c)
         |> Layer.sequential_
       in
       c, layer)

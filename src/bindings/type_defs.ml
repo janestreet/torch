@@ -14,10 +14,10 @@ let module_ : module_ typ = ptr void
 let optimizer : optimizer typ = ptr void
 let scalar : scalar typ = ptr void
 let none_gc_tensor = null
-let gc_tensor_of_voidp t = Cstubs_internals.make_ptr void t
 let is_none_raw_tensor t = is_null t
+let unsafe_gc_tensor_of_unit_ptr t = t
 
-let fatptr_of_raw_tensor (t : raw_tensor) =
-  let (CPointer fatptr) = t in
-  fatptr
+let unsafe_raw_address_of_raw_tensor (t : raw_tensor) =
+  let (CPointer t) = t in
+  Ctypes_ptr.Fat.unsafe_raw_addr t
 ;;

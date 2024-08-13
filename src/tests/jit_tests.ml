@@ -85,7 +85,8 @@ let%expect_test _ =
   [%expect {| 10 |}];
   let buffers = Module.named_buffers model in
   Map.iter_keys ~f:Stdio.print_endline buffers;
-  [%expect {|
+  [%expect
+    {|
     buffer0
     buffer1
     |}];

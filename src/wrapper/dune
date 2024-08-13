@@ -11,16 +11,16 @@
   (names torch_stubs torch_stubs_generated))
  (name torch_core)
  (public_name torch.core)
- (c_library_flags
+ (c_library_flags :standard -lstdc++)
+ (flags
   :standard
-  -lstdc++
-  (:include c_library_flags.sexp))
- (libraries ctypes.foreign torch_bindings)
+  (:include flags.sexp))
+ (libraries ctypes.foreign ctypes torch_bindings)
  (preprocess
   (pps ppx_jane)))
 
 (rule
- (targets cxx_flags.sexp c_library_flags.sexp)
+ (targets cxx_flags.sexp flags.sexp)
  (deps ../config/discover.exe)
  (action
   (bash %{deps})))

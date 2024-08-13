@@ -1,6 +1,6 @@
 (executables
  (modes byte exe)
  (names char_rnn)
- (libraries torch unix)
+ (libraries stdio torch unix)
  (preprocess
   (pps ppx_jane)))

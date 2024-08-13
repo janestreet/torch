@@ -102,7 +102,7 @@ let all_vars t =
     let vars =
       Hashtbl.to_alist t.all_tensors_by_name
       |> List.map ~f:(fun (key, tensor) ->
-           List.rev (key :: path) |> String.concat ~sep:".", tensor)
+        List.rev (key :: path) |> String.concat ~sep:".", tensor)
     in
     vars @ sub_vars
   in

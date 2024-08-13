@@ -6,11 +6,11 @@ let latest_index_and_filename ~checkpoint_base =
   Stdlib.Sys.readdir dirname
   |> Array.to_list
   |> List.filter_map ~f:(fun filename ->
-       match String.chop_prefix filename ~prefix:(basename ^ ".") with
-       | None -> None
-       | Some suffix ->
-         (try Some (Int.of_string suffix, Stdlib.Filename.concat dirname filename) with
-          | _ -> None))
+    match String.chop_prefix filename ~prefix:(basename ^ ".") with
+    | None -> None
+    | Some suffix ->
+      (try Some (Int.of_string suffix, Stdlib.Filename.concat dirname filename) with
+       | _ -> None))
   |> List.sort ~compare:Stdlib.compare
   |> List.last
 ;;

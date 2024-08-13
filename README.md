@@ -5,7 +5,7 @@ differentiation.
 
 These bindings use the [PyTorch C++ API](https://pytorch.org/cppdocs/) and are
 mostly automatically generated.
-The current GitHub tip corresponds to PyTorch **v2.1**.
+The current GitHub tip corresponds to PyTorch **v2.3**.
 
 ## Installation with Libtorch
 

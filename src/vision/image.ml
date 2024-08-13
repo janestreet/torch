@@ -33,45 +33,41 @@ let maybe_crop tensor ~dim ~length ~target_length =
 let load_image ?resize image_file =
   Stb_image.load image_file
   |> Result.bind ~f:(fun (image : _ Stb_image.t) ->
-       if image.channels = 3
-       then
-         (match resize with
-          | None ->
-            tensor_of_data ~data:image.data ~width:image.width ~height:image.height
-          | Some (target_width, target_height) ->
-            (* First resize the image while preserving the ratio. *)
-            let resize_width, resize_height =
-              let ratio_w = Float.of_int target_width /. Float.of_int image.width in
-              let ratio_h = Float.of_int target_height /. Float.of_int image.height in
-              let r = Float.max ratio_w ratio_h in
-              ( Float.to_int (r *. Float.of_int image.width) |> Int.max target_width
-              , Float.to_int (r *. Float.of_int image.height) |> Int.max target_height )
-            in
-            let out_data =
-              Bigarray.Array1.create
-                Int8_unsigned
-                C_layout
-                (resize_width * resize_height * 3)
-            in
-            let status =
-              resize_
-                ~in_data:image.data
-                ~in_w:image.width
-                ~in_h:image.height
-                ~out_data
-                ~out_w:resize_width
-                ~out_h:resize_height
-                ~nchannels:3
-            in
-            if status = 0 then Printf.failwithf "error when resizing %s" image_file ();
-            let tensor =
-              tensor_of_data ~data:out_data ~width:resize_width ~height:resize_height
-            in
-            (* Then take a center crop. *)
-            maybe_crop tensor ~dim:3 ~length:resize_width ~target_length:target_width
-            |> maybe_crop ~dim:2 ~length:resize_height ~target_length:target_height)
-         |> Result.return
-       else Error (`Msg (Printf.sprintf "%d channels <> 3" image.channels)))
+    if image.channels = 3
+    then
+      (match resize with
+       | None -> tensor_of_data ~data:image.data ~width:image.width ~height:image.height
+       | Some (target_width, target_height) ->
+         (* First resize the image while preserving the ratio. *)
+         let resize_width, resize_height =
+           let ratio_w = Float.of_int target_width /. Float.of_int image.width in
+           let ratio_h = Float.of_int target_height /. Float.of_int image.height in
+           let r = Float.max ratio_w ratio_h in
+           ( Float.to_int (r *. Float.of_int image.width) |> Int.max target_width
+           , Float.to_int (r *. Float.of_int image.height) |> Int.max target_height )
+         in
+         let out_data =
+           Bigarray.Array1.create Int8_unsigned C_layout (resize_width * resize_height * 3)
+         in
+         let status =
+           resize_
+             ~in_data:image.data
+             ~in_w:image.width
+             ~in_h:image.height
+             ~out_data
+             ~out_w:resize_width
+             ~out_h:resize_height
+             ~nchannels:3
+         in
+         if status = 0 then Printf.failwithf "error when resizing %s" image_file ();
+         let tensor =
+           tensor_of_data ~data:out_data ~width:resize_width ~height:resize_height
+         in
+         (* Then take a center crop. *)
+         maybe_crop tensor ~dim:3 ~length:resize_width ~target_length:target_width
+         |> maybe_crop ~dim:2 ~length:resize_height ~target_length:target_height)
+      |> Result.return
+    else Error (`Msg (Printf.sprintf "%d channels <> 3" image.channels)))
   |> Result.map_error ~f:(fun (`Msg msg) -> Error.of_string msg)
 ;;
 
@@ -168,11 +164,11 @@ module Loader = struct
     let rec walk_dir dir =
       Stdlib.Sys.readdir dir
       |> Array.iter ~f:(fun file ->
-           let next_dir = Stdlib.Filename.concat dir file in
-           if Stdlib.Sys.is_directory next_dir
-           then walk_dir next_dir
-           else if has_image_suffix file
-           then dir_and_filenames := (dir, file) :: !dir_and_filenames)
+        let next_dir = Stdlib.Filename.concat dir file in
+        if Stdlib.Sys.is_directory next_dir
+        then walk_dir next_dir
+        else if has_image_suffix file
+        then dir_and_filenames := (dir, file) :: !dir_and_filenames)
     in
     walk_dir dir;
     { dir_and_filenames = Array.of_list !dir_and_filenames; current_index = 0; resize }

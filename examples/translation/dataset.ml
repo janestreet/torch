@@ -9,14 +9,14 @@ type t =
 let normalize str =
   String.lowercase str
   |> String.concat_map ~f:(fun c ->
-       if Char.is_alphanum c
-       then String.of_char c
-       else (
-         match c with
-         | '!' -> " !"
-         | '.' -> " ."
-         | '?' -> " ?"
-         | _ -> " "))
+    if Char.is_alphanum c
+    then String.of_char c
+    else (
+      match c with
+      | '!' -> " !"
+      | '.' -> " ."
+      | '?' -> " ?"
+      | _ -> " "))
 ;;
 
 (* We only consider a subset of the dataset that starts with the
@@ -95,9 +95,9 @@ let pairs t =
   in
   Array.of_list t.pairs
   |> Array.map ~f:(fun (lhs, rhs) ->
-       let lhs = to_indexes lhs t.input_lang in
-       let rhs = to_indexes rhs t.output_lang in
-       lhs, rhs)
+    let lhs = to_indexes lhs t.input_lang in
+    let rhs = to_indexes rhs t.output_lang in
+    lhs, rhs)
 ;;
 
 let reverse t =

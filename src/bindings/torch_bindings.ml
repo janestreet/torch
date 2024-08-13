@@ -87,7 +87,7 @@ module C (F : Cstubs.FOREIGN) = struct
     let double_value =
       foreign
         "at_double_value_at_indexes"
-        (gc_tensor @-> ptr int @-> int @-> returning float)
+        (gc_tensor @-> ptr int @-> int @-> returning double)
     ;;
 
     let int64_value =
@@ -99,7 +99,7 @@ module C (F : Cstubs.FOREIGN) = struct
     let double_value_set =
       foreign
         "at_set_double_value_at_indexes"
-        (gc_tensor @-> ptr int @-> int @-> float @-> returning void)
+        (gc_tensor @-> ptr int @-> int @-> double @-> returning void)
     ;;
 
     let int64_value_set =
@@ -108,7 +108,7 @@ module C (F : Cstubs.FOREIGN) = struct
         (gc_tensor @-> ptr int @-> int @-> int64_t @-> returning void)
     ;;
 
-    let fill_double = foreign "at_fill_double" (gc_tensor @-> float @-> returning void)
+    let fill_double = foreign "at_fill_double" (gc_tensor @-> double @-> returning void)
     let fill_int64 = foreign "at_fill_int64" (gc_tensor @-> int64_t @-> returning void)
     let print = foreign "at_print" (gc_tensor @-> returning void)
     let to_string = foreign "at_to_string" (gc_tensor @-> int @-> returning string)
@@ -129,7 +129,7 @@ module C (F : Cstubs.FOREIGN) = struct
 
   module Scalar = struct
     let to_int64 = foreign "ats_to_int" (scalar @-> returning int64_t)
-    let to_float = foreign "ats_to_float" (scalar @-> returning float)
+    let to_float = foreign "ats_to_float" (scalar @-> returning double)
     let int = foreign "ats_int" (int64_t @-> returning scalar)
     let float = foreign "ats_float" (float @-> returning scalar)
     let free = foreign "ats_free" (scalar @-> returning void)
@@ -253,7 +253,7 @@ module C (F : Cstubs.FOREIGN) = struct
     let bool = foreign "ati_bool" (int @-> returning ivalue)
     let tensor = foreign "ati_tensor" (gc_tensor @-> returning ivalue)
     let int64 = foreign "ati_int" (int64_t @-> returning ivalue)
-    let double = foreign "ati_double" (float @-> returning ivalue)
+    let double = foreign "ati_double" (double @-> returning ivalue)
     let tuple = foreign "ati_tuple" (ptr ivalue @-> int @-> returning ivalue)
 
     let tensor_list =

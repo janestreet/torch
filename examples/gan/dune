@@ -2,6 +2,6 @@
  (modes byte exe)
  (names began gan_stability mnist_cgan mnist_dcgan mnist_gan
    progressive_growing_gan relativistic_dcgan)
- (libraries torch torch_vision unix)
+ (libraries stdio torch torch_core torch_vision unix)
  (preprocess
   (pps ppx_jane)))

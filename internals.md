@@ -81,30 +81,38 @@ The lifecycle of each tensor looks like this:
 2. C++ returns a `raw_tensor` that goes through a regular ctypes stub and makes its way
    back to the OCaml `Tensor.foo` call.
 3. Still in `Tensor.foo`, `with_tensor_gc` gets invoked. This goes back into C++ and
-   copies the pointer (but not the data) of the tensor to a new custom block. It now has
-   known off-heap size and a finalizer to free its memory. This gets returned to OCaml
-   with the same memory layout ctypes uses but without going through ctypes.
+   copies the pointer (but not the data) of the tensor to a new custom block with a known
+   off-heap size. It does _not_ attach a finalizer using the block's custom_ops. Instead,
+   the block is returned to OCaml, where the finalizer is attached using Gc.finalise.
+   The custom block and the raw tensor address are combined to create a new `gc_tensor`
+   fat pointer, which keeps the custom block alive as long the tensor is accessible in OCaml.
 4. Now `let () = Tensor.bar t` gets invoked. This goes through usual ctypes stubs, since
    `t` looks just like a regular `void ptr` to ctypes.
-5. Eventually `t` gets garbage collected. OCaml traverses its blocks and runs the
-   finalizer on each one, freeing the tensor's data.
-   
+5. Eventually `t` gets garbage collected. If the managed custom block has no other
+   references, it runs the finalizer and frees the tensor's data.
+
 ### Indirection
 
 This is a lot of indirection. The memory of each tensor (raw or GC) looks like this:
 
 ```
-             block 1            block2
-        ------------------    ----------
-root -> | ctypes fat ptr | -> | void * | -> torch::TensorImpl -> storage
-        ------------------    ----------
+             block 1            block 2 (raw)
+        ------------------    -----------------
+root -> | ctypes fat ptr | -> | void *        | -----> torch::TensorImpl -> storage
+        ------------------ |  -----------------     |
+                           |                        |
+                           |    block 3 (managed)   |
+                           |  --------------------  |
+                           -> | void *           | -|
+                              --------------------
 ```
 
 Here's what each thing in the chain does:
 
-* block 1: allows ctypes to manage the memory of block2
-* block 2: points to the off-heap memory and OCaml finalizer to decrement its refcount
+* block 1: allows ctypes to manage the memory of blocks 2 and 3
+* block 2: points to the off-heap memory and may be used as a `voidp`
+* block 3: also points to the off-heap memory, but is an opaque block with an attached
+  OCaml finalizer that decrements the tensor refcount.
 * `torch::TensorImpl`: holds metadata about the tensor's data type, size, etc.,
   as well as a pointer/reference to its heap-allocated data (storage)
 * storage: the actual numerical data of the tensor
-  

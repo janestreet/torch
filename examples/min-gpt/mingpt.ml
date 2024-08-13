@@ -115,21 +115,21 @@ let sample cfg ~gpt ~dataset ~device =
   let input = Tensor.zeros [ 1; block_size ] ~kind:(T Int64) ~device in
   List.init sampling_length ~f:Fn.id
   |> List.fold_map ~init:input ~f:(fun input _idx ->
-       Stdlib.Gc.full_major ();
-       let logits =
-         Layer.forward_ gpt input ~is_training:false |> Tensor.select ~dim:1 ~index:(-1)
-       in
-       let logits = Tensor.(logits / f temperature) in
-       let sampled_y =
-         Tensor.softmax logits ~dim:(-1) ~dtype:(T Float)
-         |> Tensor.multinomial ~num_samples:1 ~replacement:true
-       in
-       let sampled_char = Text_helper.char dataset ~label:(Tensor.int_value sampled_y) in
-       let input =
-         Tensor.cat [ input; Tensor.view sampled_y ~size:[ 1; 1 ] ] ~dim:1
-         |> Tensor.narrow ~dim:1 ~start:1 ~length:block_size
-       in
-       input, sampled_char)
+    Stdlib.Gc.full_major ();
+    let logits =
+      Layer.forward_ gpt input ~is_training:false |> Tensor.select ~dim:1 ~index:(-1)
+    in
+    let logits = Tensor.(logits / f temperature) in
+    let sampled_y =
+      Tensor.softmax logits ~dim:(-1) ~dtype:(T Float)
+      |> Tensor.multinomial ~num_samples:1 ~replacement:true
+    in
+    let sampled_char = Text_helper.char dataset ~label:(Tensor.int_value sampled_y) in
+    let input =
+      Tensor.cat [ input; Tensor.view sampled_y ~size:[ 1; 1 ] ] ~dim:1
+      |> Tensor.narrow ~dim:1 ~start:1 ~length:block_size
+    in
+    input, sampled_char)
   |> snd
   |> String.of_char_list
 ;;
@@ -146,31 +146,31 @@ let train vs ~cfg ~gpt ~dataset =
     ~checkpoint_base:"min-gpt.ot"
     ~checkpoint_every:(`iters 1)
     (fun ~index:epoch_idx ->
-    Stdio.Out_channel.write_all
-      (Printf.sprintf "out.txt.%d" epoch_idx)
-      ~data:(sample cfg ~gpt ~dataset ~device);
-    let start_time = Unix.gettimeofday () in
-    let sum_loss = ref 0. in
-    Text_helper.iter dataset ~device ~batch_size ~seq_len ~f:(fun batch_idx ~xs ~ys ->
-      let logits = Layer.forward_ gpt xs ~is_training:true in
-      (* Compute the cross-entropy loss. *)
-      let loss =
-        Tensor.cross_entropy_for_logits
-          (Tensor.view logits ~size:[ batch_size * seq_len; labels ])
-          ~targets:(Tensor.view ys ~size:[ batch_size * seq_len ])
-      in
-      sum_loss := !sum_loss +. Tensor.float_value loss;
-      Stdio.printf
-        "%d/%d %f\r%!"
-        batch_idx
-        batches_per_epoch
-        (!sum_loss /. Float.of_int (1 + batch_idx));
-      Optimizer.backward_step ~clip_grad:(Norm2 4.) adam ~loss);
-    Stdio.printf
-      "%d %.0fs %f\n%!"
-      epoch_idx
-      (Unix.gettimeofday () -. start_time)
-      (!sum_loss /. Float.of_int batches_per_epoch))
+       Stdio.Out_channel.write_all
+         (Printf.sprintf "out.txt.%d" epoch_idx)
+         ~data:(sample cfg ~gpt ~dataset ~device);
+       let start_time = Unix.gettimeofday () in
+       let sum_loss = ref 0. in
+       Text_helper.iter dataset ~device ~batch_size ~seq_len ~f:(fun batch_idx ~xs ~ys ->
+         let logits = Layer.forward_ gpt xs ~is_training:true in
+         (* Compute the cross-entropy loss. *)
+         let loss =
+           Tensor.cross_entropy_for_logits
+             (Tensor.view logits ~size:[ batch_size * seq_len; labels ])
+             ~targets:(Tensor.view ys ~size:[ batch_size * seq_len ])
+         in
+         sum_loss := !sum_loss +. Tensor.float_value loss;
+         Stdio.printf
+           "%d/%d %f\r%!"
+           batch_idx
+           batches_per_epoch
+           (!sum_loss /. Float.of_int (1 + batch_idx));
+         Optimizer.backward_step ~clip_grad:(Norm2 4.) adam ~loss);
+       Stdio.printf
+         "%d %.0fs %f\n%!"
+         epoch_idx
+         (Unix.gettimeofday () -. start_time)
+         (!sum_loss /. Float.of_int batches_per_epoch))
 ;;
 
 let () =

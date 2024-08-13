@@ -166,63 +166,63 @@ let () =
     ~checkpoint_base:"began.ot"
     ~checkpoint_every:(`seconds 600.)
     (fun ~index:batch_idx ->
-    let learning_rate =
-      learning_rate *. (0.95 **. (Float.of_int batch_idx /. lr_update_step))
-    in
-    Optimizer.set_learning_rate opt_d ~learning_rate;
-    Optimizer.set_learning_rate opt_g ~learning_rate;
-    let x_real =
-      let index =
-        Tensor.randint ~high:train_size ~size:[ batch_size ] ~options:(T Int64, Cpu)
-      in
-      Tensor.index_select images ~dim:0 ~index
-      |> Tensor.to_type ~type_:(T Float)
-      |> fun xs -> Tensor.((xs / f 127.5) - f 1.) |> Tensor.to_device ~device
-    in
-    let discriminator_loss, real_loss_d, fake_loss_d =
-      Var_store.freeze generator_vs;
-      Var_store.unfreeze discriminator_vs;
-      Optimizer.zero_grad opt_d;
-      let gen_z = Tensor.no_grad (fun () -> z_dist () |> Layer.forward generator) in
-      let outputs_d_z = Layer.forward discriminator gen_z in
-      let outputs_d_x = Layer.forward discriminator x_real in
-      let real_loss_d = Tensor.(abs (outputs_d_x - x_real) |> mean) in
-      let fake_loss_d = Tensor.(abs (outputs_d_z - gen_z) |> mean) in
-      let k = Tensor.f !k |> Tensor.to_device ~device in
-      let loss_d = Tensor.(real_loss_d - (k * fake_loss_d)) in
-      Tensor.backward loss_d;
-      Optimizer.step opt_d;
-      loss_d, real_loss_d, fake_loss_d
-    in
-    let generator_loss =
-      Var_store.unfreeze generator_vs;
-      Var_store.freeze discriminator_vs;
-      Optimizer.zero_grad opt_g;
-      let gen_z = z_dist () |> Layer.forward generator in
-      let outputs_g_z = Layer.forward discriminator gen_z in
-      let loss_g = Tensor.(abs (outputs_g_z - gen_z) |> mean) in
-      Tensor.backward loss_g;
-      Optimizer.step opt_g;
-      loss_g
-    in
-    let balance = Tensor.(float_value ((f gamma * real_loss_d) - fake_loss_d)) in
-    k := Float.max 0. (Float.min 1. (!k +. (lambda_k *. balance)));
-    if batch_idx % 100 = 0
-    then
-      Stdio.printf
-        "batch %4d    d-loss: %12.6f    g-loss: %12.6f\n%!"
-        batch_idx
-        (Tensor.float_value discriminator_loss)
-        (Tensor.float_value generator_loss);
-    Stdlib.Gc.full_major ();
-    if batch_idx % 25000 = 0 || (batch_idx < 100000 && batch_idx % 5000 = 0)
-    then
-      Tensor.no_grad (fun () -> Layer.forward generator z_test)
-      |> Tensor.view ~size:[ batch_size; 3; img_size; img_size ]
-      |> Tensor.to_device ~device:Cpu
-      |> fun xs ->
-      Tensor.((xs + f 1.) * f 127.5)
-      |> Tensor.clamp ~min:(Scalar.float 0.) ~max:(Scalar.float 255.)
-      |> Tensor.to_type ~type_:(T Uint8)
-      |> write_samples ~filename:(Printf.sprintf "out%d.png" batch_idx))
+       let learning_rate =
+         learning_rate *. (0.95 **. (Float.of_int batch_idx /. lr_update_step))
+       in
+       Optimizer.set_learning_rate opt_d ~learning_rate;
+       Optimizer.set_learning_rate opt_g ~learning_rate;
+       let x_real =
+         let index =
+           Tensor.randint ~high:train_size ~size:[ batch_size ] ~options:(T Int64, Cpu)
+         in
+         Tensor.index_select images ~dim:0 ~index
+         |> Tensor.to_type ~type_:(T Float)
+         |> fun xs -> Tensor.((xs / f 127.5) - f 1.) |> Tensor.to_device ~device
+       in
+       let discriminator_loss, real_loss_d, fake_loss_d =
+         Var_store.freeze generator_vs;
+         Var_store.unfreeze discriminator_vs;
+         Optimizer.zero_grad opt_d;
+         let gen_z = Tensor.no_grad (fun () -> z_dist () |> Layer.forward generator) in
+         let outputs_d_z = Layer.forward discriminator gen_z in
+         let outputs_d_x = Layer.forward discriminator x_real in
+         let real_loss_d = Tensor.(abs (outputs_d_x - x_real) |> mean) in
+         let fake_loss_d = Tensor.(abs (outputs_d_z - gen_z) |> mean) in
+         let k = Tensor.f !k |> Tensor.to_device ~device in
+         let loss_d = Tensor.(real_loss_d - (k * fake_loss_d)) in
+         Tensor.backward loss_d;
+         Optimizer.step opt_d;
+         loss_d, real_loss_d, fake_loss_d
+       in
+       let generator_loss =
+         Var_store.unfreeze generator_vs;
+         Var_store.freeze discriminator_vs;
+         Optimizer.zero_grad opt_g;
+         let gen_z = z_dist () |> Layer.forward generator in
+         let outputs_g_z = Layer.forward discriminator gen_z in
+         let loss_g = Tensor.(abs (outputs_g_z - gen_z) |> mean) in
+         Tensor.backward loss_g;
+         Optimizer.step opt_g;
+         loss_g
+       in
+       let balance = Tensor.(float_value ((f gamma * real_loss_d) - fake_loss_d)) in
+       k := Float.max 0. (Float.min 1. (!k +. (lambda_k *. balance)));
+       if batch_idx % 100 = 0
+       then
+         Stdio.printf
+           "batch %4d    d-loss: %12.6f    g-loss: %12.6f\n%!"
+           batch_idx
+           (Tensor.float_value discriminator_loss)
+           (Tensor.float_value generator_loss);
+       Stdlib.Gc.full_major ();
+       if batch_idx % 25000 = 0 || (batch_idx < 100000 && batch_idx % 5000 = 0)
+       then
+         Tensor.no_grad (fun () -> Layer.forward generator z_test)
+         |> Tensor.view ~size:[ batch_size; 3; img_size; img_size ]
+         |> Tensor.to_device ~device:Cpu
+         |> fun xs ->
+         Tensor.((xs + f 1.) * f 127.5)
+         |> Tensor.clamp ~min:(Scalar.float 0.) ~max:(Scalar.float 255.)
+         |> Tensor.to_type ~type_:(T Uint8)
+         |> write_samples ~filename:(Printf.sprintf "out%d.png" batch_idx))
 ;;

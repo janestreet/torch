@@ -14,6 +14,6 @@ val module_ : module_ typ
 val optimizer : optimizer typ
 val scalar : scalar typ
 val none_gc_tensor : gc_tensor
-val gc_tensor_of_voidp : Ctypes_ptr.voidp -> gc_tensor
 val is_none_raw_tensor : raw_tensor -> bool
-val fatptr_of_raw_tensor : raw_tensor -> (Obj.t option, unit) Cstubs_internals.fatptr
+val unsafe_gc_tensor_of_unit_ptr : unit ptr -> gc_tensor
+val unsafe_raw_address_of_raw_tensor : raw_tensor -> Ctypes_ptr.voidp

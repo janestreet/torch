@@ -15,8 +15,8 @@ let create ~filename =
   let label_for_char = Hashtbl.Poly.create () in
   for i = 0 to Bigarray.Array1.dim content - 1 do
     content.{i}
-      <- Hashtbl.find_or_add label_for_char content.{i} ~default:(fun () ->
-           Hashtbl.length label_for_char)
+    <- Hashtbl.find_or_add label_for_char content.{i} ~default:(fun () ->
+         Hashtbl.length label_for_char)
   done;
   let char_for_label =
     Hashtbl.to_alist label_for_char

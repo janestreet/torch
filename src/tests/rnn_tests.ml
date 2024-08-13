@@ -29,7 +29,8 @@ let%expect_test _ =
   in
   Stdio.printf !"%{sexp:int list}\n" (Tensor.shape h);
   Stdio.printf !"%{sexp:int list}\n" (Tensor.shape c);
-  [%expect {|
+  [%expect
+    {|
     (5 4)
     (5 4)
     |}];

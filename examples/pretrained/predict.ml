@@ -65,5 +65,5 @@ let () =
   in
   Imagenet.Classes.top probabilities ~k:5
   |> List.iter ~f:(fun (name, probability) ->
-       Stdio.printf "%s: %.2f%%\n%!" name (100. *. probability))
+    Stdio.printf "%s: %.2f%%\n%!" name (100. *. probability))
 ;;

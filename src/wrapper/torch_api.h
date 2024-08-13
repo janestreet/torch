@@ -12,11 +12,11 @@ typedef torch::jit::script::Module *module;
 typedef torch::jit::IValue *ivalue;
 typedef torch::TensorImpl *raw_tensor;
 typedef torch::TensorImpl *gc_tensor;
-#define PROTECT(x)                                                             \
-  try {                                                                        \
-    x                                                                          \
-  } catch (const exception &e) {                                               \
-    caml_failwith(strdup(e.what()));                                           \
+#define PROTECT(x)                                                                       \
+  try {                                                                                  \
+    x                                                                                    \
+  } catch (const exception &e) {                                                         \
+    caml_failwith(strdup(e.what()));                                                     \
   }
 #else
 typedef void *optimizer;
@@ -27,14 +27,14 @@ typedef void *raw_tensor;
 typedef void *gc_tensor;
 #endif
 
-value with_tensor_gc_internal(raw_tensor t);
+void finalize_managed_tensor_internal(value managed);
+value make_managed_tensor_internal(value addr);
 
 void at_manual_seed(int64_t);
 raw_tensor at_new_tensor();
 raw_tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims,
                              int element_size_in_bytes, int type);
-void at_copy_data(gc_tensor t, void *vs, int64_t numel,
-                  int element_size_in_bytes);
+void at_copy_data(gc_tensor t, void *vs, int64_t numel, int element_size_in_bytes);
 
 raw_tensor at_float_vec(double *values, int value_len, int type);
 raw_tensor at_int_vec(int64_t *values, int value_len, int type);
@@ -63,10 +63,8 @@ void at_fill_int64(gc_tensor, int64_t);
 
 double at_double_value_at_indexes(gc_tensor, int *indexes, int indexes_len);
 int64_t at_int64_value_at_indexes(gc_tensor, int *indexes, int indexes_len);
-void at_set_double_value_at_indexes(gc_tensor, int *indexes, int indexes_len,
-                                    double v);
-void at_set_int64_value_at_indexes(gc_tensor, int *indexes, int indexes_len,
-                                   int64_t v);
+void at_set_double_value_at_indexes(gc_tensor, int *indexes, int indexes_len, double v);
+void at_set_int64_value_at_indexes(gc_tensor, int *indexes, int indexes_len, int64_t v);
 
 void at_copy_(gc_tensor dst, gc_tensor src);
 void at_set_data(gc_tensor dst, gc_tensor src);
@@ -79,8 +77,7 @@ raw_tensor at_load(char *filename);
 int at_get_num_threads();
 void at_set_num_threads(int n_threads);
 
-void at_save_multi(gc_tensor *tensors, char **tensor_names, int ntensors,
-                   char *filename);
+void at_save_multi(gc_tensor *tensors, char **tensor_names, int ntensors, char *filename);
 /* [at_load_multi] takes as input an array of nullptr for [tensors]. */
 void at_load_multi(raw_tensor *outputs, char **tensor_names, int ntensors,
                    char *filename);
@@ -90,14 +87,13 @@ void at_load_multi_(gc_tensor *tensors, char **tensor_names, int ntensors,
 
 void at_load_callback(char *filename, void (*f)(char *, raw_tensor));
 
-void at_run_backward(gc_tensor *tensors, int ntensors, gc_tensor *inputs,
-                     int ninputs, raw_tensor *outputs, int keep_graph,
-                     int create_graph);
+void at_run_backward(gc_tensor *tensors, int ntensors, gc_tensor *inputs, int ninputs,
+                     raw_tensor *outputs, int keep_graph, int create_graph);
 
-optimizer ato_adam(double learning_rate, double beta1, double beta2,
-                   double weight_decay, double eps);
-optimizer ato_rmsprop(double learning_rate, double alpha, double eps,
-                      double weight_decay, double momentum, int centered);
+optimizer ato_adam(double learning_rate, double beta1, double beta2, double weight_decay,
+                   double eps);
+optimizer ato_rmsprop(double learning_rate, double alpha, double eps, double weight_decay,
+                      double momentum, int centered);
 optimizer ato_sgd(double learning_rate, double momentum, double dampening,
                   double weight_decay, int nesterov);
 void ato_add_parameters(optimizer, gc_tensor *, int ntensors);

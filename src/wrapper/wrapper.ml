@@ -262,16 +262,16 @@ module Serialize = struct
   let escape s =
     String.map
       (function
-       | '.' -> '|'
-       | c -> c)
+        | '.' -> '|'
+        | c -> c)
       s
   ;;
 
   let unescape s =
     String.map
       (function
-       | '|' -> '.'
-       | c -> c)
+        | '|' -> '.'
+        | c -> c)
       s
   ;;
 

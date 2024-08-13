@@ -81,11 +81,11 @@ let () =
       ~batch_size
       ~device
       ~f:(fun _ ~batch_images ~batch_labels:_ ->
-      let recon_x, mu, logvar = VAE.forward vae batch_images in
-      let loss = loss ~recon_x ~x:batch_images ~mu ~logvar in
-      Optimizer.backward_step ~loss opt;
-      train_loss := !train_loss +. Tensor.float_value loss;
-      samples := !samples +. (Tensor.shape batch_images |> List.hd_exn |> Float.of_int));
+        let recon_x, mu, logvar = VAE.forward vae batch_images in
+        let loss = loss ~recon_x ~x:batch_images ~mu ~logvar in
+        Optimizer.backward_step ~loss opt;
+        train_loss := !train_loss +. Tensor.float_value loss;
+        samples := !samples +. (Tensor.shape batch_images |> List.hd_exn |> Float.of_int));
     Stdio.printf "epoch %4d  loss: %12.6f\n%!" epoch_idx (!train_loss /. !samples);
     Tensor.randn [ 64; 20 ] ~device
     |> VAE.decode vae
