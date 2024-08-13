@@ -28,9 +28,9 @@ let choose_dynamic_links ~lib_dir =
   let optional_libs = [ "torch_cuda" ] in
   required_libs
   @ List.filter optional_libs ~f:(fun lib ->
-      match Sys_unix.file_exists [%string "%{lib_dir}/lib%{lib}.so"] with
-      | `Yes -> true
-      | _ -> false)
+    match Sys_unix.file_exists [%string "%{lib_dir}/lib%{lib}.so"] with
+    | `Yes -> true
+    | _ -> false)
 ;;
 
 let torch_flags () =
@@ -54,15 +54,11 @@ let torch_flags () =
     Stdlib.Sys.readdir conda_prefix
     |> Array.to_list
     |> List.filter_map ~f:(fun filename ->
-         if String.is_prefix filename ~prefix:"python"
-         then (
-           let libdir =
-             Printf.sprintf "%s/%s/site-packages/torch" conda_prefix filename
-           in
-           if file_exists libdir && Stdlib.Sys.is_directory libdir
-           then Some libdir
-           else None)
-         else None)
+      if String.is_prefix filename ~prefix:"python"
+      then (
+        let libdir = Printf.sprintf "%s/%s/site-packages/torch" conda_prefix filename in
+        if file_exists libdir && Stdlib.Sys.is_directory libdir then Some libdir else None)
+      else None)
     |> function
     | [] -> None
     | lib_dir :: _ ->
@@ -74,26 +70,25 @@ let torch_flags () =
       config ~include_dir:(l /^ "include") ~lib_dir:(l /^ "lib"))
     (* try system libraries *)
     |> or_else ~f:(fun () ->
-         match Stdlib.Sys.getenv_opt "LIBTORCH_USE_SYSTEM" with
-         | Some "1" ->
-           let dynamic_links = required_libs in
-           Some
-             { C.Pkg_config.cflags = []
-             ; libs = List.map ~f:(fun lib -> [%string "-l%{lib}"]) dynamic_links
-             }
-         | _ -> None)
+      match Stdlib.Sys.getenv_opt "LIBTORCH_USE_SYSTEM" with
+      | Some "1" ->
+        let dynamic_links = required_libs in
+        Some
+          { C.Pkg_config.cflags = []
+          ; libs = List.map ~f:(fun lib -> [%string "-l%{lib}"]) dynamic_links
+          }
+      | _ -> None)
     (* try conda environment *)
     |> or_else ~f:(fun () ->
-         Option.bind (Stdlib.Sys.getenv_opt "CONDA_PREFIX") ~f:(fun conda_prefix ->
-           conda_config ~conda_prefix))
+      Option.bind (Stdlib.Sys.getenv_opt "CONDA_PREFIX") ~f:(fun conda_prefix ->
+        conda_config ~conda_prefix))
     (* try opam switch *)
     |> or_else ~f:(fun () ->
-         Option.bind (Stdlib.Sys.getenv_opt "OPAM_SWITCH_PREFIX") ~f:(fun prefix ->
-           let lib_dir = prefix /^ "lib" /^ "libtorch" in
-           if file_exists lib_dir
-           then
-             Some (config ~include_dir:(lib_dir ^ "/include") ~lib_dir:(lib_dir ^ "/lib"))
-           else None))
+      Option.bind (Stdlib.Sys.getenv_opt "OPAM_SWITCH_PREFIX") ~f:(fun prefix ->
+        let lib_dir = prefix /^ "lib" /^ "libtorch" in
+        if file_exists lib_dir
+        then Some (config ~include_dir:(lib_dir ^ "/include") ~lib_dir:(lib_dir ^ "/lib"))
+        else None))
   in
   Option.value flags ~default:empty_flags
 ;;
@@ -109,6 +104,10 @@ let libcuda_flags ~lcuda ~lnvrtc =
     let libs = if lnvrtc then libs @ [ "-lnvrtc" ] else libs in
     { C.Pkg_config.cflags = []; libs })
   else empty_flags
+;;
+
+let ocaml_flags_of_c_flags flags =
+  List.concat_map flags ~f:(fun flag -> [ "-ccopt"; flag ])
 ;;
 
 let () =
@@ -150,7 +149,8 @@ let () =
       then torch_flags.libs
       else "-Wl,--no-as-needed" :: torch_flags.libs
     in
-    C.Flags.write_sexp
-      "c_library_flags.sexp"
-      (torch_flags_lib @ conda_libs @ cuda_flags.libs))
+    let ocaml_flags =
+      ocaml_flags_of_c_flags (torch_flags_lib @ conda_libs @ cuda_flags.libs)
+    in
+    C.Flags.write_sexp "flags.sexp" ocaml_flags)
 ;;

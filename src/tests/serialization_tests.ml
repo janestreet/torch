@@ -48,7 +48,8 @@ let%expect_test _ =
     ; "another", Tensor.of_int0 42
     ; "and yet another", Tensor.of_int2 [| [| 3; -1; -51234 |]; [| 2718; 2818; 28 |] |]
     ];
-  [%expect {|
+  [%expect
+    {|
     tensor-1 0.000000
     another 0
     and yet another 0

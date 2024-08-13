@@ -192,18 +192,16 @@ STBIWDEF int stbi_write_jpg(char const *filename, int x, int y, int comp,
 
 typedef void stbi_write_func(void *context, void *data, int size);
 
-STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int w,
-                                    int h, int comp, const void *data,
-                                    int stride_in_bytes);
-STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int w,
-                                    int h, int comp, const void *data);
-STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int w,
-                                    int h, int comp, const void *data);
-STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int w,
-                                    int h, int comp, const float *data);
-STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x,
-                                    int y, int comp, const void *data,
-                                    int quality);
+STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int w, int h,
+                                    int comp, const void *data, int stride_in_bytes);
+STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int w, int h,
+                                    int comp, const void *data);
+STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int w, int h,
+                                    int comp, const void *data);
+STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int w, int h,
+                                    int comp, const float *data);
+STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x, int y,
+                                    int comp, const void *data, int quality);
 
 STBIWDEF void stbi_flip_vertically_on_write(int flip_boolean);
 
@@ -229,14 +227,14 @@ STBIWDEF void stbi_flip_vertically_on_write(int flip_boolean);
 #include <string.h>
 #include <math.h>
 
-#if defined(STBIW_MALLOC) && defined(STBIW_FREE) &&                            \
+#if defined(STBIW_MALLOC) && defined(STBIW_FREE) &&                                      \
     (defined(STBIW_REALLOC) || defined(STBIW_REALLOC_SIZED))
 // ok
-#elif !defined(STBIW_MALLOC) && !defined(STBIW_FREE) &&                        \
-    !defined(STBIW_REALLOC) && !defined(STBIW_REALLOC_SIZED)
+#elif !defined(STBIW_MALLOC) && !defined(STBIW_FREE) && !defined(STBIW_REALLOC) &&       \
+    !defined(STBIW_REALLOC_SIZED)
 // ok
 #else
-#error                                                                         \
+#error                                                                                   \
     "Must define all or none of STBIW_MALLOC, STBIW_FREE, and STBIW_REALLOC (or STBIW_REALLOC_SIZED)."
 #endif
 
@@ -283,8 +281,8 @@ typedef struct {
 } stbi__write_context;
 
 // initialize a callback-based context
-static void stbi__start_write_callbacks(stbi__write_context *s,
-                                        stbi_write_func *c, void *context) {
+static void stbi__start_write_callbacks(stbi__write_context *s, stbi_write_func *c,
+                                        void *context) {
   s->func = c;
   s->context = context;
 }
@@ -295,8 +293,7 @@ static void stbi__stdio_write(void *context, void *data, int size) {
   fwrite(data, 1, size, (FILE *)context);
 }
 
-static int stbi__start_write_file(stbi__write_context *s,
-                                  const char *filename) {
+static int stbi__start_write_file(stbi__write_context *s, const char *filename) {
   FILE *f;
 #ifdef STBI_MSC_SECURE_CRT
   if (fopen_s(&f, filename, "wb"))
@@ -308,9 +305,7 @@ static int stbi__start_write_file(stbi__write_context *s,
   return f != NULL;
 }
 
-static void stbi__end_write_file(stbi__write_context *s) {
-  fclose((FILE *)s->context);
-}
+static void stbi__end_write_file(stbi__write_context *s) { fclose((FILE *)s->context); }
 
 #endif // !STBI_WRITE_NO_STDIO
 
@@ -363,16 +358,15 @@ static void stbiw__putc(stbi__write_context *s, unsigned char c) {
   s->func(s->context, &c, 1);
 }
 
-static void stbiw__write3(stbi__write_context *s, unsigned char a,
-                          unsigned char b, unsigned char c) {
+static void stbiw__write3(stbi__write_context *s, unsigned char a, unsigned char b,
+                          unsigned char c) {
   unsigned char arr[3];
   arr[0] = a, arr[1] = b, arr[2] = c;
   s->func(s->context, arr, 3);
 }
 
 static void stbiw__write_pixel(stbi__write_context *s, int rgb_dir, int comp,
-                               int write_alpha, int expand_mono,
-                               unsigned char *d) {
+                               int write_alpha, int expand_mono, unsigned char *d) {
   unsigned char bg[3] = {255, 0, 255}, px[3];
   int k;
 
@@ -405,10 +399,9 @@ static void stbiw__write_pixel(stbi__write_context *s, int rgb_dir, int comp,
     s->func(s->context, &d[comp - 1], 1);
 }
 
-static void stbiw__write_pixels(stbi__write_context *s, int rgb_dir, int vdir,
-                                int x, int y, int comp, void *data,
-                                int write_alpha, int scanline_pad,
-                                int expand_mono) {
+static void stbiw__write_pixels(stbi__write_context *s, int rgb_dir, int vdir, int x,
+                                int y, int comp, void *data, int write_alpha,
+                                int scanline_pad, int expand_mono) {
   stbiw_uint32 zero = 0;
   int i, j, j_end;
 
@@ -432,9 +425,9 @@ static void stbiw__write_pixels(stbi__write_context *s, int rgb_dir, int vdir,
   }
 }
 
-static int stbiw__outfile(stbi__write_context *s, int rgb_dir, int vdir, int x,
-                          int y, int comp, int expand_mono, void *data,
-                          int alpha, int pad, const char *fmt, ...) {
+static int stbiw__outfile(stbi__write_context *s, int rgb_dir, int vdir, int x, int y,
+                          int comp, int expand_mono, void *data, int alpha, int pad,
+                          const char *fmt, ...) {
   if (y < 0 || x < 0) {
     return 0;
   } else {
@@ -442,8 +435,7 @@ static int stbiw__outfile(stbi__write_context *s, int rgb_dir, int vdir, int x,
     va_start(v, fmt);
     stbiw__writefv(s, fmt, v);
     va_end(v);
-    stbiw__write_pixels(s, rgb_dir, vdir, x, y, comp, data, alpha, pad,
-                        expand_mono);
+    stbiw__write_pixels(s, rgb_dir, vdir, x, y, comp, data, alpha, pad, expand_mono);
     return 1;
   }
 }
@@ -459,8 +451,8 @@ static int stbi_write_bmp_core(stbi__write_context *s, int x, int y, int comp,
                         40, x, y, 1, 24, 0, 0, 0, 0, 0, 0); // bitmap header
 }
 
-STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int x,
-                                    int y, int comp, const void *data) {
+STBIWDEF int stbi_write_bmp_to_func(stbi_write_func *func, void *context, int x, int y,
+                                    int comp, const void *data) {
   stbi__write_context s;
   stbi__start_write_callbacks(&s, func, context);
   return stbi_write_bmp_core(&s, x, y, comp, data);
@@ -483,10 +475,9 @@ static int stbi_write_tga_core(stbi__write_context *s, int x, int y, int comp,
                                void *data) {
   int has_alpha = (comp == 2 || comp == 4);
   int colorbytes = has_alpha ? comp - 1 : comp;
-  int format =
-      colorbytes < 2
-          ? 3
-          : 2; // 3 color channels (RGB/RGBA) = 2, 1 color channel (Y/YA) = 3
+  int format = colorbytes < 2
+                   ? 3
+                   : 2; // 3 color channels (RGB/RGBA) = 2, 1 color channel (Y/YA) = 3
 
   if (y < 0 || x < 0)
     return 0;
@@ -562,8 +553,8 @@ static int stbi_write_tga_core(stbi__write_context *s, int x, int y, int comp,
   return 1;
 }
 
-STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int x,
-                                    int y, int comp, const void *data) {
+STBIWDEF int stbi_write_tga_to_func(stbi_write_func *func, void *context, int x, int y,
+                                    int comp, const void *data) {
   stbi__write_context s;
   stbi__start_write_callbacks(&s, func, context);
   return stbi_write_tga_core(&s, x, y, comp, (void *)data);
@@ -604,19 +595,16 @@ void stbiw__linear_to_rgbe(unsigned char *rgbe, float *linear) {
   }
 }
 
-void stbiw__write_run_data(stbi__write_context *s, int length,
-                           unsigned char databyte) {
+void stbiw__write_run_data(stbi__write_context *s, int length, unsigned char databyte) {
   unsigned char lengthbyte = STBIW_UCHAR(length + 128);
   STBIW_ASSERT(length + 128 <= 255);
   s->func(s->context, &lengthbyte, 1);
   s->func(s->context, &databyte, 1);
 }
 
-void stbiw__write_dump_data(stbi__write_context *s, int length,
-                            unsigned char *data) {
+void stbiw__write_dump_data(stbi__write_context *s, int length, unsigned char *data) {
   unsigned char lengthbyte = STBIW_UCHAR(length);
-  STBIW_ASSERT(length <=
-               128); // inconsistent with spec but consistent with official code
+  STBIW_ASSERT(length <= 128); // inconsistent with spec but consistent with official code
   s->func(s->context, &lengthbyte, 1);
   s->func(s->context, data, length);
 }
@@ -730,26 +718,23 @@ static int stbi_write_hdr_core(stbi__write_context *s, int x, int y, int comp,
     s->func(s->context, header, sizeof(header) - 1);
 
 #ifdef STBI_MSC_SECURE_CRT
-    len = sprintf_s(
-        buffer, "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
+    len = sprintf_s(buffer, "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
 #else
-    len = sprintf(buffer, "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n",
-                  y, x);
+    len = sprintf(buffer, "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
 #endif
     s->func(s->context, buffer, len);
 
     for (i = 0; i < y; i++)
       stbiw__write_hdr_scanline(
           s, x, comp, scratch,
-          data +
-              comp * x * (stbi__flip_vertically_on_write ? y - 1 - i : i) * x);
+          data + comp * x * (stbi__flip_vertically_on_write ? y - 1 - i : i) * x);
     STBIW_FREE(scratch);
     return 1;
   }
 }
 
-STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int x,
-                                    int y, int comp, const float *data) {
+STBIWDEF int stbi_write_hdr_to_func(stbi_write_func *func, void *context, int x, int y,
+                                    int comp, const float *data) {
   stbi__write_context s;
   stbi__start_write_callbacks(&s, func, context);
   return stbi_write_hdr_core(&s, x, y, comp, (float *)data);
@@ -781,21 +766,19 @@ STBIWDEF int stbi_write_hdr(char const *filename, int x, int y, int comp,
 #define stbiw__sbn(a) stbiw__sbraw(a)[1]
 
 #define stbiw__sbneedgrow(a, n) ((a) == 0 || stbiw__sbn(a) + n >= stbiw__sbm(a))
-#define stbiw__sbmaybegrow(a, n)                                               \
-  (stbiw__sbneedgrow(a, (n)) ? stbiw__sbgrow(a, n) : 0)
+#define stbiw__sbmaybegrow(a, n) (stbiw__sbneedgrow(a, (n)) ? stbiw__sbgrow(a, n) : 0)
 #define stbiw__sbgrow(a, n) stbiw__sbgrowf((void **)&(a), (n), sizeof(*(a)))
 
-#define stbiw__sbpush(a, v)                                                    \
-  (stbiw__sbmaybegrow(a, 1), (a)[stbiw__sbn(a)++] = (v))
+#define stbiw__sbpush(a, v) (stbiw__sbmaybegrow(a, 1), (a)[stbiw__sbn(a)++] = (v))
 #define stbiw__sbcount(a) ((a) ? stbiw__sbn(a) : 0)
 #define stbiw__sbfree(a) ((a) ? STBIW_FREE(stbiw__sbraw(a)), 0 : 0)
 
 static void *stbiw__sbgrowf(void **arr, int increment, int itemsize) {
   int m = *arr ? 2 * stbiw__sbm(*arr) + increment : increment + 1;
-  void *p = STBIW_REALLOC_SIZED(
-      *arr ? stbiw__sbraw(*arr) : 0,
-      *arr ? (stbiw__sbm(*arr) * itemsize + sizeof(int) * 2) : 0,
-      itemsize * m + sizeof(int) * 2);
+  void *p =
+      STBIW_REALLOC_SIZED(*arr ? stbiw__sbraw(*arr) : 0,
+                          *arr ? (stbiw__sbm(*arr) * itemsize + sizeof(int) * 2) : 0,
+                          itemsize * m + sizeof(int) * 2);
   STBIW_ASSERT(p);
   if (p) {
     if (!*arr)
@@ -806,8 +789,7 @@ static void *stbiw__sbgrowf(void **arr, int increment, int itemsize) {
   return *arr;
 }
 
-static unsigned char *stbiw__zlib_flushf(unsigned char *data,
-                                         unsigned int *bitbuffer,
+static unsigned char *stbiw__zlib_flushf(unsigned char *data, unsigned int *bitbuffer,
                                          int *bitcount) {
   while (*bitcount >= 8) {
     stbiw__sbpush(data, STBIW_UCHAR(*bitbuffer));
@@ -826,8 +808,7 @@ static int stbiw__zlib_bitrev(int code, int codebits) {
   return res;
 }
 
-static unsigned int stbiw__zlib_countm(unsigned char *a, unsigned char *b,
-                                       int limit) {
+static unsigned int stbiw__zlib_countm(unsigned char *a, unsigned char *b, int limit) {
   int i;
   for (i = 0; i < limit && i < 258; ++i)
     if (a[i] != b[i])
@@ -847,7 +828,7 @@ static unsigned int stbiw__zhash(unsigned char *data) {
 }
 
 #define stbiw__zlib_flush() (out = stbiw__zlib_flushf(out, &bitbuf, &bitcount))
-#define stbiw__zlib_add(code, codebits)                                        \
+#define stbiw__zlib_add(code, codebits)                                                  \
   (bitbuf |= (code) << bitcount, bitcount += (codebits), stbiw__zlib_flush())
 #define stbiw__zlib_huffa(b, c) stbiw__zlib_add(stbiw__zlib_bitrev(b, c), c)
 // default huffman tables
@@ -855,37 +836,34 @@ static unsigned int stbiw__zhash(unsigned char *data) {
 #define stbiw__zlib_huff2(n) stbiw__zlib_huffa(0x190 + (n)-144, 9)
 #define stbiw__zlib_huff3(n) stbiw__zlib_huffa(0 + (n)-256, 7)
 #define stbiw__zlib_huff4(n) stbiw__zlib_huffa(0xc0 + (n)-280, 8)
-#define stbiw__zlib_huff(n)                                                    \
-  ((n) <= 143   ? stbiw__zlib_huff1(n)                                         \
-   : (n) <= 255 ? stbiw__zlib_huff2(n)                                         \
-   : (n) <= 279 ? stbiw__zlib_huff3(n)                                         \
+#define stbiw__zlib_huff(n)                                                              \
+  ((n) <= 143   ? stbiw__zlib_huff1(n)                                                   \
+   : (n) <= 255 ? stbiw__zlib_huff2(n)                                                   \
+   : (n) <= 279 ? stbiw__zlib_huff3(n)                                                   \
                 : stbiw__zlib_huff4(n))
-#define stbiw__zlib_huffb(n)                                                   \
-  ((n) <= 143 ? stbiw__zlib_huff1(n) : stbiw__zlib_huff2(n))
+#define stbiw__zlib_huffb(n) ((n) <= 143 ? stbiw__zlib_huff1(n) : stbiw__zlib_huff2(n))
 
 #define stbiw__ZHASH 16384
 
 #endif // STBIW_ZLIB_COMPRESS
 
-unsigned char *stbi_zlib_compress(unsigned char *data, int data_len,
-                                  int *out_len, int quality) {
+unsigned char *stbi_zlib_compress(unsigned char *data, int data_len, int *out_len,
+                                  int quality) {
 #ifdef STBIW_ZLIB_COMPRESS
   // user provided a zlib compress implementation, use that
   return STBIW_ZLIB_COMPRESS(data, data_len, out_len, quality);
 #else  // use builtin
-  static unsigned short lengthc[] = {
-      3,  4,  5,  6,  7,  8,  9,  10, 11,  13,  15,  17,  19,  23,  27,
-      31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 259};
-  static unsigned char lengtheb[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                                     1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
-                                     4, 4, 4, 4, 5, 5, 5, 5, 0};
-  static unsigned short distc[] = {
-      1,    2,    3,    4,    5,    7,     9,     13,    17,   25,   33,
-      49,   65,   97,   129,  193,  257,   385,   513,   769,  1025, 1537,
-      2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577, 32768};
-  static unsigned char disteb[] = {0, 0, 0,  0,  1,  1,  2,  2,  3,  3,
-                                   4, 4, 5,  5,  6,  6,  7,  7,  8,  8,
-                                   9, 9, 10, 10, 11, 11, 12, 12, 13, 13};
+  static unsigned short lengthc[] = {3,  4,  5,  6,   7,   8,   9,   10,  11,  13,
+                                     15, 17, 19, 23,  27,  31,  35,  43,  51,  59,
+                                     67, 83, 99, 115, 131, 163, 195, 227, 258, 259};
+  static unsigned char lengtheb[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2,
+                                     2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0};
+  static unsigned short distc[] = {1,    2,    3,    4,     5,     7,     9,    13,
+                                   17,   25,   33,   49,    65,    97,    129,  193,
+                                   257,  385,  513,  769,   1025,  1537,  2049, 3073,
+                                   4097, 6145, 8193, 12289, 16385, 24577, 32768};
+  static unsigned char disteb[] = {0, 0, 0, 0, 1, 1, 2, 2,  3,  3,  4,  4,  5,  5,  6,
+                                   6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13};
   unsigned int bitbuf = 0;
   int i, j, bitcount = 0;
   unsigned char *out = NULL;
@@ -1000,48 +978,42 @@ unsigned char *stbi_zlib_compress(unsigned char *data, int data_len,
 
 static unsigned int stbiw__crc32(unsigned char *buffer, int len) {
   static unsigned int crc_table[256] = {
-      0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F,
-      0xE963A535, 0x9E6495A3, 0x0eDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
-      0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91, 0x1DB71064, 0x6AB020F2,
-      0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
-      0x136C9856, 0x646BA8C0, 0xFD62F97A, 0x8A65C9EC, 0x14015C4F, 0x63066CD9,
-      0xFA0F3D63, 0x8D080DF5, 0x3B6E20C8, 0x4C69105E, 0xD56041E4, 0xA2677172,
-      0x3C03E4D1, 0x4B04D447, 0xD20D85FD, 0xA50AB56B, 0x35B5A8FA, 0x42B2986C,
-      0xDBBBC9D6, 0xACBCF940, 0x32D86CE3, 0x45DF5C75, 0xDCD60DCF, 0xABD13D59,
-      0x26D930AC, 0x51DE003A, 0xC8D75180, 0xBFD06116, 0x21B4F4B5, 0x56B3C423,
-      0xCFBA9599, 0xB8BDA50F, 0x2802B89E, 0x5F058808, 0xC60CD9B2, 0xB10BE924,
-      0x2F6F7C87, 0x58684C11, 0xC1611DAB, 0xB6662D3D, 0x76DC4190, 0x01DB7106,
-      0x98D220BC, 0xEFD5102A, 0x71B18589, 0x06B6B51F, 0x9FBFE4A5, 0xE8B8D433,
-      0x7807C9A2, 0x0F00F934, 0x9609A88E, 0xE10E9818, 0x7F6A0DBB, 0x086D3D2D,
-      0x91646C97, 0xE6635C01, 0x6B6B51F4, 0x1C6C6162, 0x856530D8, 0xF262004E,
-      0x6C0695ED, 0x1B01A57B, 0x8208F4C1, 0xF50FC457, 0x65B0D9C6, 0x12B7E950,
-      0x8BBEB8EA, 0xFCB9887C, 0x62DD1DDF, 0x15DA2D49, 0x8CD37CF3, 0xFBD44C65,
-      0x4DB26158, 0x3AB551CE, 0xA3BC0074, 0xD4BB30E2, 0x4ADFA541, 0x3DD895D7,
-      0xA4D1C46D, 0xD3D6F4FB, 0x4369E96A, 0x346ED9FC, 0xAD678846, 0xDA60B8D0,
-      0x44042D73, 0x33031DE5, 0xAA0A4C5F, 0xDD0D7CC9, 0x5005713C, 0x270241AA,
-      0xBE0B1010, 0xC90C2086, 0x5768B525, 0x206F85B3, 0xB966D409, 0xCE61E49F,
-      0x5EDEF90E, 0x29D9C998, 0xB0D09822, 0xC7D7A8B4, 0x59B33D17, 0x2EB40D81,
-      0xB7BD5C3B, 0xC0BA6CAD, 0xEDB88320, 0x9ABFB3B6, 0x03B6E20C, 0x74B1D29A,
-      0xEAD54739, 0x9DD277AF, 0x04DB2615, 0x73DC1683, 0xE3630B12, 0x94643B84,
-      0x0D6D6A3E, 0x7A6A5AA8, 0xE40ECF0B, 0x9309FF9D, 0x0A00AE27, 0x7D079EB1,
-      0xF00F9344, 0x8708A3D2, 0x1E01F268, 0x6906C2FE, 0xF762575D, 0x806567CB,
-      0x196C3671, 0x6E6B06E7, 0xFED41B76, 0x89D32BE0, 0x10DA7A5A, 0x67DD4ACC,
-      0xF9B9DF6F, 0x8EBEEFF9, 0x17B7BE43, 0x60B08ED5, 0xD6D6A3E8, 0xA1D1937E,
-      0x38D8C2C4, 0x4FDFF252, 0xD1BB67F1, 0xA6BC5767, 0x3FB506DD, 0x48B2364B,
-      0xD80D2BDA, 0xAF0A1B4C, 0x36034AF6, 0x41047A60, 0xDF60EFC3, 0xA867DF55,
-      0x316E8EEF, 0x4669BE79, 0xCB61B38C, 0xBC66831A, 0x256FD2A0, 0x5268E236,
-      0xCC0C7795, 0xBB0B4703, 0x220216B9, 0x5505262F, 0xC5BA3BBE, 0xB2BD0B28,
-      0x2BB45A92, 0x5CB36A04, 0xC2D7FFA7, 0xB5D0CF31, 0x2CD99E8B, 0x5BDEAE1D,
-      0x9B64C2B0, 0xEC63F226, 0x756AA39C, 0x026D930A, 0x9C0906A9, 0xEB0E363F,
-      0x72076785, 0x05005713, 0x95BF4A82, 0xE2B87A14, 0x7BB12BAE, 0x0CB61B38,
-      0x92D28E9B, 0xE5D5BE0D, 0x7CDCEFB7, 0x0BDBDF21, 0x86D3D2D4, 0xF1D4E242,
-      0x68DDB3F8, 0x1FDA836E, 0x81BE16CD, 0xF6B9265B, 0x6FB077E1, 0x18B74777,
-      0x88085AE6, 0xFF0F6A70, 0x66063BCA, 0x11010B5C, 0x8F659EFF, 0xF862AE69,
-      0x616BFFD3, 0x166CCF45, 0xA00AE278, 0xD70DD2EE, 0x4E048354, 0x3903B3C2,
-      0xA7672661, 0xD06016F7, 0x4969474D, 0x3E6E77DB, 0xAED16A4A, 0xD9D65ADC,
-      0x40DF0B66, 0x37D83BF0, 0xA9BCAE53, 0xDEBB9EC5, 0x47B2CF7F, 0x30B5FFE9,
-      0xBDBDF21C, 0xCABAC28A, 0x53B39330, 0x24B4A3A6, 0xBAD03605, 0xCDD70693,
-      0x54DE5729, 0x23D967BF, 0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94,
+      0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535,
+      0x9E6495A3, 0x0eDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD,
+      0xE7B82D07, 0x90BF1D91, 0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D,
+      0x6DDDE4EB, 0xF4D4B551, 0x83D385C7, 0x136C9856, 0x646BA8C0, 0xFD62F97A, 0x8A65C9EC,
+      0x14015C4F, 0x63066CD9, 0xFA0F3D63, 0x8D080DF5, 0x3B6E20C8, 0x4C69105E, 0xD56041E4,
+      0xA2677172, 0x3C03E4D1, 0x4B04D447, 0xD20D85FD, 0xA50AB56B, 0x35B5A8FA, 0x42B2986C,
+      0xDBBBC9D6, 0xACBCF940, 0x32D86CE3, 0x45DF5C75, 0xDCD60DCF, 0xABD13D59, 0x26D930AC,
+      0x51DE003A, 0xC8D75180, 0xBFD06116, 0x21B4F4B5, 0x56B3C423, 0xCFBA9599, 0xB8BDA50F,
+      0x2802B89E, 0x5F058808, 0xC60CD9B2, 0xB10BE924, 0x2F6F7C87, 0x58684C11, 0xC1611DAB,
+      0xB6662D3D, 0x76DC4190, 0x01DB7106, 0x98D220BC, 0xEFD5102A, 0x71B18589, 0x06B6B51F,
+      0x9FBFE4A5, 0xE8B8D433, 0x7807C9A2, 0x0F00F934, 0x9609A88E, 0xE10E9818, 0x7F6A0DBB,
+      0x086D3D2D, 0x91646C97, 0xE6635C01, 0x6B6B51F4, 0x1C6C6162, 0x856530D8, 0xF262004E,
+      0x6C0695ED, 0x1B01A57B, 0x8208F4C1, 0xF50FC457, 0x65B0D9C6, 0x12B7E950, 0x8BBEB8EA,
+      0xFCB9887C, 0x62DD1DDF, 0x15DA2D49, 0x8CD37CF3, 0xFBD44C65, 0x4DB26158, 0x3AB551CE,
+      0xA3BC0074, 0xD4BB30E2, 0x4ADFA541, 0x3DD895D7, 0xA4D1C46D, 0xD3D6F4FB, 0x4369E96A,
+      0x346ED9FC, 0xAD678846, 0xDA60B8D0, 0x44042D73, 0x33031DE5, 0xAA0A4C5F, 0xDD0D7CC9,
+      0x5005713C, 0x270241AA, 0xBE0B1010, 0xC90C2086, 0x5768B525, 0x206F85B3, 0xB966D409,
+      0xCE61E49F, 0x5EDEF90E, 0x29D9C998, 0xB0D09822, 0xC7D7A8B4, 0x59B33D17, 0x2EB40D81,
+      0xB7BD5C3B, 0xC0BA6CAD, 0xEDB88320, 0x9ABFB3B6, 0x03B6E20C, 0x74B1D29A, 0xEAD54739,
+      0x9DD277AF, 0x04DB2615, 0x73DC1683, 0xE3630B12, 0x94643B84, 0x0D6D6A3E, 0x7A6A5AA8,
+      0xE40ECF0B, 0x9309FF9D, 0x0A00AE27, 0x7D079EB1, 0xF00F9344, 0x8708A3D2, 0x1E01F268,
+      0x6906C2FE, 0xF762575D, 0x806567CB, 0x196C3671, 0x6E6B06E7, 0xFED41B76, 0x89D32BE0,
+      0x10DA7A5A, 0x67DD4ACC, 0xF9B9DF6F, 0x8EBEEFF9, 0x17B7BE43, 0x60B08ED5, 0xD6D6A3E8,
+      0xA1D1937E, 0x38D8C2C4, 0x4FDFF252, 0xD1BB67F1, 0xA6BC5767, 0x3FB506DD, 0x48B2364B,
+      0xD80D2BDA, 0xAF0A1B4C, 0x36034AF6, 0x41047A60, 0xDF60EFC3, 0xA867DF55, 0x316E8EEF,
+      0x4669BE79, 0xCB61B38C, 0xBC66831A, 0x256FD2A0, 0x5268E236, 0xCC0C7795, 0xBB0B4703,
+      0x220216B9, 0x5505262F, 0xC5BA3BBE, 0xB2BD0B28, 0x2BB45A92, 0x5CB36A04, 0xC2D7FFA7,
+      0xB5D0CF31, 0x2CD99E8B, 0x5BDEAE1D, 0x9B64C2B0, 0xEC63F226, 0x756AA39C, 0x026D930A,
+      0x9C0906A9, 0xEB0E363F, 0x72076785, 0x05005713, 0x95BF4A82, 0xE2B87A14, 0x7BB12BAE,
+      0x0CB61B38, 0x92D28E9B, 0xE5D5BE0D, 0x7CDCEFB7, 0x0BDBDF21, 0x86D3D2D4, 0xF1D4E242,
+      0x68DDB3F8, 0x1FDA836E, 0x81BE16CD, 0xF6B9265B, 0x6FB077E1, 0x18B74777, 0x88085AE6,
+      0xFF0F6A70, 0x66063BCA, 0x11010B5C, 0x8F659EFF, 0xF862AE69, 0x616BFFD3, 0x166CCF45,
+      0xA00AE278, 0xD70DD2EE, 0x4E048354, 0x3903B3C2, 0xA7672661, 0xD06016F7, 0x4969474D,
+      0x3E6E77DB, 0xAED16A4A, 0xD9D65ADC, 0x40DF0B66, 0x37D83BF0, 0xA9BCAE53, 0xDEBB9EC5,
+      0x47B2CF7F, 0x30B5FFE9, 0xBDBDF21C, 0xCABAC28A, 0x53B39330, 0x24B4A3A6, 0xBAD03605,
+      0xCDD70693, 0x54DE5729, 0x23D967BF, 0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94,
       0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D};
 
   unsigned int crc = ~0u;
@@ -1051,11 +1023,10 @@ static unsigned int stbiw__crc32(unsigned char *buffer, int len) {
   return ~crc;
 }
 
-#define stbiw__wpng4(o, a, b, c, d)                                            \
-  ((o)[0] = STBIW_UCHAR(a), (o)[1] = STBIW_UCHAR(b), (o)[2] = STBIW_UCHAR(c),  \
+#define stbiw__wpng4(o, a, b, c, d)                                                      \
+  ((o)[0] = STBIW_UCHAR(a), (o)[1] = STBIW_UCHAR(b), (o)[2] = STBIW_UCHAR(c),            \
    (o)[3] = STBIW_UCHAR(d), (o) += 4)
-#define stbiw__wp32(data, v)                                                   \
-  stbiw__wpng4(data, (v) >> 24, (v) >> 16, (v) >> 8, (v));
+#define stbiw__wp32(data, v) stbiw__wpng4(data, (v) >> 24, (v) >> 16, (v) >> 8, (v));
 #define stbiw__wptag(data, s) stbiw__wpng4(data, s[0], s[1], s[2], s[3])
 
 static void stbiw__wpcrc(unsigned char **data, int len) {
@@ -1073,19 +1044,17 @@ static unsigned char stbiw__paeth(int a, int b, int c) {
 }
 
 // @OPTIMIZE: provide an option that always forces left-predict or paeth predict
-static void stbiw__encode_png_line(unsigned char *pixels, int stride_bytes,
-                                   int width, int height, int y, int n,
-                                   int filter_type, signed char *line_buffer) {
+static void stbiw__encode_png_line(unsigned char *pixels, int stride_bytes, int width,
+                                   int height, int y, int n, int filter_type,
+                                   signed char *line_buffer) {
   static int mapping[] = {0, 1, 2, 3, 4};
   static int firstmap[] = {0, 1, 0, 5, 6};
   int *mymap = (y != 0) ? mapping : firstmap;
   int i;
   int type = mymap[filter_type];
   unsigned char *z =
-      pixels +
-      stride_bytes * (stbi__flip_vertically_on_write ? height - 1 - y : y);
-  int signed_stride =
-      stbi__flip_vertically_on_write ? -stride_bytes : stride_bytes;
+      pixels + stride_bytes * (stbi__flip_vertically_on_write ? height - 1 - y : y);
+  int signed_stride = stbi__flip_vertically_on_write ? -stride_bytes : stride_bytes;
   for (i = 0; i < n; ++i) {
     switch (type) {
     case 0:
@@ -1101,8 +1070,7 @@ static void stbiw__encode_png_line(unsigned char *pixels, int stride_bytes,
       line_buffer[i] = z[i] - (z[i - signed_stride] >> 1);
       break;
     case 4:
-      line_buffer[i] =
-          (signed char)(z[i] - stbiw__paeth(0, z[i - signed_stride], 0));
+      line_buffer[i] = (signed char)(z[i] - stbiw__paeth(0, z[i - signed_stride], 0));
       break;
     case 5:
       line_buffer[i] = z[i];
@@ -1127,8 +1095,8 @@ static void stbiw__encode_png_line(unsigned char *pixels, int stride_bytes,
       line_buffer[i] = z[i] - ((z[i - n] + z[i - signed_stride]) >> 1);
       break;
     case 4:
-      line_buffer[i] = z[i] - stbiw__paeth(z[i - n], z[i - signed_stride],
-                                           z[i - signed_stride - n]);
+      line_buffer[i] =
+          z[i] - stbiw__paeth(z[i - n], z[i - signed_stride], z[i - signed_stride - n]);
       break;
     case 5:
       line_buffer[i] = z[i] - (z[i - n] >> 1);
@@ -1140,8 +1108,8 @@ static void stbiw__encode_png_line(unsigned char *pixels, int stride_bytes,
   }
 }
 
-unsigned char *stbi_write_png_to_mem(unsigned char *pixels, int stride_bytes,
-                                     int x, int y, int n, int *out_len) {
+unsigned char *stbi_write_png_to_mem(unsigned char *pixels, int stride_bytes, int x,
+                                     int y, int n, int *out_len) {
   int force_filter = stbi_write_force_png_filter;
   int ctype[5] = {-1, 0, 4, 2, 6};
   unsigned char sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
@@ -1168,8 +1136,7 @@ unsigned char *stbi_write_png_to_mem(unsigned char *pixels, int stride_bytes,
     int filter_type;
     if (force_filter > -1) {
       filter_type = force_filter;
-      stbiw__encode_png_line(pixels, stride_bytes, x, y, j, n, force_filter,
-                             line_buffer);
+      stbiw__encode_png_line(pixels, stride_bytes, x, y, j, n, force_filter, line_buffer);
     } else { // Estimate the best filter by running through all of them:
       int best_filter = 0, best_filter_val = 0x7fffffff, est, i;
       for (filter_type = 0; filter_type < 5; filter_type++) {
@@ -1200,8 +1167,8 @@ unsigned char *stbi_write_png_to_mem(unsigned char *pixels, int stride_bytes,
     STBIW_MEMMOVE(filt + j * (x * n + 1) + 1, line_buffer, x * n);
   }
   STBIW_FREE(line_buffer);
-  zlib = stbi_zlib_compress(filt, y * (x * n + 1), &zlen,
-                            stbi_write_png_compression_level);
+  zlib =
+      stbi_zlib_compress(filt, y * (x * n + 1), &zlen, stbi_write_png_compression_level);
   STBIW_FREE(filt);
   if (!zlib)
     return 0;
@@ -1247,8 +1214,8 @@ STBIWDEF int stbi_write_png(char const *filename, int x, int y, int comp,
                             const void *data, int stride_bytes) {
   FILE *f;
   int len;
-  unsigned char *png = stbi_write_png_to_mem((unsigned char *)data,
-                                             stride_bytes, x, y, comp, &len);
+  unsigned char *png =
+      stbi_write_png_to_mem((unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL)
     return 0;
 #ifdef STBI_MSC_SECURE_CRT
@@ -1268,12 +1235,11 @@ STBIWDEF int stbi_write_png(char const *filename, int x, int y, int comp,
 }
 #endif
 
-STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int x,
-                                    int y, int comp, const void *data,
-                                    int stride_bytes) {
+STBIWDEF int stbi_write_png_to_func(stbi_write_func *func, void *context, int x, int y,
+                                    int comp, const void *data, int stride_bytes) {
   int len;
-  unsigned char *png = stbi_write_png_to_mem((unsigned char *)data,
-                                             stride_bytes, x, y, comp, &len);
+  unsigned char *png =
+      stbi_write_png_to_mem((unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL)
     return 0;
   func(context, png, len);
@@ -1296,8 +1262,8 @@ static const unsigned char stbiw__jpg_ZigZag[] = {
     10, 19, 23, 32, 39, 45, 52, 54, 20, 22, 33, 38, 46, 51, 55, 60,
     21, 34, 37, 47, 50, 56, 59, 61, 35, 36, 48, 49, 57, 58, 62, 63};
 
-static void stbiw__jpg_writeBits(stbi__write_context *s, int *bitBufP,
-                                 int *bitCntP, const unsigned short *bs) {
+static void stbiw__jpg_writeBits(stbi__write_context *s, int *bitBufP, int *bitCntP,
+                                 const unsigned short *bs) {
   int bitBuf = *bitBufP, bitCnt = *bitCntP;
   bitCnt += bs[1];
   bitBuf |= bs[0] << (24 - bitCnt);
@@ -1314,10 +1280,10 @@ static void stbiw__jpg_writeBits(stbi__write_context *s, int *bitBufP,
   *bitCntP = bitCnt;
 }
 
-static void stbiw__jpg_DCT(float *d0p, float *d1p, float *d2p, float *d3p,
-                           float *d4p, float *d5p, float *d6p, float *d7p) {
-  float d0 = *d0p, d1 = *d1p, d2 = *d2p, d3 = *d3p, d4 = *d4p, d5 = *d5p,
-        d6 = *d6p, d7 = *d7p;
+static void stbiw__jpg_DCT(float *d0p, float *d1p, float *d2p, float *d3p, float *d4p,
+                           float *d5p, float *d6p, float *d7p) {
+  float d0 = *d0p, d1 = *d1p, d2 = *d2p, d3 = *d3p, d4 = *d4p, d5 = *d5p, d6 = *d6p,
+        d7 = *d7p;
   float z1, z2, z3, z4, z5, z11, z13;
 
   float tmp0 = d0 + d7;
@@ -1377,8 +1343,8 @@ static void stbiw__jpg_calcBits(int val, unsigned short bits[2]) {
   bits[0] = val & ((1 << bits[1]) - 1);
 }
 
-static int stbiw__jpg_processDU(stbi__write_context *s, int *bitBuf,
-                                int *bitCnt, float *CDU, float *fdtbl, int DC,
+static int stbiw__jpg_processDU(stbi__write_context *s, int *bitBuf, int *bitCnt,
+                                float *CDU, float *fdtbl, int DC,
                                 const unsigned short HTDC[256][2],
                                 const unsigned short HTAC[256][2]) {
   const unsigned short EOB[2] = {HTAC[0x00][0], HTAC[0x00][1]};
@@ -1388,9 +1354,9 @@ static int stbiw__jpg_processDU(stbi__write_context *s, int *bitBuf,
 
   // DCT rows
   for (dataOff = 0; dataOff < 64; dataOff += 8) {
-    stbiw__jpg_DCT(&CDU[dataOff], &CDU[dataOff + 1], &CDU[dataOff + 2],
-                   &CDU[dataOff + 3], &CDU[dataOff + 4], &CDU[dataOff + 5],
-                   &CDU[dataOff + 6], &CDU[dataOff + 7]);
+    stbiw__jpg_DCT(&CDU[dataOff], &CDU[dataOff + 1], &CDU[dataOff + 2], &CDU[dataOff + 3],
+                   &CDU[dataOff + 4], &CDU[dataOff + 5], &CDU[dataOff + 6],
+                   &CDU[dataOff + 7]);
   }
   // DCT columns
   for (dataOff = 0; dataOff < 8; ++dataOff) {
@@ -1450,179 +1416,156 @@ static int stbiw__jpg_processDU(stbi__write_context *s, int *bitBuf,
   return DU[0];
 }
 
-static int stbi_write_jpg_core(stbi__write_context *s, int width, int height,
-                               int comp, const void *data, int quality) {
+static int stbi_write_jpg_core(stbi__write_context *s, int width, int height, int comp,
+                               const void *data, int quality) {
   // Constants that don't pollute global namespace
-  static const unsigned char std_dc_luminance_nrcodes[] = {
-      0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
+  static const unsigned char std_dc_luminance_nrcodes[] = {0, 0, 1, 5, 1, 1, 1, 1, 1,
+                                                           1, 0, 0, 0, 0, 0, 0, 0};
   static const unsigned char std_dc_luminance_values[] = {0, 1, 2, 3, 4,  5,
                                                           6, 7, 8, 9, 10, 11};
-  static const unsigned char std_ac_luminance_nrcodes[] = {
-      0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d};
+  static const unsigned char std_ac_luminance_nrcodes[] = {0, 0, 2, 1, 3, 3, 2, 4,   3,
+                                                           5, 5, 4, 4, 0, 0, 1, 0x7d};
   static const unsigned char std_ac_luminance_values[] = {
-      0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21, 0x31, 0x41, 0x06,
-      0x13, 0x51, 0x61, 0x07, 0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 0x08,
-      0x23, 0x42, 0xb1, 0xc1, 0x15, 0x52, 0xd1, 0xf0, 0x24, 0x33, 0x62, 0x72,
-      0x82, 0x09, 0x0a, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x25, 0x26, 0x27, 0x28,
-      0x29, 0x2a, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45,
-      0x46, 0x47, 0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59,
-      0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x73, 0x74, 0x75,
-      0x76, 0x77, 0x78, 0x79, 0x7a, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89,
-      0x8a, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3,
-      0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6,
-      0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9,
-      0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2,
-      0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf1, 0xf2, 0xf3, 0xf4,
-      0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
-  static const unsigned char std_dc_chrominance_nrcodes[] = {
-      0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0};
+      0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12, 0x21, 0x31, 0x41, 0x06, 0x13, 0x51,
+      0x61, 0x07, 0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 0x08, 0x23, 0x42, 0xb1, 0xc1,
+      0x15, 0x52, 0xd1, 0xf0, 0x24, 0x33, 0x62, 0x72, 0x82, 0x09, 0x0a, 0x16, 0x17, 0x18,
+      0x19, 0x1a, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39,
+      0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57,
+      0x58, 0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x73, 0x74, 0x75,
+      0x76, 0x77, 0x78, 0x79, 0x7a, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x92,
+      0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7,
+      0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3,
+      0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8,
+      0xd9, 0xda, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf1, 0xf2,
+      0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
+  static const unsigned char std_dc_chrominance_nrcodes[] = {0, 0, 3, 1, 1, 1, 1, 1, 1,
+                                                             1, 1, 1, 0, 0, 0, 0, 0};
   static const unsigned char std_dc_chrominance_values[] = {0, 1, 2, 3, 4,  5,
                                                             6, 7, 8, 9, 10, 11};
-  static const unsigned char std_ac_chrominance_nrcodes[] = {
-      0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77};
+  static const unsigned char std_ac_chrominance_nrcodes[] = {0, 0, 2, 1, 2, 4, 4, 3,   4,
+                                                             7, 5, 4, 4, 0, 1, 2, 0x77};
   static const unsigned char std_ac_chrominance_values[] = {
-      0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21, 0x31, 0x06, 0x12, 0x41,
-      0x51, 0x07, 0x61, 0x71, 0x13, 0x22, 0x32, 0x81, 0x08, 0x14, 0x42, 0x91,
-      0xa1, 0xb1, 0xc1, 0x09, 0x23, 0x33, 0x52, 0xf0, 0x15, 0x62, 0x72, 0xd1,
-      0x0a, 0x16, 0x24, 0x34, 0xe1, 0x25, 0xf1, 0x17, 0x18, 0x19, 0x1a, 0x26,
-      0x27, 0x28, 0x29, 0x2a, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x43, 0x44,
-      0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58,
-      0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x73, 0x74,
-      0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
-      0x88, 0x89, 0x8a, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a,
-      0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4,
-      0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7,
-      0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda,
-      0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2, 0xf3, 0xf4,
-      0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
+      0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21, 0x31, 0x06, 0x12, 0x41, 0x51, 0x07,
+      0x61, 0x71, 0x13, 0x22, 0x32, 0x81, 0x08, 0x14, 0x42, 0x91, 0xa1, 0xb1, 0xc1, 0x09,
+      0x23, 0x33, 0x52, 0xf0, 0x15, 0x62, 0x72, 0xd1, 0x0a, 0x16, 0x24, 0x34, 0xe1, 0x25,
+      0xf1, 0x17, 0x18, 0x19, 0x1a, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x35, 0x36, 0x37, 0x38,
+      0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x53, 0x54, 0x55, 0x56,
+      0x57, 0x58, 0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x73, 0x74,
+      0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89,
+      0x8a, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3, 0xa4, 0xa5,
+      0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba,
+      0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6,
+      0xd7, 0xd8, 0xd9, 0xda, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2,
+      0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa};
   // Huffman tables
-  static const unsigned short YDC_HT[256][2] = {
-      {0, 2},  {2, 3},  {3, 3},  {4, 3},   {5, 3},   {6, 3},
-      {14, 4}, {30, 5}, {62, 6}, {126, 7}, {254, 8}, {510, 9}};
+  static const unsigned short YDC_HT[256][2] = {{0, 2},  {2, 3},   {3, 3},   {4, 3},
+                                                {5, 3},  {6, 3},   {14, 4},  {30, 5},
+                                                {62, 6}, {126, 7}, {254, 8}, {510, 9}};
   static const unsigned short UVDC_HT[256][2] = {
       {0, 2},  {1, 2},   {2, 2},   {6, 3},   {14, 4},    {30, 5},
       {62, 6}, {126, 7}, {254, 8}, {510, 9}, {1022, 10}, {2046, 11}};
   static const unsigned short YAC_HT[256][2] = {
-      {10, 4},     {0, 2},      {1, 2},      {4, 3},      {11, 4},
-      {26, 5},     {120, 7},    {248, 8},    {1014, 10},  {65410, 16},
-      {65411, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {12, 4},     {27, 5},     {121, 7},
-      {502, 9},    {2038, 11},  {65412, 16}, {65413, 16}, {65414, 16},
-      {65415, 16}, {65416, 16}, {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {28, 5},     {249, 8},
-      {1015, 10},  {4084, 12},  {65417, 16}, {65418, 16}, {65419, 16},
-      {65420, 16}, {65421, 16}, {65422, 16}, {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {58, 6},
-      {503, 9},    {4085, 12},  {65423, 16}, {65424, 16}, {65425, 16},
-      {65426, 16}, {65427, 16}, {65428, 16}, {65429, 16}, {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {59, 6},     {1016, 10},  {65430, 16}, {65431, 16}, {65432, 16},
-      {65433, 16}, {65434, 16}, {65435, 16}, {65436, 16}, {65437, 16},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {122, 7},    {2039, 11},  {65438, 16}, {65439, 16},
-      {65440, 16}, {65441, 16}, {65442, 16}, {65443, 16}, {65444, 16},
-      {65445, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {123, 7},    {4086, 12},  {65446, 16},
-      {65447, 16}, {65448, 16}, {65449, 16}, {65450, 16}, {65451, 16},
-      {65452, 16}, {65453, 16}, {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {250, 8},    {4087, 12},
-      {65454, 16}, {65455, 16}, {65456, 16}, {65457, 16}, {65458, 16},
-      {65459, 16}, {65460, 16}, {65461, 16}, {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {504, 9},
-      {32704, 15}, {65462, 16}, {65463, 16}, {65464, 16}, {65465, 16},
-      {65466, 16}, {65467, 16}, {65468, 16}, {65469, 16}, {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {505, 9},    {65470, 16}, {65471, 16}, {65472, 16}, {65473, 16},
-      {65474, 16}, {65475, 16}, {65476, 16}, {65477, 16}, {65478, 16},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {506, 9},    {65479, 16}, {65480, 16}, {65481, 16},
-      {65482, 16}, {65483, 16}, {65484, 16}, {65485, 16}, {65486, 16},
-      {65487, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {1017, 10},  {65488, 16}, {65489, 16},
-      {65490, 16}, {65491, 16}, {65492, 16}, {65493, 16}, {65494, 16},
-      {65495, 16}, {65496, 16}, {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {1018, 10},  {65497, 16},
-      {65498, 16}, {65499, 16}, {65500, 16}, {65501, 16}, {65502, 16},
-      {65503, 16}, {65504, 16}, {65505, 16}, {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {2040, 11},
-      {65506, 16}, {65507, 16}, {65508, 16}, {65509, 16}, {65510, 16},
-      {65511, 16}, {65512, 16}, {65513, 16}, {65514, 16}, {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {65515, 16}, {65516, 16}, {65517, 16}, {65518, 16}, {65519, 16},
-      {65520, 16}, {65521, 16}, {65522, 16}, {65523, 16}, {65524, 16},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {2041, 11},  {65525, 16}, {65526, 16}, {65527, 16}, {65528, 16},
-      {65529, 16}, {65530, 16}, {65531, 16}, {65532, 16}, {65533, 16},
-      {65534, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0}};
+      {10, 4},     {0, 2},      {1, 2},      {4, 3},      {11, 4},     {26, 5},
+      {120, 7},    {248, 8},    {1014, 10},  {65410, 16}, {65411, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {12, 4},
+      {27, 5},     {121, 7},    {502, 9},    {2038, 11},  {65412, 16}, {65413, 16},
+      {65414, 16}, {65415, 16}, {65416, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {28, 5},     {249, 8},    {1015, 10},
+      {4084, 12},  {65417, 16}, {65418, 16}, {65419, 16}, {65420, 16}, {65421, 16},
+      {65422, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {58, 6},     {503, 9},    {4085, 12},  {65423, 16}, {65424, 16},
+      {65425, 16}, {65426, 16}, {65427, 16}, {65428, 16}, {65429, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {59, 6},
+      {1016, 10},  {65430, 16}, {65431, 16}, {65432, 16}, {65433, 16}, {65434, 16},
+      {65435, 16}, {65436, 16}, {65437, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {122, 7},    {2039, 11},  {65438, 16},
+      {65439, 16}, {65440, 16}, {65441, 16}, {65442, 16}, {65443, 16}, {65444, 16},
+      {65445, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {123, 7},    {4086, 12},  {65446, 16}, {65447, 16}, {65448, 16},
+      {65449, 16}, {65450, 16}, {65451, 16}, {65452, 16}, {65453, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {250, 8},
+      {4087, 12},  {65454, 16}, {65455, 16}, {65456, 16}, {65457, 16}, {65458, 16},
+      {65459, 16}, {65460, 16}, {65461, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {504, 9},    {32704, 15}, {65462, 16},
+      {65463, 16}, {65464, 16}, {65465, 16}, {65466, 16}, {65467, 16}, {65468, 16},
+      {65469, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {505, 9},    {65470, 16}, {65471, 16}, {65472, 16}, {65473, 16},
+      {65474, 16}, {65475, 16}, {65476, 16}, {65477, 16}, {65478, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {506, 9},
+      {65479, 16}, {65480, 16}, {65481, 16}, {65482, 16}, {65483, 16}, {65484, 16},
+      {65485, 16}, {65486, 16}, {65487, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {1017, 10},  {65488, 16}, {65489, 16},
+      {65490, 16}, {65491, 16}, {65492, 16}, {65493, 16}, {65494, 16}, {65495, 16},
+      {65496, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {1018, 10},  {65497, 16}, {65498, 16}, {65499, 16}, {65500, 16},
+      {65501, 16}, {65502, 16}, {65503, 16}, {65504, 16}, {65505, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {2040, 11},
+      {65506, 16}, {65507, 16}, {65508, 16}, {65509, 16}, {65510, 16}, {65511, 16},
+      {65512, 16}, {65513, 16}, {65514, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {65515, 16}, {65516, 16}, {65517, 16},
+      {65518, 16}, {65519, 16}, {65520, 16}, {65521, 16}, {65522, 16}, {65523, 16},
+      {65524, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {2041, 11},  {65525, 16}, {65526, 16}, {65527, 16}, {65528, 16}, {65529, 16},
+      {65530, 16}, {65531, 16}, {65532, 16}, {65533, 16}, {65534, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0}};
   static const unsigned short UVAC_HT[256][2] = {
-      {0, 2},      {1, 2},      {4, 3},      {10, 4},     {24, 5},
-      {25, 5},     {56, 6},     {120, 7},    {500, 9},    {1014, 10},
-      {4084, 12},  {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {11, 4},     {57, 6},     {246, 8},
-      {501, 9},    {2038, 11},  {4085, 12},  {65416, 16}, {65417, 16},
-      {65418, 16}, {65419, 16}, {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {26, 5},     {247, 8},
-      {1015, 10},  {4086, 12},  {32706, 15}, {65420, 16}, {65421, 16},
-      {65422, 16}, {65423, 16}, {65424, 16}, {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {27, 5},
-      {248, 8},    {1016, 10},  {4087, 12},  {65425, 16}, {65426, 16},
-      {65427, 16}, {65428, 16}, {65429, 16}, {65430, 16}, {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {58, 6},     {502, 9},    {65431, 16}, {65432, 16}, {65433, 16},
-      {65434, 16}, {65435, 16}, {65436, 16}, {65437, 16}, {65438, 16},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {59, 6},     {1017, 10},  {65439, 16}, {65440, 16},
-      {65441, 16}, {65442, 16}, {65443, 16}, {65444, 16}, {65445, 16},
-      {65446, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {121, 7},    {2039, 11},  {65447, 16},
-      {65448, 16}, {65449, 16}, {65450, 16}, {65451, 16}, {65452, 16},
-      {65453, 16}, {65454, 16}, {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {122, 7},    {2040, 11},
-      {65455, 16}, {65456, 16}, {65457, 16}, {65458, 16}, {65459, 16},
-      {65460, 16}, {65461, 16}, {65462, 16}, {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {249, 8},
-      {65463, 16}, {65464, 16}, {65465, 16}, {65466, 16}, {65467, 16},
-      {65468, 16}, {65469, 16}, {65470, 16}, {65471, 16}, {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {503, 9},    {65472, 16}, {65473, 16}, {65474, 16}, {65475, 16},
-      {65476, 16}, {65477, 16}, {65478, 16}, {65479, 16}, {65480, 16},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {504, 9},    {65481, 16}, {65482, 16}, {65483, 16},
-      {65484, 16}, {65485, 16}, {65486, 16}, {65487, 16}, {65488, 16},
-      {65489, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {505, 9},    {65490, 16}, {65491, 16},
-      {65492, 16}, {65493, 16}, {65494, 16}, {65495, 16}, {65496, 16},
-      {65497, 16}, {65498, 16}, {0, 0},      {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {506, 9},    {65499, 16},
-      {65500, 16}, {65501, 16}, {65502, 16}, {65503, 16}, {65504, 16},
-      {65505, 16}, {65506, 16}, {65507, 16}, {0, 0},      {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {2041, 11},
-      {65508, 16}, {65509, 16}, {65510, 16}, {65511, 16}, {65512, 16},
-      {65513, 16}, {65514, 16}, {65515, 16}, {65516, 16}, {0, 0},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {16352, 14}, {65517, 16}, {65518, 16}, {65519, 16}, {65520, 16},
-      {65521, 16}, {65522, 16}, {65523, 16}, {65524, 16}, {65525, 16},
-      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {1018, 10},  {32707, 15}, {65526, 16}, {65527, 16}, {65528, 16},
-      {65529, 16}, {65530, 16}, {65531, 16}, {65532, 16}, {65533, 16},
-      {65534, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},
-      {0, 0}};
-  static const int YQT[] = {
-      16, 11, 10, 16, 24,  40,  51,  61,  12, 12, 14, 19, 26,  58,  60,  55,
-      14, 13, 16, 24, 40,  57,  69,  56,  14, 17, 22, 29, 51,  87,  80,  62,
-      18, 22, 37, 56, 68,  109, 103, 77,  24, 35, 55, 64, 81,  104, 113, 92,
-      49, 64, 78, 87, 103, 121, 120, 101, 72, 92, 95, 98, 112, 100, 103, 99};
+      {0, 2},      {1, 2},      {4, 3},      {10, 4},     {24, 5},     {25, 5},
+      {56, 6},     {120, 7},    {500, 9},    {1014, 10},  {4084, 12},  {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {11, 4},
+      {57, 6},     {246, 8},    {501, 9},    {2038, 11},  {4085, 12},  {65416, 16},
+      {65417, 16}, {65418, 16}, {65419, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {26, 5},     {247, 8},    {1015, 10},
+      {4086, 12},  {32706, 15}, {65420, 16}, {65421, 16}, {65422, 16}, {65423, 16},
+      {65424, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {27, 5},     {248, 8},    {1016, 10},  {4087, 12},  {65425, 16},
+      {65426, 16}, {65427, 16}, {65428, 16}, {65429, 16}, {65430, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {58, 6},
+      {502, 9},    {65431, 16}, {65432, 16}, {65433, 16}, {65434, 16}, {65435, 16},
+      {65436, 16}, {65437, 16}, {65438, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {59, 6},     {1017, 10},  {65439, 16},
+      {65440, 16}, {65441, 16}, {65442, 16}, {65443, 16}, {65444, 16}, {65445, 16},
+      {65446, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {121, 7},    {2039, 11},  {65447, 16}, {65448, 16}, {65449, 16},
+      {65450, 16}, {65451, 16}, {65452, 16}, {65453, 16}, {65454, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {122, 7},
+      {2040, 11},  {65455, 16}, {65456, 16}, {65457, 16}, {65458, 16}, {65459, 16},
+      {65460, 16}, {65461, 16}, {65462, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {249, 8},    {65463, 16}, {65464, 16},
+      {65465, 16}, {65466, 16}, {65467, 16}, {65468, 16}, {65469, 16}, {65470, 16},
+      {65471, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {503, 9},    {65472, 16}, {65473, 16}, {65474, 16}, {65475, 16},
+      {65476, 16}, {65477, 16}, {65478, 16}, {65479, 16}, {65480, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {504, 9},
+      {65481, 16}, {65482, 16}, {65483, 16}, {65484, 16}, {65485, 16}, {65486, 16},
+      {65487, 16}, {65488, 16}, {65489, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {505, 9},    {65490, 16}, {65491, 16},
+      {65492, 16}, {65493, 16}, {65494, 16}, {65495, 16}, {65496, 16}, {65497, 16},
+      {65498, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {506, 9},    {65499, 16}, {65500, 16}, {65501, 16}, {65502, 16},
+      {65503, 16}, {65504, 16}, {65505, 16}, {65506, 16}, {65507, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},      {2041, 11},
+      {65508, 16}, {65509, 16}, {65510, 16}, {65511, 16}, {65512, 16}, {65513, 16},
+      {65514, 16}, {65515, 16}, {65516, 16}, {0, 0},      {0, 0},      {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {16352, 14}, {65517, 16}, {65518, 16},
+      {65519, 16}, {65520, 16}, {65521, 16}, {65522, 16}, {65523, 16}, {65524, 16},
+      {65525, 16}, {0, 0},      {0, 0},      {0, 0},      {0, 0},      {0, 0},
+      {1018, 10},  {32707, 15}, {65526, 16}, {65527, 16}, {65528, 16}, {65529, 16},
+      {65530, 16}, {65531, 16}, {65532, 16}, {65533, 16}, {65534, 16}, {0, 0},
+      {0, 0},      {0, 0},      {0, 0},      {0, 0}};
+  static const int YQT[] = {16,  11,  10,  16,  24, 40, 51,  61,  12,  12,  14,  19,  26,
+                            58,  60,  55,  14,  13, 16, 24,  40,  57,  69,  56,  14,  17,
+                            22,  29,  51,  87,  80, 62, 18,  22,  37,  56,  68,  109, 103,
+                            77,  24,  35,  55,  64, 81, 104, 113, 92,  49,  64,  78,  87,
+                            103, 121, 120, 101, 72, 92, 95,  98,  112, 100, 103, 99};
   static const int UVQT[] = {17, 18, 24, 47, 99, 99, 99, 99, 18, 21, 26, 66, 99,
                              99, 99, 99, 24, 26, 56, 99, 99, 99, 99, 99, 47, 66,
                              99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
                              99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
                              99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99};
-  static const float aasf[] = {
-      1.0f * 2.828427125f,         1.387039845f * 2.828427125f,
-      1.306562965f * 2.828427125f, 1.175875602f * 2.828427125f,
-      1.0f * 2.828427125f,         0.785694958f * 2.828427125f,
-      0.541196100f * 2.828427125f, 0.275899379f * 2.828427125f};
+  static const float aasf[] = {1.0f * 2.828427125f,         1.387039845f * 2.828427125f,
+                               1.306562965f * 2.828427125f, 1.175875602f * 2.828427125f,
+                               1.0f * 2.828427125f,         0.785694958f * 2.828427125f,
+                               0.541196100f * 2.828427125f, 0.275899379f * 2.828427125f};
 
   int row, col, i, k;
   float fdtbl_Y[64], fdtbl_UV[64];
@@ -1638,9 +1581,7 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height,
 
   for (i = 0; i < 64; ++i) {
     int uvti, yti = (YQT[i] * quality + 50) / 100;
-    YTable[stbiw__jpg_ZigZag[i]] = (unsigned char)(yti < 1     ? 1
-                                                   : yti > 255 ? 255
-                                                               : yti);
+    YTable[stbiw__jpg_ZigZag[i]] = (unsigned char)(yti < 1 ? 1 : yti > 255 ? 255 : yti);
     uvti = (UVQT[i] * quality + 50) / 100;
     UVTable[stbiw__jpg_ZigZag[i]] = (unsigned char)(uvti < 1     ? 1
                                                     : uvti > 255 ? 255
@@ -1656,9 +1597,9 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height,
 
   // Write Headers
   {
-    static const unsigned char head0[] = {
-        0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, 'J', 'F',  'I',  'F', 0,    1, 1,
-        0,    0,    1,    0,    1, 0,    0,   0xFF, 0xDB, 0,   0x84, 0};
+    static const unsigned char head0[] = {0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, 'J', 'F', 'I',
+                                          'F',  0,    1,    1,    0, 0,    1,   0,   1,
+                                          0,    0,    0xFF, 0xDB, 0, 0x84, 0};
     static const unsigned char head2[] = {0xFF, 0xDA, 0, 0xC,  3, 1,    0,
                                           2,    0x11, 3, 0x11, 0, 0x3F, 0};
     const unsigned char head1[] = {0xFF,
@@ -1692,13 +1633,11 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height,
     s->func(s->context, (void *)head1, sizeof(head1));
     s->func(s->context, (void *)(std_dc_luminance_nrcodes + 1),
             sizeof(std_dc_luminance_nrcodes) - 1);
-    s->func(s->context, (void *)std_dc_luminance_values,
-            sizeof(std_dc_luminance_values));
+    s->func(s->context, (void *)std_dc_luminance_values, sizeof(std_dc_luminance_values));
     stbiw__putc(s, 0x10); // HTYACinfo
     s->func(s->context, (void *)(std_ac_luminance_nrcodes + 1),
             sizeof(std_ac_luminance_nrcodes) - 1);
-    s->func(s->context, (void *)std_ac_luminance_values,
-            sizeof(std_ac_luminance_values));
+    s->func(s->context, (void *)std_ac_luminance_values, sizeof(std_ac_luminance_values));
     stbiw__putc(s, 1); // HTUDCinfo
     s->func(s->context, (void *)(std_dc_chrominance_nrcodes + 1),
             sizeof(std_dc_chrominance_nrcodes) - 1);
@@ -1726,9 +1665,9 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height,
         float YDU[64], UDU[64], VDU[64];
         for (row = y, pos = 0; row < y + 8; ++row) {
           for (col = x; col < x + 8; ++col, ++pos) {
-            int p = (stbi__flip_vertically_on_write ? height - 1 - row : row) *
-                        width * comp +
-                    col * comp;
+            int p =
+                (stbi__flip_vertically_on_write ? height - 1 - row : row) * width * comp +
+                col * comp;
             float r, g, b;
             if (row >= height) {
               p -= width * comp * (row + 1 - height);
@@ -1746,12 +1685,12 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height,
           }
         }
 
-        DCY = stbiw__jpg_processDU(s, &bitBuf, &bitCnt, YDU, fdtbl_Y, DCY,
-                                   YDC_HT, YAC_HT);
-        DCU = stbiw__jpg_processDU(s, &bitBuf, &bitCnt, UDU, fdtbl_UV, DCU,
-                                   UVDC_HT, UVAC_HT);
-        DCV = stbiw__jpg_processDU(s, &bitBuf, &bitCnt, VDU, fdtbl_UV, DCV,
-                                   UVDC_HT, UVAC_HT);
+        DCY =
+            stbiw__jpg_processDU(s, &bitBuf, &bitCnt, YDU, fdtbl_Y, DCY, YDC_HT, YAC_HT);
+        DCU = stbiw__jpg_processDU(s, &bitBuf, &bitCnt, UDU, fdtbl_UV, DCU, UVDC_HT,
+                                   UVAC_HT);
+        DCV = stbiw__jpg_processDU(s, &bitBuf, &bitCnt, VDU, fdtbl_UV, DCV, UVDC_HT,
+                                   UVAC_HT);
       }
     }
 
@@ -1766,9 +1705,8 @@ static int stbi_write_jpg_core(stbi__write_context *s, int width, int height,
   return 1;
 }
 
-STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x,
-                                    int y, int comp, const void *data,
-                                    int quality) {
+STBIWDEF int stbi_write_jpg_to_func(stbi_write_func *func, void *context, int x, int y,
+                                    int comp, const void *data, int quality) {
   stbi__write_context s;
   stbi__start_write_callbacks(&s, func, context);
   return stbi_write_jpg_core(&s, x, y, comp, (void *)data, quality);

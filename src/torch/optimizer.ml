@@ -145,7 +145,7 @@ module Linear_interpolation = struct
       let index =
         Array.binary_search t.xs `First_greater_than_or_equal_to x ~compare:Float.compare
       in
-      let index = Option.value_exn index in
+      let index = Option.value_local_exn index in
       let prev_x, prev_y = t.xs.(index - 1), t.ys.(index - 1) in
       let next_x, next_y = t.xs.(index), t.ys.(index) in
       ((prev_y *. (next_x -. x)) +. (next_y *. (x -. prev_x))) /. (next_x -. prev_x))

@@ -2,10 +2,19 @@ open Ctypes
 open Torch_bindings.Type_defs
 module C = Torch_bindings.C (Torch_stubs_generated)
 
-external with_tensor_gc : _ Cstubs_internals.fatptr -> Ctypes_ptr.voidp = "with_tensor_gc"
+external finalize_managed_tensor : Obj.t -> unit = "finalize_managed_tensor"
+external make_managed_tensor : Ctypes_ptr.voidp -> Obj.t = "make_managed_tensor"
 
 let with_tensor_gc (raw : raw_tensor) : gc_tensor =
-  fatptr_of_raw_tensor raw |> with_tensor_gc |> gc_tensor_of_voidp
+  let addr = unsafe_raw_address_of_raw_tensor raw in
+  (* When managed is collected, it will reduce the refcount of the corresponding
+     Torch tensor. Storing the ~managed reference in the gc_tensor
+     fatptr assures that managed will not be collected until the gc_tensor is
+     dropped. *)
+  let managed = make_managed_tensor addr in
+  Gc.finalise finalize_managed_tensor managed;
+  let fatptr = Ctypes_ptr.Fat.make ~managed:(Some managed) ~reftyp:void addr in
+  unsafe_gc_tensor_of_unit_ptr (CPointer fatptr)
 ;;
 
 let to_tensor_list (ptr : raw_tensor ptr) =

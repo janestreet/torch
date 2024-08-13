@@ -121,7 +121,7 @@ let valid ~filename ~device =
   let vs = Var_store.create ~frozen:true ~name:"a2c" () ~device in
   let model = model vs ~actions:action_space in
   Serialize.load_multi_ ~named_tensors:(Var_store.all_vars vs) ~filename;
-  let (_ : Rollout.rollout) = Rollout.run rollout ~model in
+  let _ : Rollout.rollout = Rollout.run rollout ~model in
   let { Rollout.rewards = r; episodes = e } = Rollout.get_and_reset_totals rollout in
   Stdio.printf "%f (%.0f episodes)\n%!" (r /. e) e
 ;;

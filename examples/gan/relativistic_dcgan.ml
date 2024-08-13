@@ -126,48 +126,48 @@ let () =
     ~checkpoint_base:"relgan.ot"
     ~checkpoint_every:(`seconds 600.)
     (fun ~index ->
-    Var_store.unfreeze discriminator_vs;
-    Var_store.freeze generator_vs;
-    let discriminator_loss =
-      let batch_images = next_batch_images () in
-      let y_pred = discriminator batch_images in
-      let y_pred_fake =
-        rand () |> generator |> Tensor.copy |> Tensor.detach |> discriminator
-      in
-      Tensor.( + )
-        Tensor.(mse_loss y_pred (mean y_pred_fake + f 1.))
-        Tensor.(mse_loss y_pred_fake (mean y_pred - f 1.))
-    in
-    let discriminator_loss = Tensor.(discriminator_loss / f 2.) in
-    Optimizer.backward_step ~loss:discriminator_loss opt_d;
-    Var_store.freeze discriminator_vs;
-    Var_store.unfreeze generator_vs;
-    let generator_loss =
-      let batch_images = next_batch_images () in
-      let y_pred = discriminator batch_images in
-      let y_pred_fake = rand () |> generator |> discriminator in
-      Tensor.( + )
-        Tensor.(mse_loss y_pred (mean y_pred_fake - f 1.))
-        Tensor.(mse_loss y_pred_fake (mean y_pred + f 1.))
-    in
-    let generator_loss = Tensor.(generator_loss / f 2.) in
-    Optimizer.backward_step ~loss:generator_loss opt_g;
-    if index % 100 = 0
-    then
-      Stdio.printf
-        "batch %4d    d-loss: %12.6f    g-loss: %12.6f\n%!"
-        index
-        (Tensor.float_value discriminator_loss)
-        (Tensor.float_value generator_loss);
-    Stdlib.Gc.full_major ();
-    if index % 25000 = 0 || (index < 100000 && index % 5000 = 0)
-    then
-      generator fixed_noise
-      |> Tensor.view ~size:[ -1; 3; image_h; image_w ]
-      |> Tensor.to_device ~device:Cpu
-      |> fun xs ->
-      Tensor.((xs + f 1.) * f 127.5)
-      |> Tensor.clamp ~min:(Scalar.float 0.) ~max:(Scalar.float 255.)
-      |> Tensor.to_type ~type_:(T Uint8)
-      |> write_samples ~filename:(Printf.sprintf "relout%d.png" index))
+       Var_store.unfreeze discriminator_vs;
+       Var_store.freeze generator_vs;
+       let discriminator_loss =
+         let batch_images = next_batch_images () in
+         let y_pred = discriminator batch_images in
+         let y_pred_fake =
+           rand () |> generator |> Tensor.copy |> Tensor.detach |> discriminator
+         in
+         Tensor.( + )
+           Tensor.(mse_loss y_pred (mean y_pred_fake + f 1.))
+           Tensor.(mse_loss y_pred_fake (mean y_pred - f 1.))
+       in
+       let discriminator_loss = Tensor.(discriminator_loss / f 2.) in
+       Optimizer.backward_step ~loss:discriminator_loss opt_d;
+       Var_store.freeze discriminator_vs;
+       Var_store.unfreeze generator_vs;
+       let generator_loss =
+         let batch_images = next_batch_images () in
+         let y_pred = discriminator batch_images in
+         let y_pred_fake = rand () |> generator |> discriminator in
+         Tensor.( + )
+           Tensor.(mse_loss y_pred (mean y_pred_fake - f 1.))
+           Tensor.(mse_loss y_pred_fake (mean y_pred + f 1.))
+       in
+       let generator_loss = Tensor.(generator_loss / f 2.) in
+       Optimizer.backward_step ~loss:generator_loss opt_g;
+       if index % 100 = 0
+       then
+         Stdio.printf
+           "batch %4d    d-loss: %12.6f    g-loss: %12.6f\n%!"
+           index
+           (Tensor.float_value discriminator_loss)
+           (Tensor.float_value generator_loss);
+       Stdlib.Gc.full_major ();
+       if index % 25000 = 0 || (index < 100000 && index % 5000 = 0)
+       then
+         generator fixed_noise
+         |> Tensor.view ~size:[ -1; 3; image_h; image_w ]
+         |> Tensor.to_device ~device:Cpu
+         |> fun xs ->
+         Tensor.((xs + f 1.) * f 127.5)
+         |> Tensor.clamp ~min:(Scalar.float 0.) ~max:(Scalar.float 255.)
+         |> Tensor.to_type ~type_:(T Uint8)
+         |> write_samples ~filename:(Printf.sprintf "relout%d.png" index))
 ;;

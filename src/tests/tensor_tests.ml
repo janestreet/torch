@@ -46,7 +46,8 @@ let%expect_test _ =
   let array_narrow = Tensor.narrow t ~dim:0 ~start:1 ~length:3 |> Tensor.to_float1_exn in
   Stdio.printf !"%{sexp:float array}\n" array;
   Stdio.printf !"%{sexp:float array}\n" array_narrow;
-  [%expect {|
+  [%expect
+    {|
     (0 1 2 3 4)
     (1 2 3)
     |}]
@@ -147,7 +148,8 @@ let%expect_test _ =
   let t = Tensor.of_int2 [| [| 3; 1; 4 |]; [| 1; 5; 9 |] |] in
   Tensor.to_list t
   |> List.iter ~f:(fun t -> Tensor.to_int1_exn t |> Stdio.printf !"%{sexp:int array}\n");
-  [%expect {|
+  [%expect
+    {|
     (3 1 4)
     (1 5 9)
     |}];
@@ -167,7 +169,8 @@ let%expect_test _ =
   (* Sum all elements *)
   let t = Tensor.einsum ~equation:"ij -> " ~path:None [ t ] in
   Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn t);
-  [%expect {|
+  [%expect
+    {|
     (1 4 9)
     (3 1)
     (1 5)
@@ -182,7 +185,8 @@ let%expect_test _ =
   let int_t = Tensor.of_int1 [| 1 |] in
   Stdio.printf !"%{sexp:bool}\n" (Torch.Tensor.is_floating_point float_t);
   Stdio.printf !"%{sexp:bool}\n" (Torch.Tensor.is_floating_point int_t);
-  [%expect {|
+  [%expect
+    {|
     true
     false
     |}]
@@ -194,7 +198,8 @@ let%expect_test _ =
   Stdio.printf !"%{sexp:int64}\n" (Torch.Tensor._version t);
   let (_ : Tensor.t) = Torch.Tensor.add_ t t in
   Stdio.printf !"%{sexp:int64}\n" (Torch.Tensor._version t);
-  [%expect {|
+  [%expect
+    {|
     0
     1
     |}]
@@ -243,4 +248,20 @@ let%expect_test "svd" =
     V^T: ((-0.57604849338531494 -0.81741553544998169)
      (0.81741553544998169 -0.57604849338531494))
     |}]
+;;
+
+let%expect_test "precision" =
+  let x = 0.5609 in
+  let t_float = Tensor.of_float0 x in
+  let t_double = Tensor.of_double0 x in
+  Stdio.printf !"%.10f\n" Tensor.(exp t_float |> to_float0_exn);
+  Stdio.printf !"%.10f\n" Tensor.(exp t_double |> to_float0_exn);
+  [%expect
+    {|
+    1.7522487640
+    1.7522488148
+    |}];
+  Tensor.(t_double.%.{[]} <- 1.2345678901);
+  Stdio.printf !"%.10f\n" Tensor.(to_float0_exn t_double);
+  [%expect {| 1.2345678901 |}]
 ;;

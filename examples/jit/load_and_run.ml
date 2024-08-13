@@ -13,5 +13,5 @@ let () =
   |> Tensor.softmax ~dim:(-1) ~dtype:(T Float)
   |> Torch_vision.Imagenet.Classes.top ~k:5
   |> List.iter ~f:(fun (class_name, p) ->
-       Stdio.printf "%s: %.2f%%\n%!" class_name (100. *. p))
+    Stdio.printf "%s: %.2f%%\n%!" class_name (100. *. p))
 ;;

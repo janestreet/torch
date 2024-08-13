@@ -93,8 +93,8 @@ CAMLprim value ml_stbi_load_mem(value channels, value mem) {
 
   int x, y, n;
   unsigned char *image_data = stbi_load_from_memory(
-      Caml_ba_data_val(mem), caml_ba_byte_size(Caml_ba_array_val(mem)), &x, &y,
-      &n, Channels_val(channels));
+      Caml_ba_data_val(mem), caml_ba_byte_size(Caml_ba_array_val(mem)), &x, &y, &n,
+      Channels_val(channels));
 
   if (image_data)
     ret = return_image(image_data, CAML_BA_UINT8, x, y, n);
@@ -109,9 +109,9 @@ CAMLprim value ml_stbi_loadf_mem(value channels, value mem) {
   CAMLlocal1(ret);
 
   int x, y, n;
-  float *image_data = stbi_loadf_from_memory(
-      Caml_ba_data_val(mem), caml_ba_byte_size(Caml_ba_array_val(mem)), &x, &y,
-      &n, Channels_val(channels));
+  float *image_data = stbi_loadf_from_memory(Caml_ba_data_val(mem),
+                                             caml_ba_byte_size(Caml_ba_array_val(mem)),
+                                             &x, &y, &n, Channels_val(channels));
 
   if (image_data)
     ret = return_image(image_data, CAML_BA_FLOAT32, x, y, n);
@@ -132,14 +132,13 @@ CAMLprim value ml_stbi_image_free(value ba) {
   CAMLreturn(Val_unit);
 }
 
-#define POUT(x, n)                                                             \
-  pout[x] = (pin[x] + pin[n + x] + pin[w * n + n] + pin[w * n + x]) / 4
-#define POUTf(x, n)                                                            \
+#define POUT(x, n) pout[x] = (pin[x] + pin[n + x] + pin[w * n + n] + pin[w * n + x]) / 4
+#define POUTf(x, n)                                                                      \
   pout[x] = (pin[x] + pin[n + x] + pin[w * n + n] + pin[w * n + x]) / 4.0f
 
-#define LOOP(w, h, n)                                                          \
-  for (unsigned int y = 0, w2 = (w) / 2, h2 = (h) / 2; y < h2;                 \
-       ++y, pin0 += sin, pin = pin0, pout0 += sout, pout = pout0)              \
+#define LOOP(w, h, n)                                                                    \
+  for (unsigned int y = 0, w2 = (w) / 2, h2 = (h) / 2; y < h2;                           \
+       ++y, pin0 += sin, pin = pin0, pout0 += sout, pout = pout0)                        \
     for (unsigned int x = 0; x < w2; ++x, pin += 2 * n, pout += n)
 
 CAMLprim value ml_stbi_mipmap(value img_in, value img_out) {
@@ -151,8 +150,7 @@ CAMLprim value ml_stbi_mipmap(value img_in, value img_out) {
   pin0 += Long_val(Field(img_in, 3));
   pout0 += Long_val(Field(img_out, 3));
 
-  unsigned int sin = Long_val(Field(img_in, 4)),
-               sout = Long_val(Field(img_out, 4)),
+  unsigned int sin = Long_val(Field(img_in, 4)), sout = Long_val(Field(img_out, 4)),
                w = Long_val(Field(img_in, 0)), h = Long_val(Field(img_in, 1));
 
   switch (Long_val(Field(img_in, 2))) {
@@ -194,8 +192,7 @@ CAMLprim value ml_stbi_mipmapf(value img_in, value img_out) {
   pin0 += Long_val(Field(img_in, 3));
   pout0 += Long_val(Field(img_out, 3));
 
-  unsigned int sin = Long_val(Field(img_in, 4)),
-               sout = Long_val(Field(img_out, 4)),
+  unsigned int sin = Long_val(Field(img_in, 4)), sout = Long_val(Field(img_out, 4)),
                w = Long_val(Field(img_in, 0)), h = Long_val(Field(img_in, 1));
 
   switch (Long_val(Field(img_in, 2))) {
@@ -244,8 +241,7 @@ CAMLprim value ml_stbi_vflip(value img) {
   ptop += Long_val(Field(img, 3));
 
   unsigned int w = Long_val(Field(img, 0)), h = Long_val(Field(img, 1)),
-               n = Long_val(Field(img, 2)), stride = Long_val(Field(img, 4)),
-               row = w * n;
+               n = Long_val(Field(img, 2)), stride = Long_val(Field(img, 4)), row = w * n;
 
   unsigned char *pbot = ptop + (stride * h - stride);
   w = w * n;
@@ -287,32 +283,31 @@ CAMLprim value ml_stbi_vflipf(value img) {
 #define APREC 16
 #define ZPREC 7
 
-#define APPROX(alpha, reg, acc)                                                \
-  ((alpha * (((int)(reg) << ZPREC) - acc)) >> APREC)
+#define APPROX(alpha, reg, acc) ((alpha * (((int)(reg) << ZPREC) - acc)) >> APREC)
 
 #define BLUR0(reg, acc) int acc = (int)(reg) << ZPREC
 
-#define BLUR(reg, acc)                                                         \
-  do {                                                                         \
-    acc += APPROX(alpha, reg, acc);                                            \
-    reg = (unsigned char)(acc >> ZPREC);                                       \
+#define BLUR(reg, acc)                                                                   \
+  do {                                                                                   \
+    acc += APPROX(alpha, reg, acc);                                                      \
+    reg = (unsigned char)(acc >> ZPREC);                                                 \
   } while (0)
 
-#define OUTERLOOP(var, ptr, bound, stride)                                     \
-  for (unsigned char *_limit = ptr + bound * stride, *var = ptr; var < _limit; \
+#define OUTERLOOP(var, ptr, bound, stride)                                               \
+  for (unsigned char *_limit = ptr + bound * stride, *var = ptr; var < _limit;           \
        var += stride)
 
-#define INNERLOOP(var, bound, stride, BODY)                                    \
-  do {                                                                         \
-    int var;                                                                   \
-    for (var = stride; var < bound * stride; var += stride)                    \
-      BODY;                                                                    \
-    for (var = (bound - 2) * stride; var >= 0; var -= stride)                  \
-      BODY;                                                                    \
-    for (var = stride; var < bound * stride; var += stride)                    \
-      BODY;                                                                    \
-    for (var = (bound - 2) * stride; var >= 0; var -= stride)                  \
-      BODY;                                                                    \
+#define INNERLOOP(var, bound, stride, BODY)                                              \
+  do {                                                                                   \
+    int var;                                                                             \
+    for (var = stride; var < bound * stride; var += stride)                              \
+      BODY;                                                                              \
+    for (var = (bound - 2) * stride; var >= 0; var -= stride)                            \
+      BODY;                                                                              \
+    for (var = stride; var < bound * stride; var += stride)                              \
+      BODY;                                                                              \
+    for (var = (bound - 2) * stride; var >= 0; var -= stride)                            \
+      BODY;                                                                              \
   } while (0)
 
 static void expblur4(unsigned char *ptr, int w, int h, int stride, int alpha) {

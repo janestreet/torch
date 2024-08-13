@@ -1,6 +1,6 @@
 (executables
  (modes byte exe)
  (names vae)
- (libraries torch torch_vision unix)
+ (libraries stdio torch torch_vision unix)
  (preprocess
   (pps ppx_jane)))

@@ -348,7 +348,7 @@ val huber_loss : ?reduction:Torch_core.Reduction.t -> t -> t -> t
     or jupyter.
 *)
 val pp : Format.formatter -> t -> unit
-  [@@ocaml.toplevel_printer]
+[@@ocaml.toplevel_printer]
 
 (** [copy t] returns a new copy of [t] with the same size and data which does
     not share storage with t.
