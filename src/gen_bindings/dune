@@ -4,3 +4,8 @@
  (libraries base core.command core_unix.command_unix stdio yaml)
  (preprocess
   (pps ppx_let ppx_string)))
+
+(env
+ (dev
+  (flags
+   (:standard -w -69))))

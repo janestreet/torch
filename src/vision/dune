@@ -9,3 +9,8 @@
  (libraries base stdio torch_core torch)
  (preprocess
   (pps ppx_jane)))
+
+(env
+ (dev
+  (flags
+   (:standard -w -69))))

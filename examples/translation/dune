@@ -4,3 +4,8 @@
  (libraries stdio torch unix)
  (preprocess
   (pps ppx_jane)))
+
+(env
+ (dev
+  (flags
+   (:standard -w -32))))
