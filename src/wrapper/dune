@@ -9,7 +9,7 @@
  (foreign_stubs
   (language c)
   (names torch_stubs torch_stubs_generated)
-  (flags -Wno-error=incompatible-function-pointer-types))
+  (extra_deps torch_api_generated.h torch_api_generated.cpp))
  (name torch_core)
  (public_name torch.core)
  (c_library_flags :standard -lstdc++)
@@ -19,14 +19,6 @@
  (libraries ctypes.foreign ctypes torch_bindings)
  (preprocess
   (pps ppx_jane)))
-
-(rule
- (target torch_api)
- (deps torch_api_generated.h torch_api_generated.cpp)
- (action
-  (progn
-   (copy torch_api_generated.h %{target})
-   (copy torch_api_generated.cpp %{target}))))
 
 (rule
  (targets cxx_flags.sexp flags.sexp)
