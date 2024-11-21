@@ -40,7 +40,6 @@ let block_args () =
 type params =
   { width : float
   ; depth : float
-  ; res : int
   ; dropout : float
   }
 
@@ -180,38 +179,38 @@ let efficientnet ?(num_classes = 1000) vs params =
     |> Tensor.adaptive_avg_pool2d ~output_size:[ 1; 1 ]
     |> Tensor.squeeze_dim ~dim:(-1)
     |> Tensor.squeeze_dim ~dim:(-1)
-    |> Tensor.dropout ~p:0.2 ~is_training
+    |> Tensor.dropout ~p:params.dropout ~is_training
     |> Layer.forward fc)
 ;;
 
 let b0 ?num_classes vs =
-  efficientnet ?num_classes vs { width = 1.0; depth = 1.0; res = 224; dropout = 0.2 }
+  efficientnet ?num_classes vs { width = 1.0; depth = 1.0; dropout = 0.2 }
 ;;
 
 let b1 ?num_classes vs =
-  efficientnet ?num_classes vs { width = 1.0; depth = 1.1; res = 240; dropout = 0.2 }
+  efficientnet ?num_classes vs { width = 1.0; depth = 1.1; dropout = 0.2 }
 ;;
 
 let b2 ?num_classes vs =
-  efficientnet ?num_classes vs { width = 1.1; depth = 1.2; res = 260; dropout = 0.3 }
+  efficientnet ?num_classes vs { width = 1.1; depth = 1.2; dropout = 0.3 }
 ;;
 
 let b3 ?num_classes vs =
-  efficientnet ?num_classes vs { width = 1.2; depth = 1.4; res = 300; dropout = 0.3 }
+  efficientnet ?num_classes vs { width = 1.2; depth = 1.4; dropout = 0.3 }
 ;;
 
 let b4 ?num_classes vs =
-  efficientnet ?num_classes vs { width = 1.4; depth = 1.8; res = 380; dropout = 0.4 }
+  efficientnet ?num_classes vs { width = 1.4; depth = 1.8; dropout = 0.4 }
 ;;
 
 let b5 ?num_classes vs =
-  efficientnet ?num_classes vs { width = 1.6; depth = 2.2; res = 456; dropout = 0.4 }
+  efficientnet ?num_classes vs { width = 1.6; depth = 2.2; dropout = 0.4 }
 ;;
 
 let b6 ?num_classes vs =
-  efficientnet ?num_classes vs { width = 1.8; depth = 2.6; res = 528; dropout = 0.5 }
+  efficientnet ?num_classes vs { width = 1.8; depth = 2.6; dropout = 0.5 }
 ;;
 
 let b7 ?num_classes vs =
-  efficientnet ?num_classes vs { width = 2.0; depth = 3.1; res = 600; dropout = 0.5 }
+  efficientnet ?num_classes vs { width = 2.0; depth = 3.1; dropout = 0.5 }
 ;;

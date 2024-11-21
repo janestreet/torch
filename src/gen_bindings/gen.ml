@@ -132,7 +132,6 @@ module Func = struct
   type arg =
     { arg_name : string
     ; arg_type : arg_type
-    ; default_value : string option
     ; is_const : bool
     }
 
@@ -481,17 +480,13 @@ let read_yaml filename =
                 Map.find arg "is_nullable"
                 |> Option.value_map ~default:false ~f:extract_bool
               in
-              let default_value =
-                Map.find arg "default" |> Option.map ~f:extract_string
-              in
+              let has_default_value = Map.find arg "default" |> Option.is_some in
               match Func.arg_type_of_string arg_type ~is_nullable with
-              | Some Scalar when Option.is_some default_value && not is_nullable -> None
+              | Some Scalar when has_default_value && not is_nullable -> None
               | Some TensorOptions
-                when Option.is_some default_value && Set.mem no_tensor_options name ->
-                None
-              | Some arg_type -> Some { Func.arg_name; arg_type; default_value; is_const }
-              | None ->
-                if Option.is_some default_value then None else raise Not_a_simple_arg)
+                when has_default_value && Set.mem no_tensor_options name -> None
+              | Some arg_type -> Some { Func.arg_name; arg_type; is_const }
+              | None -> if has_default_value then None else raise Not_a_simple_arg)
           in
           Some { Func.name; operator_name; overload_name; args; returns; kind }
         with
@@ -690,9 +685,7 @@ let methods =
     ; kind = `method_
     }
   in
-  let ca arg_name arg_type =
-    { Func.arg_name; arg_type; default_value = None; is_const = true }
-  in
+  let ca arg_name arg_type = { Func.arg_name; arg_type; is_const = true } in
   [ c "grad" [ ca "self" Tensor ]
   ; c "set_requires_grad" [ ca "self" Tensor; ca "r" Bool ]
   ; c "toType" [ ca "self" Tensor; ca "scalar_type" ScalarType ]
