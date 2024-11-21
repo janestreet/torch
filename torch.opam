@@ -1,5 +1,5 @@
 opam-version: "2.0"
-version: "v0.17.0"
+version: "v0.17.1"
 maintainer: "Jane Street developers"
 authors: ["Jane Street Group, LLC"]
 homepage: "https://github.com/janestreet/torch"
@@ -25,15 +25,9 @@ depends: [
   "dune"                {>= "3.11.0"}
   "dune-configurator"
   "ocaml-compiler-libs" {>= "v0.11.0"}
-  "libtorch"            {with-test}
-]
-depopts: [
-  "libtorch"
+  "libtorch"            {>= "2.3.0" & < "2.4.0"}
 ]
 available: arch != "arm32" & arch != "x86_32"
-conflicts: [
-  "libtorch" {< "2.3.0" | >= "2.4.0"}
-]
 synopsis: "Torch bindings for OCaml"
 description: "
 The ocaml-torch project provides some OCaml bindings for the Torch library.
