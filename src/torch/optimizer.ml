@@ -143,9 +143,16 @@ module Linear_interpolation = struct
     then t.ys.(Array.length t.xs - 1)
     else (
       let index =
-        Array.binary_search t.xs `First_greater_than_or_equal_to x ~compare:Float.compare
+        match
+          Array.binary_search
+            t.xs
+            `First_greater_than_or_equal_to
+            x
+            ~compare:Float.compare
+        with
+        | Some index -> index
+        | None -> failwith "linear interpolation failed to check bounds"
       in
-      let index = Option.value_local_exn index in
       let prev_x, prev_y = t.xs.(index - 1), t.ys.(index - 1) in
       let next_x, next_y = t.xs.(index), t.ys.(index) in
       ((prev_y *. (next_x -. x)) +. (next_y *. (x -. prev_x))) /. (next_x -. prev_x))

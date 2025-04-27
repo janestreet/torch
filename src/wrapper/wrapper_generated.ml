@@ -3,6 +3,7 @@
 open Ctypes
 open Torch_bindings.Type_defs
 open Torch_stubs
+open Wrapper_utils
 open C.Generated
 
 let __and__ self other = stubs___and__ self other |> with_tensor_gc
@@ -260,6 +261,166 @@ let _autocast_to_reduced_precision self ~cuda_enabled ~cpu_enabled ~cuda_dtype ~
   |> with_tensor_gc
 ;;
 
+let _batch_norm_no_update input ~weight ~bias ~running_mean ~running_var ~momentum ~eps =
+  let out__ = CArray.make raw_tensor 4 in
+  stubs__batch_norm_no_update
+    (CArray.start out__)
+    input
+    (match weight with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match bias with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match running_mean with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match running_var with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    momentum
+    eps;
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  let t2 = CArray.get out__ 2 |> with_tensor_gc in
+  let t3 = CArray.get out__ 3 |> with_tensor_gc in
+  t0, t1, t2, t3
+;;
+
+let _batch_norm_no_update_out
+  ~out0
+  ~out1
+  ~out2
+  ~out3
+  input
+  ~weight
+  ~bias
+  ~running_mean
+  ~running_var
+  ~momentum
+  ~eps
+  =
+  let out__ = CArray.make raw_tensor 4 in
+  stubs__batch_norm_no_update_out
+    (CArray.start out__)
+    out0
+    out1
+    out2
+    out3
+    input
+    (match weight with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match bias with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match running_mean with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match running_var with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    momentum
+    eps;
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  let t2 = CArray.get out__ 2 |> with_tensor_gc in
+  let t3 = CArray.get out__ 3 |> with_tensor_gc in
+  t0, t1, t2, t3
+;;
+
+let _batch_norm_with_update input ~weight ~bias ~running_mean ~running_var ~momentum ~eps =
+  let out__ = CArray.make raw_tensor 4 in
+  stubs__batch_norm_with_update
+    (CArray.start out__)
+    input
+    (match weight with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match bias with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    running_mean
+    running_var
+    momentum
+    eps;
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  let t2 = CArray.get out__ 2 |> with_tensor_gc in
+  let t3 = CArray.get out__ 3 |> with_tensor_gc in
+  t0, t1, t2, t3
+;;
+
+let _batch_norm_with_update_functional
+  input
+  ~weight
+  ~bias
+  ~running_mean
+  ~running_var
+  ~momentum
+  ~eps
+  =
+  let out__ = CArray.make raw_tensor 6 in
+  stubs__batch_norm_with_update_functional
+    (CArray.start out__)
+    input
+    (match weight with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match bias with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    running_mean
+    running_var
+    momentum
+    eps;
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  let t2 = CArray.get out__ 2 |> with_tensor_gc in
+  let t3 = CArray.get out__ 3 |> with_tensor_gc in
+  let t4 = CArray.get out__ 4 |> with_tensor_gc in
+  let t5 = CArray.get out__ 5 |> with_tensor_gc in
+  t0, t1, t2, t3, t4, t5
+;;
+
+let _batch_norm_with_update_out
+  ~out
+  ~save_mean
+  ~save_invstd
+  ~reserve
+  input
+  ~weight
+  ~bias
+  ~running_mean
+  ~running_var
+  ~momentum
+  ~eps
+  =
+  let out__ = CArray.make raw_tensor 4 in
+  stubs__batch_norm_with_update_out
+    (CArray.start out__)
+    out
+    save_mean
+    save_invstd
+    reserve
+    input
+    (match weight with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match bias with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    running_mean
+    running_var
+    momentum
+    eps;
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  let t2 = CArray.get out__ 2 |> with_tensor_gc in
+  let t3 = CArray.get out__ 3 |> with_tensor_gc in
+  t0, t1, t2, t3
+;;
+
 let _cast_byte self ~non_blocking =
   stubs__cast_byte self (if non_blocking then 1 else 0) |> with_tensor_gc
 ;;
@@ -309,22 +470,30 @@ let _cholesky_solve_helper_out ~out self ~a ~upper =
 ;;
 
 let _chunk_cat tensors ~dim ~num_chunks =
-  stubs__chunk_cat
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-    (Int64.of_int num_chunks)
-  |> with_tensor_gc
+  let result =
+    stubs__chunk_cat
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+      (Int64.of_int num_chunks)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let _chunk_cat_out ~out tensors ~dim ~num_chunks =
-  stubs__chunk_cat_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-    (Int64.of_int num_chunks)
-  |> with_tensor_gc
+  let result =
+    stubs__chunk_cat_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+      (Int64.of_int num_chunks)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let _coalesce self = stubs__coalesce self |> with_tensor_gc
@@ -952,6 +1121,7 @@ let _cudnn_rnn
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
   let t3 = CArray.get out__ 3 |> with_tensor_gc in
   let t4 = CArray.get out__ 4 |> with_tensor_gc in
+  keep_values_alive weight;
   t0, t1, t2, t3, t4
 ;;
 
@@ -966,18 +1136,22 @@ let _cudnn_rnn_flatten_weight
   ~batch_first
   ~bidirectional
   =
-  stubs__cudnn_rnn_flatten_weight
-    (CArray.of_list gc_tensor weight_arr |> CArray.start)
-    (List.length weight_arr)
-    (Int64.of_int weight_stride0)
-    (Int64.of_int input_size)
-    (Int64.of_int mode)
-    (Int64.of_int hidden_size)
-    (Int64.of_int proj_size)
-    (Int64.of_int num_layers)
-    (if batch_first then 1 else 0)
-    (if bidirectional then 1 else 0)
-  |> with_tensor_gc
+  let result =
+    stubs__cudnn_rnn_flatten_weight
+      (CArray.of_list gc_tensor weight_arr |> CArray.start)
+      (List.length weight_arr)
+      (Int64.of_int weight_stride0)
+      (Int64.of_int input_size)
+      (Int64.of_int mode)
+      (Int64.of_int hidden_size)
+      (Int64.of_int proj_size)
+      (Int64.of_int num_layers)
+      (if batch_first then 1 else 0)
+      (if bidirectional then 1 else 0)
+    |> with_tensor_gc
+  in
+  keep_values_alive weight_arr;
+  result
 ;;
 
 let _cudnn_rnn_flatten_weight_out
@@ -992,19 +1166,23 @@ let _cudnn_rnn_flatten_weight_out
   ~batch_first
   ~bidirectional
   =
-  stubs__cudnn_rnn_flatten_weight_out
-    out
-    (CArray.of_list gc_tensor weight_arr |> CArray.start)
-    (List.length weight_arr)
-    (Int64.of_int weight_stride0)
-    (Int64.of_int input_size)
-    (Int64.of_int mode)
-    (Int64.of_int hidden_size)
-    (Int64.of_int proj_size)
-    (Int64.of_int num_layers)
-    (if batch_first then 1 else 0)
-    (if bidirectional then 1 else 0)
-  |> with_tensor_gc
+  let result =
+    stubs__cudnn_rnn_flatten_weight_out
+      out
+      (CArray.of_list gc_tensor weight_arr |> CArray.start)
+      (List.length weight_arr)
+      (Int64.of_int weight_stride0)
+      (Int64.of_int input_size)
+      (Int64.of_int mode)
+      (Int64.of_int hidden_size)
+      (Int64.of_int proj_size)
+      (Int64.of_int num_layers)
+      (if batch_first then 1 else 0)
+      (if bidirectional then 1 else 0)
+    |> with_tensor_gc
+  in
+  keep_values_alive weight_arr;
+  result
 ;;
 
 let _cudnn_rnn_out
@@ -1067,6 +1245,7 @@ let _cudnn_rnn_out
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
   let t3 = CArray.get out__ 3 |> with_tensor_gc in
   let t4 = CArray.get out__ 4 |> with_tensor_gc in
+  keep_values_alive weight;
   t0, t1, t2, t3, t4
 ;;
 
@@ -1102,6 +1281,8 @@ let _efficient_attention_backward
   ~bias_requires_grad
   ~scale
   ~num_splits_key
+  ~window_size
+  ~shared_storage_dqdkdv
   =
   let out__ = CArray.make raw_tensor 4 in
   stubs__efficient_attention_backward
@@ -1137,7 +1318,14 @@ let _efficient_attention_backward
      | Some v -> Int64.of_int v)
     (match num_splits_key with
      | Some _ -> 0
-     | None -> 1);
+     | None -> 1)
+    (match window_size with
+     | None -> Int64.zero
+     | Some v -> Int64.of_int v)
+    (match window_size with
+     | Some _ -> 0
+     | None -> 1)
+    (if shared_storage_dqdkdv then 1 else 0);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
@@ -1784,6 +1972,8 @@ let _flash_attention_backward
   ~philox_seed
   ~philox_offset
   ~scale
+  ~window_size_left
+  ~window_size_right
   =
   let out__ = CArray.make raw_tensor 3 in
   stubs__flash_attention_backward
@@ -1804,6 +1994,18 @@ let _flash_attention_backward
     philox_offset
     (Option.value scale ~default:0.0)
     (match scale with
+     | Some _ -> 0
+     | None -> 1)
+    (match window_size_left with
+     | None -> Int64.zero
+     | Some v -> Int64.of_int v)
+    (match window_size_left with
+     | Some _ -> 0
+     | None -> 1)
+    (match window_size_right with
+     | None -> Int64.zero
+     | Some v -> Int64.of_int v)
+    (match window_size_right with
      | Some _ -> 0
      | None -> 1);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
@@ -1877,6 +2079,94 @@ let _functional_sym_constrain_range_for_size ~size ~min ~max ~dep_token =
   |> with_tensor_gc
 ;;
 
+let _fused_adagrad
+  ~out
+  self
+  ~grads
+  ~state_sums
+  ~state_steps
+  ~lr
+  ~lr_decay
+  ~weight_decay
+  ~eps
+  ~maximize
+  ~grad_scale
+  ~found_inf
+  =
+  let result =
+    stubs__fused_adagrad
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor state_sums |> CArray.start)
+      (List.length state_sums)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      lr_decay
+      weight_decay
+      eps
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive out;
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive state_sums;
+  keep_values_alive state_steps;
+  result
+;;
+
+let _fused_adagrad_
+  self
+  ~grads
+  ~state_sums
+  ~state_steps
+  ~lr
+  ~lr_decay
+  ~weight_decay
+  ~eps
+  ~maximize
+  ~grad_scale
+  ~found_inf
+  =
+  let result =
+    stubs__fused_adagrad_
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor state_sums |> CArray.start)
+      (List.length state_sums)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      lr_decay
+      weight_decay
+      eps
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive state_sums;
+  keep_values_alive state_steps;
+  result
+;;
+
 let _fused_adam
   ~out
   self
@@ -1895,34 +2185,44 @@ let _fused_adam
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_adam
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor exp_avgs |> CArray.start)
-    (List.length exp_avgs)
-    (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
-    (List.length exp_avg_sqs)
-    (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
-    (List.length max_exp_avg_sqs)
-    (CArray.of_list gc_tensor state_steps |> CArray.start)
-    (List.length state_steps)
-    lr
-    beta1
-    beta2
-    weight_decay
-    eps
-    (if amsgrad then 1 else 0)
-    (if maximize then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_adam
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor exp_avgs |> CArray.start)
+      (List.length exp_avgs)
+      (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
+      (List.length exp_avg_sqs)
+      (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
+      (List.length max_exp_avg_sqs)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      beta1
+      beta2
+      weight_decay
+      eps
+      (if amsgrad then 1 else 0)
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive out;
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive exp_avgs;
+  keep_values_alive exp_avg_sqs;
+  keep_values_alive max_exp_avg_sqs;
+  keep_values_alive state_steps;
+  result
 ;;
 
 let _fused_adam_
@@ -1942,32 +2242,41 @@ let _fused_adam_
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_adam_
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor exp_avgs |> CArray.start)
-    (List.length exp_avgs)
-    (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
-    (List.length exp_avg_sqs)
-    (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
-    (List.length max_exp_avg_sqs)
-    (CArray.of_list gc_tensor state_steps |> CArray.start)
-    (List.length state_steps)
-    lr
-    beta1
-    beta2
-    weight_decay
-    eps
-    (if amsgrad then 1 else 0)
-    (if maximize then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_adam_
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor exp_avgs |> CArray.start)
+      (List.length exp_avgs)
+      (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
+      (List.length exp_avg_sqs)
+      (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
+      (List.length max_exp_avg_sqs)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      beta1
+      beta2
+      weight_decay
+      eps
+      (if amsgrad then 1 else 0)
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive exp_avgs;
+  keep_values_alive exp_avg_sqs;
+  keep_values_alive max_exp_avg_sqs;
+  keep_values_alive state_steps;
+  result
 ;;
 
 let _fused_adam_tensor_lr_
@@ -1987,32 +2296,41 @@ let _fused_adam_tensor_lr_
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_adam_tensor_lr_
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor exp_avgs |> CArray.start)
-    (List.length exp_avgs)
-    (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
-    (List.length exp_avg_sqs)
-    (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
-    (List.length max_exp_avg_sqs)
-    (CArray.of_list gc_tensor state_steps |> CArray.start)
-    (List.length state_steps)
-    lr
-    beta1
-    beta2
-    weight_decay
-    eps
-    (if amsgrad then 1 else 0)
-    (if maximize then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_adam_tensor_lr_
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor exp_avgs |> CArray.start)
+      (List.length exp_avgs)
+      (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
+      (List.length exp_avg_sqs)
+      (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
+      (List.length max_exp_avg_sqs)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      beta1
+      beta2
+      weight_decay
+      eps
+      (if amsgrad then 1 else 0)
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive exp_avgs;
+  keep_values_alive exp_avg_sqs;
+  keep_values_alive max_exp_avg_sqs;
+  keep_values_alive state_steps;
+  result
 ;;
 
 let _fused_adam_tensor_lr_out
@@ -2033,34 +2351,44 @@ let _fused_adam_tensor_lr_out
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_adam_tensor_lr_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor exp_avgs |> CArray.start)
-    (List.length exp_avgs)
-    (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
-    (List.length exp_avg_sqs)
-    (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
-    (List.length max_exp_avg_sqs)
-    (CArray.of_list gc_tensor state_steps |> CArray.start)
-    (List.length state_steps)
-    lr
-    beta1
-    beta2
-    weight_decay
-    eps
-    (if amsgrad then 1 else 0)
-    (if maximize then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_adam_tensor_lr_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor exp_avgs |> CArray.start)
+      (List.length exp_avgs)
+      (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
+      (List.length exp_avg_sqs)
+      (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
+      (List.length max_exp_avg_sqs)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      beta1
+      beta2
+      weight_decay
+      eps
+      (if amsgrad then 1 else 0)
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive out;
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive exp_avgs;
+  keep_values_alive exp_avg_sqs;
+  keep_values_alive max_exp_avg_sqs;
+  keep_values_alive state_steps;
+  result
 ;;
 
 let _fused_adamw
@@ -2081,34 +2409,44 @@ let _fused_adamw
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_adamw
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor exp_avgs |> CArray.start)
-    (List.length exp_avgs)
-    (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
-    (List.length exp_avg_sqs)
-    (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
-    (List.length max_exp_avg_sqs)
-    (CArray.of_list gc_tensor state_steps |> CArray.start)
-    (List.length state_steps)
-    lr
-    beta1
-    beta2
-    weight_decay
-    eps
-    (if amsgrad then 1 else 0)
-    (if maximize then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_adamw
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor exp_avgs |> CArray.start)
+      (List.length exp_avgs)
+      (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
+      (List.length exp_avg_sqs)
+      (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
+      (List.length max_exp_avg_sqs)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      beta1
+      beta2
+      weight_decay
+      eps
+      (if amsgrad then 1 else 0)
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive out;
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive exp_avgs;
+  keep_values_alive exp_avg_sqs;
+  keep_values_alive max_exp_avg_sqs;
+  keep_values_alive state_steps;
+  result
 ;;
 
 let _fused_adamw_
@@ -2128,32 +2466,41 @@ let _fused_adamw_
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_adamw_
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor exp_avgs |> CArray.start)
-    (List.length exp_avgs)
-    (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
-    (List.length exp_avg_sqs)
-    (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
-    (List.length max_exp_avg_sqs)
-    (CArray.of_list gc_tensor state_steps |> CArray.start)
-    (List.length state_steps)
-    lr
-    beta1
-    beta2
-    weight_decay
-    eps
-    (if amsgrad then 1 else 0)
-    (if maximize then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_adamw_
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor exp_avgs |> CArray.start)
+      (List.length exp_avgs)
+      (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
+      (List.length exp_avg_sqs)
+      (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
+      (List.length max_exp_avg_sqs)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      beta1
+      beta2
+      weight_decay
+      eps
+      (if amsgrad then 1 else 0)
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive exp_avgs;
+  keep_values_alive exp_avg_sqs;
+  keep_values_alive max_exp_avg_sqs;
+  keep_values_alive state_steps;
+  result
 ;;
 
 let _fused_adamw_tensor_lr_
@@ -2173,32 +2520,41 @@ let _fused_adamw_tensor_lr_
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_adamw_tensor_lr_
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor exp_avgs |> CArray.start)
-    (List.length exp_avgs)
-    (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
-    (List.length exp_avg_sqs)
-    (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
-    (List.length max_exp_avg_sqs)
-    (CArray.of_list gc_tensor state_steps |> CArray.start)
-    (List.length state_steps)
-    lr
-    beta1
-    beta2
-    weight_decay
-    eps
-    (if amsgrad then 1 else 0)
-    (if maximize then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_adamw_tensor_lr_
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor exp_avgs |> CArray.start)
+      (List.length exp_avgs)
+      (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
+      (List.length exp_avg_sqs)
+      (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
+      (List.length max_exp_avg_sqs)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      beta1
+      beta2
+      weight_decay
+      eps
+      (if amsgrad then 1 else 0)
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive exp_avgs;
+  keep_values_alive exp_avg_sqs;
+  keep_values_alive max_exp_avg_sqs;
+  keep_values_alive state_steps;
+  result
 ;;
 
 let _fused_adamw_tensor_lr_out
@@ -2219,34 +2575,44 @@ let _fused_adamw_tensor_lr_out
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_adamw_tensor_lr_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor exp_avgs |> CArray.start)
-    (List.length exp_avgs)
-    (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
-    (List.length exp_avg_sqs)
-    (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
-    (List.length max_exp_avg_sqs)
-    (CArray.of_list gc_tensor state_steps |> CArray.start)
-    (List.length state_steps)
-    lr
-    beta1
-    beta2
-    weight_decay
-    eps
-    (if amsgrad then 1 else 0)
-    (if maximize then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_adamw_tensor_lr_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor exp_avgs |> CArray.start)
+      (List.length exp_avgs)
+      (CArray.of_list gc_tensor exp_avg_sqs |> CArray.start)
+      (List.length exp_avg_sqs)
+      (CArray.of_list gc_tensor max_exp_avg_sqs |> CArray.start)
+      (List.length max_exp_avg_sqs)
+      (CArray.of_list gc_tensor state_steps |> CArray.start)
+      (List.length state_steps)
+      lr
+      beta1
+      beta2
+      weight_decay
+      eps
+      (if amsgrad then 1 else 0)
+      (if maximize then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive out;
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive exp_avgs;
+  keep_values_alive exp_avg_sqs;
+  keep_values_alive max_exp_avg_sqs;
+  keep_values_alive state_steps;
+  result
 ;;
 
 let _fused_dropout self ~p =
@@ -2381,7 +2747,16 @@ let _fused_moving_avg_obs_fq_helper_out
   t0, t1
 ;;
 
-let _fused_sdp_choice ~query ~key ~value ~attn_mask ~dropout_p ~is_causal ~scale =
+let _fused_sdp_choice
+  ~query
+  ~key
+  ~value
+  ~attn_mask
+  ~dropout_p
+  ~is_causal
+  ~scale
+  ~enable_gqa
+  =
   stubs__fused_sdp_choice
     query
     key
@@ -2395,6 +2770,7 @@ let _fused_sdp_choice ~query ~key ~value ~attn_mask ~dropout_p ~is_causal ~scale
     (match scale with
      | Some _ -> 0
      | None -> 1)
+    (if enable_gqa then 1 else 0)
 ;;
 
 let _fused_sgd
@@ -2412,28 +2788,35 @@ let _fused_sgd
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_sgd
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor momentum_buffer_list |> CArray.start)
-    (List.length momentum_buffer_list)
-    weight_decay
-    momentum
-    lr
-    dampening
-    (if nesterov then 1 else 0)
-    (if maximize then 1 else 0)
-    (if is_first_step then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_sgd
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor momentum_buffer_list |> CArray.start)
+      (List.length momentum_buffer_list)
+      weight_decay
+      momentum
+      lr
+      dampening
+      (if nesterov then 1 else 0)
+      (if maximize then 1 else 0)
+      (if is_first_step then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive out;
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive momentum_buffer_list;
+  result
 ;;
 
 let _fused_sgd_
@@ -2450,26 +2833,32 @@ let _fused_sgd_
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_sgd_
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor momentum_buffer_list |> CArray.start)
-    (List.length momentum_buffer_list)
-    weight_decay
-    momentum
-    lr
-    dampening
-    (if nesterov then 1 else 0)
-    (if maximize then 1 else 0)
-    (if is_first_step then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_sgd_
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor momentum_buffer_list |> CArray.start)
+      (List.length momentum_buffer_list)
+      weight_decay
+      momentum
+      lr
+      dampening
+      (if nesterov then 1 else 0)
+      (if maximize then 1 else 0)
+      (if is_first_step then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive momentum_buffer_list;
+  result
 ;;
 
 let _fused_sgd_tensor_lr_
@@ -2486,26 +2875,32 @@ let _fused_sgd_tensor_lr_
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_sgd_tensor_lr_
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor momentum_buffer_list |> CArray.start)
-    (List.length momentum_buffer_list)
-    weight_decay
-    momentum
-    lr
-    dampening
-    (if nesterov then 1 else 0)
-    (if maximize then 1 else 0)
-    (if is_first_step then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_sgd_tensor_lr_
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor momentum_buffer_list |> CArray.start)
+      (List.length momentum_buffer_list)
+      weight_decay
+      momentum
+      lr
+      dampening
+      (if nesterov then 1 else 0)
+      (if maximize then 1 else 0)
+      (if is_first_step then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive momentum_buffer_list;
+  result
 ;;
 
 let _fused_sgd_tensor_lr_out
@@ -2523,28 +2918,35 @@ let _fused_sgd_tensor_lr_out
   ~grad_scale
   ~found_inf
   =
-  stubs__fused_sgd_tensor_lr_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    (CArray.of_list gc_tensor self |> CArray.start)
-    (List.length self)
-    (CArray.of_list gc_tensor grads |> CArray.start)
-    (List.length grads)
-    (CArray.of_list gc_tensor momentum_buffer_list |> CArray.start)
-    (List.length momentum_buffer_list)
-    weight_decay
-    momentum
-    lr
-    dampening
-    (if nesterov then 1 else 0)
-    (if maximize then 1 else 0)
-    (if is_first_step then 1 else 0)
-    (match grad_scale with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match found_inf with
-     | Some v -> v
-     | None -> none_gc_tensor)
+  let result =
+    stubs__fused_sgd_tensor_lr_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor self |> CArray.start)
+      (List.length self)
+      (CArray.of_list gc_tensor grads |> CArray.start)
+      (List.length grads)
+      (CArray.of_list gc_tensor momentum_buffer_list |> CArray.start)
+      (List.length momentum_buffer_list)
+      weight_decay
+      momentum
+      lr
+      dampening
+      (if nesterov then 1 else 0)
+      (if maximize then 1 else 0)
+      (if is_first_step then 1 else 0)
+      (match grad_scale with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match found_inf with
+       | Some v -> v
+       | None -> none_gc_tensor)
+  in
+  keep_values_alive out;
+  keep_values_alive self;
+  keep_values_alive grads;
+  keep_values_alive momentum_buffer_list;
+  result
 ;;
 
 let _fw_primal self ~level = stubs__fw_primal self (Int64.of_int level) |> with_tensor_gc
@@ -2638,18 +3040,22 @@ let _histogramdd_bin_edges self ~bins ~range ~weight ~density =
 ;;
 
 let _histogramdd_bin_edges_out ~out self ~bins ~range ~weight ~density =
-  stubs__histogramdd_bin_edges_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    self
-    (List.map Int64.of_int bins |> CArray.of_list int64_t |> CArray.start)
-    (List.length bins)
-    (range |> CArray.of_list double |> CArray.start)
-    (List.length range)
-    (match weight with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (if density then 1 else 0)
+  let result =
+    stubs__histogramdd_bin_edges_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      self
+      (List.map Int64.of_int bins |> CArray.of_list int64_t |> CArray.start)
+      (List.length bins)
+      (range |> CArray.of_list double |> CArray.start)
+      (List.length range)
+      (match weight with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (if density then 1 else 0)
+  in
+  keep_values_alive out;
+  result
 ;;
 
 let _histogramdd_from_bin_cts self ~bins ~range ~weight ~density =
@@ -2682,80 +3088,36 @@ let _histogramdd_from_bin_cts_out ~out self ~bins ~range ~weight ~density =
 ;;
 
 let _histogramdd_from_bin_tensors self ~bins ~weight ~density =
-  stubs__histogramdd_from_bin_tensors
-    self
-    (CArray.of_list gc_tensor bins |> CArray.start)
-    (List.length bins)
-    (match weight with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (if density then 1 else 0)
-  |> with_tensor_gc
+  let result =
+    stubs__histogramdd_from_bin_tensors
+      self
+      (CArray.of_list gc_tensor bins |> CArray.start)
+      (List.length bins)
+      (match weight with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (if density then 1 else 0)
+    |> with_tensor_gc
+  in
+  keep_values_alive bins;
+  result
 ;;
 
 let _histogramdd_from_bin_tensors_out ~out self ~bins ~weight ~density =
-  stubs__histogramdd_from_bin_tensors_out
-    out
-    self
-    (CArray.of_list gc_tensor bins |> CArray.start)
-    (List.length bins)
-    (match weight with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (if density then 1 else 0)
-  |> with_tensor_gc
-;;
-
-let _index_put_impl self ~indices ~values ~accumulate ~unsafe =
-  stubs__index_put_impl
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-    values
-    (if accumulate then 1 else 0)
-    (if unsafe then 1 else 0)
-  |> with_tensor_gc
-;;
-
-let _index_put_impl_ self ~indices ~values ~accumulate ~unsafe =
-  stubs__index_put_impl_
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-    values
-    (if accumulate then 1 else 0)
-    (if unsafe then 1 else 0)
-  |> with_tensor_gc
-;;
-
-let _index_put_impl_out ~out self ~indices ~values ~accumulate ~unsafe =
-  stubs__index_put_impl_out
-    out
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-    values
-    (if accumulate then 1 else 0)
-    (if unsafe then 1 else 0)
-  |> with_tensor_gc
+  let result =
+    stubs__histogramdd_from_bin_tensors_out
+      out
+      self
+      (CArray.of_list gc_tensor bins |> CArray.start)
+      (List.length bins)
+      (match weight with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (if density then 1 else 0)
+    |> with_tensor_gc
+  in
+  keep_values_alive bins;
+  result
 ;;
 
 let _indices self = stubs__indices self |> with_tensor_gc
@@ -2973,6 +3335,8 @@ let _lstm_mps
   let t3 = CArray.get out__ 3 |> with_tensor_gc in
   let t4 = CArray.get out__ 4 |> with_tensor_gc in
   let t5 = CArray.get out__ 5 |> with_tensor_gc in
+  keep_values_alive hx;
+  keep_values_alive params;
   t0, t1, t2, t3, t4, t5
 ;;
 
@@ -3019,6 +3383,8 @@ let _lstm_mps_out
   let t3 = CArray.get out__ 3 |> with_tensor_gc in
   let t4 = CArray.get out__ 4 |> with_tensor_gc in
   let t5 = CArray.get out__ 5 |> with_tensor_gc in
+  keep_values_alive hx;
+  keep_values_alive params;
   t0, t1, t2, t3, t4, t5
 ;;
 
@@ -3595,6 +3961,14 @@ let _neg_view self = stubs__neg_view self |> with_tensor_gc
 let _neg_view_copy self = stubs__neg_view_copy self |> with_tensor_gc
 let _neg_view_copy_out ~out self = stubs__neg_view_copy_out out self |> with_tensor_gc
 
+let _nested_compute_contiguous_strides_offsets ~nested_size =
+  let out__ = CArray.make raw_tensor 2 in
+  stubs__nested_compute_contiguous_strides_offsets (CArray.start out__) nested_size;
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  t0, t1
+;;
+
 let _nested_from_padded ~padded ~cpu_nested_shape_example ~fuse_transform_0213 =
   stubs__nested_from_padded
     padded
@@ -3622,6 +3996,8 @@ let _nested_from_padded_out ~out ~padded ~cpu_nested_shape_example ~fuse_transfo
 
 let _nested_get_jagged_dummy ~any = stubs__nested_get_jagged_dummy any |> with_tensor_gc
 let _nested_get_lengths self = stubs__nested_get_lengths self |> with_tensor_gc
+let _nested_get_max_seqlen self = stubs__nested_get_max_seqlen self |> with_tensor_gc
+let _nested_get_min_seqlen self = stubs__nested_get_min_seqlen self |> with_tensor_gc
 let _nested_get_offsets self = stubs__nested_get_offsets self |> with_tensor_gc
 let _nested_get_ragged_idx self = stubs__nested_get_ragged_idx self
 let _nested_get_values self = stubs__nested_get_values self |> with_tensor_gc
@@ -3664,7 +4040,15 @@ let _nested_view_from_buffer_copy_out ~out self ~nested_size ~nested_strides ~of
   |> with_tensor_gc
 ;;
 
-let _nested_view_from_jagged self ~offsets ~dummy ~lengths ~ragged_idx =
+let _nested_view_from_jagged
+  self
+  ~offsets
+  ~dummy
+  ~lengths
+  ~ragged_idx
+  ~min_seqlen
+  ~max_seqlen
+  =
   stubs__nested_view_from_jagged
     self
     offsets
@@ -3673,10 +4057,24 @@ let _nested_view_from_jagged self ~offsets ~dummy ~lengths ~ragged_idx =
      | Some v -> v
      | None -> none_gc_tensor)
     (Int64.of_int ragged_idx)
+    (match min_seqlen with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match max_seqlen with
+     | Some v -> v
+     | None -> none_gc_tensor)
   |> with_tensor_gc
 ;;
 
-let _nested_view_from_jagged_copy self ~offsets ~dummy ~lengths ~ragged_idx =
+let _nested_view_from_jagged_copy
+  self
+  ~offsets
+  ~dummy
+  ~lengths
+  ~ragged_idx
+  ~min_seqlen
+  ~max_seqlen
+  =
   stubs__nested_view_from_jagged_copy
     self
     offsets
@@ -3685,10 +4083,25 @@ let _nested_view_from_jagged_copy self ~offsets ~dummy ~lengths ~ragged_idx =
      | Some v -> v
      | None -> none_gc_tensor)
     (Int64.of_int ragged_idx)
+    (match min_seqlen with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match max_seqlen with
+     | Some v -> v
+     | None -> none_gc_tensor)
   |> with_tensor_gc
 ;;
 
-let _nested_view_from_jagged_copy_out ~out self ~offsets ~dummy ~lengths ~ragged_idx =
+let _nested_view_from_jagged_copy_out
+  ~out
+  self
+  ~offsets
+  ~dummy
+  ~lengths
+  ~ragged_idx
+  ~min_seqlen
+  ~max_seqlen
+  =
   stubs__nested_view_from_jagged_copy_out
     out
     self
@@ -3698,6 +4111,12 @@ let _nested_view_from_jagged_copy_out ~out self ~offsets ~dummy ~lengths ~ragged
      | Some v -> v
      | None -> none_gc_tensor)
     (Int64.of_int ragged_idx)
+    (match min_seqlen with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match max_seqlen with
+     | Some v -> v
+     | None -> none_gc_tensor)
   |> with_tensor_gc
 ;;
 
@@ -3828,11 +4247,11 @@ let _pdist_backward_out ~out ~grad self ~p ~pdist =
 ;;
 
 let _pin_memory self ~device =
-  stubs__pin_memory self (Device.to_int device) |> with_tensor_gc
+  stubs__pin_memory self (Device.option_to_int device) |> with_tensor_gc
 ;;
 
 let _pin_memory_out ~out self ~device =
-  stubs__pin_memory_out out self (Device.to_int device) |> with_tensor_gc
+  stubs__pin_memory_out out self (Device.option_to_int device) |> with_tensor_gc
 ;;
 
 let _prelu_kernel self ~weight = stubs__prelu_kernel self weight |> with_tensor_gc
@@ -3940,6 +4359,10 @@ let _rowwise_prune ~weight ~mask ~compressed_indices_dtype =
   t0, t1
 ;;
 
+let _safe_softmax self ~dim ~dtype =
+  stubs__safe_softmax self (Int64.of_int dim) (Kind.packed_to_int dtype) |> with_tensor_gc
+;;
+
 let _sample_dirichlet self = stubs__sample_dirichlet self |> with_tensor_gc
 
 let _sample_dirichlet_out ~out self =
@@ -3959,9 +4382,44 @@ let _scaled_dot_product_attention_math
   ~is_causal
   ~dropout_mask
   ~scale
+  ~enable_gqa
   =
   let out__ = CArray.make raw_tensor 2 in
   stubs__scaled_dot_product_attention_math
+    (CArray.start out__)
+    query
+    key
+    value
+    (match attn_mask with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    dropout_p
+    (if is_causal then 1 else 0)
+    (match dropout_mask with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (Option.value scale ~default:0.0)
+    (match scale with
+     | Some _ -> 0
+     | None -> 1)
+    (if enable_gqa then 1 else 0);
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  t0, t1
+;;
+
+let _scaled_dot_product_attention_math_for_mps
+  ~query
+  ~key
+  ~value
+  ~attn_mask
+  ~dropout_p
+  ~is_causal
+  ~dropout_mask
+  ~scale
+  =
+  let out__ = CArray.make raw_tensor 2 in
+  stubs__scaled_dot_product_attention_math_for_mps
     (CArray.start out__)
     query
     key
@@ -3983,24 +4441,42 @@ let _scaled_dot_product_attention_math
   t0, t1
 ;;
 
-let _scaled_dot_product_cudnn_attention
+let _scaled_dot_product_cudnn_attention_backward
+  ~grad_out
   ~query
   ~key
   ~value
+  ~out
+  ~logsumexp
+  ~philox_seed
+  ~philox_offset
+  ~attn_bias
+  ~cum_seq_q
+  ~cum_seq_k
+  ~max_q
+  ~max_k
   ~dropout_p
   ~is_causal
-  ~return_debug_mask
   ~scale
   =
-  let out__ = CArray.make raw_tensor 4 in
-  stubs__scaled_dot_product_cudnn_attention
+  let out__ = CArray.make raw_tensor 3 in
+  stubs__scaled_dot_product_cudnn_attention_backward
     (CArray.start out__)
+    grad_out
     query
     key
     value
+    out
+    logsumexp
+    philox_seed
+    philox_offset
+    attn_bias
+    cum_seq_q
+    cum_seq_k
+    (Int64.of_int max_q)
+    (Int64.of_int max_k)
     dropout_p
     (if is_causal then 1 else 0)
-    (if return_debug_mask then 1 else 0)
     (Option.value scale ~default:0.0)
     (match scale with
      | Some _ -> 0
@@ -4008,8 +4484,7 @@ let _scaled_dot_product_cudnn_attention
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
-  let t3 = CArray.get out__ 3 |> with_tensor_gc in
-  t0, t1, t2, t3
+  t0, t1, t2
 ;;
 
 let _scaled_dot_product_efficient_attention
@@ -4154,68 +4629,50 @@ let _scaled_dot_product_flash_attention_for_cpu_backward
   t0, t1, t2
 ;;
 
-let _scaled_mm self ~mat2 ~bias ~out_dtype ~scale_a ~scale_b ~scale_result ~use_fast_accum
+let _scaled_mm self ~mat2 ~scale_a ~scale_b ~bias ~scale_result ~out_dtype ~use_fast_accum
   =
-  let out__ = CArray.make raw_tensor 2 in
   stubs__scaled_mm
-    (CArray.start out__)
     self
     mat2
+    scale_a
+    scale_b
     (match bias with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (Kind.packed_to_int out_dtype)
-    (match scale_a with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match scale_b with
      | Some v -> v
      | None -> none_gc_tensor)
     (match scale_result with
      | Some v -> v
      | None -> none_gc_tensor)
-    (if use_fast_accum then 1 else 0);
-  let t0 = CArray.get out__ 0 |> with_tensor_gc in
-  let t1 = CArray.get out__ 1 |> with_tensor_gc in
-  t0, t1
+    (Kind.packed_to_int out_dtype)
+    (if use_fast_accum then 1 else 0)
+  |> with_tensor_gc
 ;;
 
 let _scaled_mm_out
   ~out
-  ~out_amax
   self
   ~mat2
-  ~bias
-  ~out_dtype
   ~scale_a
   ~scale_b
+  ~bias
   ~scale_result
+  ~out_dtype
   ~use_fast_accum
   =
-  let out__ = CArray.make raw_tensor 2 in
   stubs__scaled_mm_out
-    (CArray.start out__)
     out
-    out_amax
     self
     mat2
+    scale_a
+    scale_b
     (match bias with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (Kind.packed_to_int out_dtype)
-    (match scale_a with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match scale_b with
      | Some v -> v
      | None -> none_gc_tensor)
     (match scale_result with
      | Some v -> v
      | None -> none_gc_tensor)
-    (if use_fast_accum then 1 else 0);
-  let t0 = CArray.get out__ 0 |> with_tensor_gc in
-  let t1 = CArray.get out__ 1 |> with_tensor_gc in
-  t0, t1
+    (Kind.packed_to_int out_dtype)
+    (if use_fast_accum then 1 else 0)
+  |> with_tensor_gc
 ;;
 
 let _scatter_reduce self ~dim ~index ~src ~reduce ~include_self =
@@ -4466,6 +4923,27 @@ let _sparse_compressed_tensor_unsafe
   |> with_tensor_gc
 ;;
 
+let _sparse_compressed_tensor_with_dims
+  ~nnz
+  ~dense_dim
+  ~size
+  ~blocksize
+  ~index_dtype
+  ~options
+  =
+  stubs__sparse_compressed_tensor_with_dims
+    (Int64.of_int nnz)
+    (Int64.of_int dense_dim)
+    (List.map Int64.of_int size |> CArray.of_list int64_t |> CArray.start)
+    (List.length size)
+    (List.map Int64.of_int blocksize |> CArray.of_list int64_t |> CArray.start)
+    (List.length blocksize)
+    (Kind.packed_to_int index_dtype)
+    (Kind.packed_to_int (fst options))
+    (Device.to_int (snd options))
+  |> with_tensor_gc
+;;
+
 let _sparse_coo_tensor_unsafe ~indices ~values ~size ~options ~is_coalesced =
   stubs__sparse_coo_tensor_unsafe
     indices
@@ -4666,6 +5144,18 @@ let _sparse_mm_reduce_impl self other ~reduce =
   t0, t1
 ;;
 
+let _sparse_semi_structured_apply input ~thread_masks =
+  let out__ = CArray.make raw_tensor 2 in
+  stubs__sparse_semi_structured_apply (CArray.start out__) input thread_masks;
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  t0, t1
+;;
+
+let _sparse_semi_structured_apply_dense input ~thread_masks =
+  stubs__sparse_semi_structured_apply_dense input thread_masks |> with_tensor_gc
+;;
+
 let _sparse_semi_structured_linear input ~weight ~meta ~bias ~activation ~out_dtype =
   stubs__sparse_semi_structured_linear
     input
@@ -4680,6 +5170,26 @@ let _sparse_semi_structured_linear input ~weight ~meta ~bias ~activation ~out_dt
      | None -> 1)
     (Kind.packed_to_int out_dtype)
   |> with_tensor_gc
+;;
+
+let _sparse_semi_structured_mm ~mat1 ~mat1_meta ~mat2 ~out_dtype =
+  stubs__sparse_semi_structured_mm mat1 mat1_meta mat2 (Kind.packed_to_int out_dtype)
+  |> with_tensor_gc
+;;
+
+let _sparse_semi_structured_tile input ~algorithm ~use_cutlass =
+  let out__ = CArray.make raw_tensor 5 in
+  stubs__sparse_semi_structured_tile
+    (CArray.start out__)
+    input
+    algorithm
+    (if use_cutlass then 1 else 0);
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  let t2 = CArray.get out__ 2 |> with_tensor_gc in
+  let t3 = CArray.get out__ 3 |> with_tensor_gc in
+  let t4 = CArray.get out__ 4 |> with_tensor_gc in
+  t0, t1, t2, t3, t4
 ;;
 
 let _sparse_softmax self ~dim ~half_to_float =
@@ -4785,21 +5295,31 @@ let _spdiags_out ~out ~diagonals ~offsets ~shape =
   |> with_tensor_gc
 ;;
 
+let _spsolve ~a ~b ~left = stubs__spsolve a b (if left then 1 else 0) |> with_tensor_gc
+
 let _stack tensors ~dim =
-  stubs__stack
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs__stack
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let _stack_out ~out tensors ~dim =
-  stubs__stack_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs__stack_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let _standard_gamma self = stubs__standard_gamma self |> with_tensor_gc
@@ -5241,8 +5761,12 @@ let _to_copy_out ~out self ~non_blocking =
 ;;
 
 let _to_cpu tensors =
-  stubs__to_cpu (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs__to_cpu (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let _to_dense self ~dtype ~masked_grad =
@@ -5672,36 +6196,6 @@ let _unpack_dual ~dual ~level =
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   t0, t1
-;;
-
-let _unsafe_index self ~indices =
-  stubs__unsafe_index
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-  |> with_tensor_gc
-;;
-
-let _unsafe_index_put self ~indices ~values ~accumulate =
-  stubs__unsafe_index_put
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-    values
-    (if accumulate then 1 else 0)
-  |> with_tensor_gc
 ;;
 
 let _unsafe_view self ~size =
@@ -6365,6 +6859,31 @@ let _weight_norm_interface_out ~out0 ~out1 ~v ~g ~dim =
   t0, t1
 ;;
 
+let _wrapped_linear_prepack ~weight ~weight_scale ~weight_zero_point ~bias =
+  stubs__wrapped_linear_prepack weight weight_scale weight_zero_point bias
+  |> with_tensor_gc
+;;
+
+let _wrapped_quantized_linear_prepacked
+  input
+  ~input_scale
+  ~input_zero_point
+  ~packed_weight
+  ~output_scale
+  ~output_zero_point
+  ~out_channel
+  =
+  stubs__wrapped_quantized_linear_prepacked
+    input
+    input_scale
+    input_zero_point
+    packed_weight
+    output_scale
+    output_zero_point
+    (Int64.of_int out_channel)
+  |> with_tensor_gc
+;;
+
 let abs self = stubs_abs self |> with_tensor_gc
 let abs_ self = stubs_abs_ self |> with_tensor_gc
 let abs_out ~out self = stubs_abs_out out self |> with_tensor_gc
@@ -6584,10 +7103,14 @@ let alias_copy_out ~out self = stubs_alias_copy_out out self |> with_tensor_gc
 let align_as self other = stubs_align_as self other |> with_tensor_gc
 
 let align_tensors tensors =
-  stubs_align_tensors
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs_align_tensors
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let all self = stubs_all self |> with_tensor_gc
@@ -6996,28 +7519,40 @@ let atanh_out ~out self = stubs_atanh_out out self |> with_tensor_gc
 let atleast_1d self = stubs_atleast_1d self |> with_tensor_gc
 
 let atleast_1d_sequence tensors =
-  stubs_atleast_1d_sequence
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs_atleast_1d_sequence
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let atleast_2d self = stubs_atleast_2d self |> with_tensor_gc
 
 let atleast_2d_sequence tensors =
-  stubs_atleast_2d_sequence
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs_atleast_2d_sequence
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let atleast_3d self = stubs_atleast_3d self |> with_tensor_gc
 
 let atleast_3d_sequence tensors =
-  stubs_atleast_3d_sequence
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs_atleast_3d_sequence
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let avg_pool1d self ~kernel_size ~stride ~padding ~ceil_mode ~count_include_pad =
@@ -7962,28 +8497,40 @@ let blackman_window_periodic_out ~out ~window_length ~periodic =
 ;;
 
 let block_diag tensors =
-  stubs_block_diag
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_block_diag
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let block_diag_out ~out tensors =
-  stubs_block_diag_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_block_diag_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let bmm self ~mat2 = stubs_bmm self mat2 |> with_tensor_gc
 let bmm_out ~out self ~mat2 = stubs_bmm_out out self mat2 |> with_tensor_gc
 
 let broadcast_tensors tensors =
-  stubs_broadcast_tensors
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs_broadcast_tensors
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let broadcast_to self ~size =
@@ -8028,32 +8575,44 @@ let bucketize_tensor_out ~out self ~boundaries ~out_int32 ~right =
   |> with_tensor_gc
 ;;
 
-let can_cast ~from ~to_ =
-  stubs_can_cast (Kind.packed_to_int from) (Kind.packed_to_int to_)
+let can_cast ~from_ ~to_ =
+  stubs_can_cast (Kind.packed_to_int from_) (Kind.packed_to_int to_)
 ;;
 
 let cartesian_prod tensors =
-  stubs_cartesian_prod
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_cartesian_prod
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let cat tensors ~dim =
-  stubs_cat
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs_cat
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let cat_out ~out tensors ~dim =
-  stubs_cat_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs_cat_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let cauchy self ~median ~sigma = stubs_cauchy self median sigma |> with_tensor_gc
@@ -8092,18 +8651,26 @@ let celu_ self = stubs_celu_ self |> with_tensor_gc
 let celu_out ~out self = stubs_celu_out out self |> with_tensor_gc
 
 let chain_matmul ~matrices =
-  stubs_chain_matmul
-    (CArray.of_list gc_tensor matrices |> CArray.start)
-    (List.length matrices)
-  |> with_tensor_gc
+  let result =
+    stubs_chain_matmul
+      (CArray.of_list gc_tensor matrices |> CArray.start)
+      (List.length matrices)
+    |> with_tensor_gc
+  in
+  keep_values_alive matrices;
+  result
 ;;
 
 let chain_matmul_out ~out ~matrices =
-  stubs_chain_matmul_out
-    out
-    (CArray.of_list gc_tensor matrices |> CArray.start)
-    (List.length matrices)
-  |> with_tensor_gc
+  let result =
+    stubs_chain_matmul_out
+      out
+      (CArray.of_list gc_tensor matrices |> CArray.start)
+      (List.length matrices)
+    |> with_tensor_gc
+  in
+  keep_values_alive matrices;
+  result
 ;;
 
 let chalf self = stubs_chalf self |> with_tensor_gc
@@ -8300,18 +8867,26 @@ let col_indices_copy self = stubs_col_indices_copy self |> with_tensor_gc
 let col_indices_copy_out ~out self = stubs_col_indices_copy_out out self |> with_tensor_gc
 
 let column_stack tensors =
-  stubs_column_stack
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_column_stack
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let column_stack_out ~out tensors =
-  stubs_column_stack_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_column_stack_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let combinations self ~r ~with_replacement =
@@ -8323,37 +8898,53 @@ let complex ~real ~imag = stubs_complex real imag |> with_tensor_gc
 let complex_out ~out ~real ~imag = stubs_complex_out out real imag |> with_tensor_gc
 
 let concat tensors ~dim =
-  stubs_concat
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs_concat
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let concat_out ~out tensors ~dim =
-  stubs_concat_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs_concat_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let concatenate tensors ~dim =
-  stubs_concatenate
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs_concatenate
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let concatenate_out ~out tensors ~dim =
-  stubs_concatenate_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs_concatenate_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let conj self = stubs_conj self |> with_tensor_gc
@@ -9442,18 +10033,27 @@ let dequantize self = stubs_dequantize self |> with_tensor_gc
 let dequantize_self_out ~out self = stubs_dequantize_self_out out self |> with_tensor_gc
 
 let dequantize_tensors tensors =
-  stubs_dequantize_tensors
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs_dequantize_tensors
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let dequantize_tensors_out ~out tensors =
-  stubs_dequantize_tensors_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
+  let result =
+    stubs_dequantize_tensors_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+  in
+  keep_values_alive out;
+  keep_values_alive tensors;
+  result
 ;;
 
 let det self = stubs_det self |> with_tensor_gc
@@ -9744,30 +10344,42 @@ let dsplit_array self ~indices =
 ;;
 
 let dstack tensors =
-  stubs_dstack (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_dstack (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let dstack_out ~out tensors =
-  stubs_dstack_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_dstack_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let einsum ~equation tensors ~path =
-  stubs_einsum
-    equation
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (match path with
-     | None -> from_voidp int64_t null
-     | Some v -> List.map Int64.of_int v |> CArray.of_list int64_t |> CArray.start)
-    (match path with
-     | None -> -1
-     | Some v -> List.length v)
-  |> with_tensor_gc
+  let result =
+    stubs_einsum
+      equation
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (match path with
+       | None -> from_voidp int64_t null
+       | Some v -> List.map Int64.of_int v |> CArray.of_list int64_t |> CArray.start)
+      (match path with
+       | None -> -1
+       | Some v -> List.length v)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let elu self = stubs_elu self |> with_tensor_gc
@@ -11130,10 +11742,14 @@ let flatten self ~start_dim ~end_dim =
 ;;
 
 let flatten_dense_tensors tensors =
-  stubs_flatten_dense_tensors
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_flatten_dense_tensors
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let flip self ~dims =
@@ -11704,6 +12320,7 @@ let gru
     (if batch_first then 1 else 0);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  keep_values_alive params;
   t0, t1
 ;;
 
@@ -11748,6 +12365,7 @@ let gru_data
     (if bidirectional then 1 else 0);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  keep_values_alive params;
   t0, t1
 ;;
 
@@ -11940,16 +12558,24 @@ let hspmm ~mat1 ~mat2 = stubs_hspmm mat1 mat2 |> with_tensor_gc
 let hspmm_out ~out ~mat1 ~mat2 = stubs_hspmm_out out mat1 mat2 |> with_tensor_gc
 
 let hstack tensors =
-  stubs_hstack (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_hstack (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let hstack_out ~out tensors =
-  stubs_hstack_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_hstack_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let huber_loss self ~target ~reduction ~delta =
@@ -12027,20 +12653,6 @@ let im2col_out ~out self ~kernel_size ~dilation ~padding ~stride =
 
 let imag self = stubs_imag self |> with_tensor_gc
 
-let index self ~indices =
-  stubs_index
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-  |> with_tensor_gc
-;;
-
 let index_add self ~dim ~index ~source =
   stubs_index_add self (Int64.of_int dim) index source |> with_tensor_gc
 ;;
@@ -12088,55 +12700,6 @@ let index_fill_int_tensor_ self ~dim ~index ~value =
 
 let index_fill_int_tensor_out ~out self ~dim ~index ~value =
   stubs_index_fill_int_tensor_out out self (Int64.of_int dim) index value
-  |> with_tensor_gc
-;;
-
-let index_put self ~indices ~values ~accumulate =
-  stubs_index_put
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-    values
-    (if accumulate then 1 else 0)
-  |> with_tensor_gc
-;;
-
-let index_put_ self ~indices ~values ~accumulate =
-  stubs_index_put_
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-    values
-    (if accumulate then 1 else 0)
-  |> with_tensor_gc
-;;
-
-let index_put_out ~out self ~indices ~values ~accumulate =
-  stubs_index_put_out
-    out
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-    values
-    (if accumulate then 1 else 0)
   |> with_tensor_gc
 ;;
 
@@ -12190,21 +12753,6 @@ let index_select_backward ~grad ~self_sizes ~dim ~index =
 
 let index_select_out ~out self ~dim ~index =
   stubs_index_select_out out self (Int64.of_int dim) index |> with_tensor_gc
-;;
-
-let index_tensor_out ~out self ~indices =
-  stubs_index_tensor_out
-    out
-    self
-    (List.map
-       (function
-         | Some x -> x
-         | None -> none_gc_tensor)
-       indices
-     |> CArray.of_list gc_tensor
-     |> CArray.start)
-    (List.length indices)
-  |> with_tensor_gc
 ;;
 
 let indices self = stubs_indices self |> with_tensor_gc
@@ -12263,7 +12811,7 @@ let is_inference self = stubs_is_inference self
 let is_leaf self = stubs_is_leaf self
 let is_neg self = stubs_is_neg self
 let is_nonzero self = stubs_is_nonzero self
-let is_pinned self ~device = stubs_is_pinned self (Device.to_int device)
+let is_pinned self ~device = stubs_is_pinned self (Device.option_to_int device)
 let is_same_size self other = stubs_is_same_size self other
 let is_set_to self tensor = stubs_is_set_to self tensor
 let is_signed self = stubs_is_signed self
@@ -12999,18 +13547,26 @@ let linalg_matrix_rank_tol_tensor input ~tol ~hermitian =
 ;;
 
 let linalg_multi_dot tensors =
-  stubs_linalg_multi_dot
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_linalg_multi_dot
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let linalg_multi_dot_out ~out tensors =
-  stubs_linalg_multi_dot_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_linalg_multi_dot_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let linalg_pinv self ~rcond ~hermitian =
@@ -13601,6 +14157,8 @@ let lstm
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
+  keep_values_alive hx;
+  keep_values_alive params;
   t0, t1, t2
 ;;
 
@@ -13621,6 +14179,7 @@ let lstm_cell input ~hx ~w_ih ~w_hh ~b_ih ~b_hh =
      | None -> none_gc_tensor);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  keep_values_alive hx;
   t0, t1
 ;;
 
@@ -13652,6 +14211,8 @@ let lstm_data
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
+  keep_values_alive hx;
+  keep_values_alive params;
   t0, t1, t2
 ;;
 
@@ -13675,35 +14236,42 @@ let lstm_mps_backward
   ~bidirectional
   ~batch_first
   =
-  stubs_lstm_mps_backward
-    out0
-    (CArray.of_list gc_tensor out1 |> CArray.start)
-    (List.length out1)
-    (CArray.of_list gc_tensor out2 |> CArray.start)
-    (List.length out2)
-    (match grad_y with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match grad_hy with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    (match grad_cy with
-     | Some v -> v
-     | None -> none_gc_tensor)
-    z_state
-    cell_state_fwd
-    input
-    layersoutputs
-    (CArray.of_list gc_tensor hx |> CArray.start)
-    (List.length hx)
-    (CArray.of_list gc_tensor params |> CArray.start)
-    (List.length params)
-    (if has_biases then 1 else 0)
-    (Int64.of_int num_layers)
-    dropout
-    (if train then 1 else 0)
-    (if bidirectional then 1 else 0)
-    (if batch_first then 1 else 0)
+  let result =
+    stubs_lstm_mps_backward
+      out0
+      (CArray.of_list gc_tensor out1 |> CArray.start)
+      (List.length out1)
+      (CArray.of_list gc_tensor out2 |> CArray.start)
+      (List.length out2)
+      (match grad_y with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match grad_hy with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      (match grad_cy with
+       | Some v -> v
+       | None -> none_gc_tensor)
+      z_state
+      cell_state_fwd
+      input
+      layersoutputs
+      (CArray.of_list gc_tensor hx |> CArray.start)
+      (List.length hx)
+      (CArray.of_list gc_tensor params |> CArray.start)
+      (List.length params)
+      (if has_biases then 1 else 0)
+      (Int64.of_int num_layers)
+      dropout
+      (if train then 1 else 0)
+      (if bidirectional then 1 else 0)
+      (if batch_first then 1 else 0)
+  in
+  keep_values_alive out1;
+  keep_values_alive out2;
+  keep_values_alive hx;
+  keep_values_alive params;
+  result
 ;;
 
 let lt self other = stubs_lt self other |> with_tensor_gc
@@ -14236,6 +14804,10 @@ let mean_dim self ~dim ~keepdim ~dtype =
   |> with_tensor_gc
 ;;
 
+let mean_dtype_out ~out self ~dtype =
+  stubs_mean_dtype_out out self (Kind.packed_to_int dtype) |> with_tensor_gc
+;;
+
 let mean_out ~out self ~dim ~keepdim ~dtype =
   stubs_mean_out
     out
@@ -14278,16 +14850,26 @@ let median_dim_values ~values ~indices self ~dim ~keepdim =
 let median_out ~out self = stubs_median_out out self |> with_tensor_gc
 
 let meshgrid tensors =
-  stubs_meshgrid (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs_meshgrid
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let meshgrid_indexing tensors ~indexing =
-  stubs_meshgrid_indexing
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    indexing
-  |> to_tensor_list
+  let result =
+    stubs_meshgrid_indexing
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      indexing
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let mh self = stubs_mh self |> with_tensor_gc
@@ -14745,6 +15327,7 @@ let miopen_rnn
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
   let t3 = CArray.get out__ 3 |> with_tensor_gc in
   let t4 = CArray.get out__ 4 |> with_tensor_gc in
+  keep_values_alive weight;
   t0, t1, t2, t3, t4
 ;;
 
@@ -14802,6 +15385,7 @@ let miopen_rnn_out
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
   let t3 = CArray.get out__ 3 |> with_tensor_gc in
   let t4 = CArray.get out__ 4 |> with_tensor_gc in
+  keep_values_alive weight;
   t0, t1, t2, t3, t4
 ;;
 
@@ -15166,7 +15750,7 @@ let mkldnn_reorder_conv2d_weight_out
   |> with_tensor_gc
 ;;
 
-let mkldnn_reorder_conv3d_weight self ~padding ~stride ~dilation ~groups =
+let mkldnn_reorder_conv3d_weight self ~padding ~stride ~dilation ~groups ~input_size =
   stubs_mkldnn_reorder_conv3d_weight
     self
     (List.map Int64.of_int padding |> CArray.of_list int64_t |> CArray.start)
@@ -15176,10 +15760,24 @@ let mkldnn_reorder_conv3d_weight self ~padding ~stride ~dilation ~groups =
     (List.map Int64.of_int dilation |> CArray.of_list int64_t |> CArray.start)
     (List.length dilation)
     (Int64.of_int groups)
+    (match input_size with
+     | None -> from_voidp int64_t null
+     | Some v -> List.map Int64.of_int v |> CArray.of_list int64_t |> CArray.start)
+    (match input_size with
+     | None -> -1
+     | Some v -> List.length v)
   |> with_tensor_gc
 ;;
 
-let mkldnn_reorder_conv3d_weight_out ~out self ~padding ~stride ~dilation ~groups =
+let mkldnn_reorder_conv3d_weight_out
+  ~out
+  self
+  ~padding
+  ~stride
+  ~dilation
+  ~groups
+  ~input_size
+  =
   stubs_mkldnn_reorder_conv3d_weight_out
     out
     self
@@ -15190,6 +15788,12 @@ let mkldnn_reorder_conv3d_weight_out ~out self ~padding ~stride ~dilation ~group
     (List.map Int64.of_int dilation |> CArray.of_list int64_t |> CArray.start)
     (List.length dilation)
     (Int64.of_int groups)
+    (match input_size with
+     | None -> from_voidp int64_t null
+     | Some v -> List.map Int64.of_int v |> CArray.of_list int64_t |> CArray.start)
+    (match input_size with
+     | None -> -1
+     | Some v -> List.length v)
   |> with_tensor_gc
 ;;
 
@@ -16557,13 +17161,18 @@ let pad self ~pad ~mode ~value =
   |> with_tensor_gc
 ;;
 
-let pad_sequence ~sequences ~batch_first ~padding_value =
-  stubs_pad_sequence
-    (CArray.of_list gc_tensor sequences |> CArray.start)
-    (List.length sequences)
-    (if batch_first then 1 else 0)
-    padding_value
-  |> with_tensor_gc
+let pad_sequence ~sequences ~batch_first ~padding_value ~padding_side =
+  let result =
+    stubs_pad_sequence
+      (CArray.of_list gc_tensor sequences |> CArray.start)
+      (List.length sequences)
+      (if batch_first then 1 else 0)
+      padding_value
+      padding_side
+    |> with_tensor_gc
+  in
+  keep_values_alive sequences;
+  result
 ;;
 
 let pairwise_distance ~x1 ~x2 ~p ~eps ~keepdim =
@@ -16598,7 +17207,7 @@ let permute_copy_out ~out self ~dims =
 ;;
 
 let pin_memory self ~device =
-  stubs_pin_memory self (Device.to_int device) |> with_tensor_gc
+  stubs_pin_memory self (Device.option_to_int device) |> with_tensor_gc
 ;;
 
 let pinverse self ~rcond = stubs_pinverse self rcond |> with_tensor_gc
@@ -16876,24 +17485,33 @@ let quantize_per_tensor_tensor_qparams_out ~out self ~scale ~zero_point ~dtype =
 ;;
 
 let quantize_per_tensor_tensors tensors ~scales ~zero_points ~dtype =
-  stubs_quantize_per_tensor_tensors
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    scales
-    zero_points
-    (Kind.packed_to_int dtype)
-  |> to_tensor_list
+  let result =
+    stubs_quantize_per_tensor_tensors
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      scales
+      zero_points
+      (Kind.packed_to_int dtype)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let quantize_per_tensor_tensors_out ~out tensors ~scales ~zero_points ~dtype =
-  stubs_quantize_per_tensor_tensors_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    scales
-    zero_points
-    (Kind.packed_to_int dtype)
+  let result =
+    stubs_quantize_per_tensor_tensors_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      scales
+      zero_points
+      (Kind.packed_to_int dtype)
+  in
+  keep_values_alive out;
+  keep_values_alive tensors;
+  result
 ;;
 
 let quantized_batch_norm
@@ -17020,6 +17638,7 @@ let quantized_lstm_cell
     zero_point_hh;
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  keep_values_alive hx;
   t0, t1
 ;;
 
@@ -17767,6 +18386,21 @@ let resolve_conj self = stubs_resolve_conj self |> with_tensor_gc
 let resolve_neg self = stubs_resolve_neg self |> with_tensor_gc
 let retains_grad self = stubs_retains_grad self
 
+let rms_norm input ~normalized_shape ~weight ~eps =
+  stubs_rms_norm
+    input
+    (List.map Int64.of_int normalized_shape |> CArray.of_list int64_t |> CArray.start)
+    (List.length normalized_shape)
+    (match weight with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (Option.value eps ~default:0.0)
+    (match eps with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
+;;
+
 let rnn_relu
   input
   ~hx
@@ -17793,6 +18427,7 @@ let rnn_relu
     (if batch_first then 1 else 0);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  keep_values_alive params;
   t0, t1
 ;;
 
@@ -17837,6 +18472,7 @@ let rnn_relu_data
     (if bidirectional then 1 else 0);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  keep_values_alive params;
   t0, t1
 ;;
 
@@ -17866,6 +18502,7 @@ let rnn_tanh
     (if batch_first then 1 else 0);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  keep_values_alive params;
   t0, t1
 ;;
 
@@ -17910,6 +18547,7 @@ let rnn_tanh_data
     (if bidirectional then 1 else 0);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  keep_values_alive params;
   t0, t1
 ;;
 
@@ -17974,16 +18612,26 @@ let row_indices_copy self = stubs_row_indices_copy self |> with_tensor_gc
 let row_indices_copy_out ~out self = stubs_row_indices_copy_out out self |> with_tensor_gc
 
 let row_stack tensors =
-  stubs_row_stack (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_row_stack
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let row_stack_out ~out tensors =
-  stubs_row_stack_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_row_stack_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let rrelu self ~training = stubs_rrelu self (if training then 1 else 0) |> with_tensor_gc
@@ -18075,6 +18723,7 @@ let scaled_dot_product_attention
   ~dropout_p
   ~is_causal
   ~scale
+  ~enable_gqa
   =
   stubs_scaled_dot_product_attention
     query
@@ -18089,6 +18738,7 @@ let scaled_dot_product_attention
     (match scale with
      | Some _ -> 0
      | None -> 1)
+    (if enable_gqa then 1 else 0)
   |> with_tensor_gc
 ;;
 
@@ -19785,12 +20435,16 @@ let split_copy self ~split_size ~dim =
 ;;
 
 let split_copy_tensor_out ~out self ~split_size ~dim =
-  stubs_split_copy_tensor_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    self
-    (Int64.of_int split_size)
-    (Int64.of_int dim)
+  let result =
+    stubs_split_copy_tensor_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      self
+      (Int64.of_int split_size)
+      (Int64.of_int dim)
+  in
+  keep_values_alive out;
+  result
 ;;
 
 let split_sizes self ~split_size ~dim =
@@ -19821,13 +20475,17 @@ let split_with_sizes_copy self ~split_sizes ~dim =
 ;;
 
 let split_with_sizes_copy_out ~out self ~split_sizes ~dim =
-  stubs_split_with_sizes_copy_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    self
-    (List.map Int64.of_int split_sizes |> CArray.of_list int64_t |> CArray.start)
-    (List.length split_sizes)
-    (Int64.of_int dim)
+  let result =
+    stubs_split_with_sizes_copy_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      self
+      (List.map Int64.of_int split_sizes |> CArray.of_list int64_t |> CArray.start)
+      (List.length split_sizes)
+      (Int64.of_int dim)
+  in
+  keep_values_alive out;
+  result
 ;;
 
 let sqrt self = stubs_sqrt self |> with_tensor_gc
@@ -19892,20 +20550,28 @@ let sspaddmm_out ~out self ~mat1 ~mat2 =
 ;;
 
 let stack tensors ~dim =
-  stubs_stack
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs_stack
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let stack_out ~out tensors ~dim =
-  stubs_stack_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-    (Int64.of_int dim)
-  |> with_tensor_gc
+  let result =
+    stubs_stack_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+      (Int64.of_int dim)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let std self ~unbiased = stubs_std self (if unbiased then 1 else 0) |> with_tensor_gc
@@ -20577,11 +21243,15 @@ let unbind self ~dim = stubs_unbind self (Int64.of_int dim) |> to_tensor_list
 let unbind_copy self ~dim = stubs_unbind_copy self (Int64.of_int dim) |> to_tensor_list
 
 let unbind_copy_int_out ~out self ~dim =
-  stubs_unbind_copy_int_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    self
-    (Int64.of_int dim)
+  let result =
+    stubs_unbind_copy_int_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      self
+      (Int64.of_int dim)
+  in
+  keep_values_alive out;
+  result
 ;;
 
 let unflatten self ~dim ~sizes =
@@ -20594,11 +21264,15 @@ let unflatten self ~dim ~sizes =
 ;;
 
 let unflatten_dense_tensors ~flat tensors =
-  stubs_unflatten_dense_tensors
-    flat
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> to_tensor_list
+  let result =
+    stubs_unflatten_dense_tensors
+      flat
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> to_tensor_list
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let unfold self ~dimension ~size ~step =
@@ -20765,12 +21439,16 @@ let unsafe_split self ~split_size ~dim =
 ;;
 
 let unsafe_split_tensor_out ~out self ~split_size ~dim =
-  stubs_unsafe_split_tensor_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    self
-    (Int64.of_int split_size)
-    (Int64.of_int dim)
+  let result =
+    stubs_unsafe_split_tensor_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      self
+      (Int64.of_int split_size)
+      (Int64.of_int dim)
+  in
+  keep_values_alive out;
+  result
 ;;
 
 let unsafe_split_with_sizes self ~split_sizes ~dim =
@@ -20783,13 +21461,17 @@ let unsafe_split_with_sizes self ~split_sizes ~dim =
 ;;
 
 let unsafe_split_with_sizes_out ~out self ~split_sizes ~dim =
-  stubs_unsafe_split_with_sizes_out
-    (CArray.of_list gc_tensor out |> CArray.start)
-    (List.length out)
-    self
-    (List.map Int64.of_int split_sizes |> CArray.of_list int64_t |> CArray.start)
-    (List.length split_sizes)
-    (Int64.of_int dim)
+  let result =
+    stubs_unsafe_split_with_sizes_out
+      (CArray.of_list gc_tensor out |> CArray.start)
+      (List.length out)
+      self
+      (List.map Int64.of_int split_sizes |> CArray.of_list int64_t |> CArray.start)
+      (List.length split_sizes)
+      (Int64.of_int dim)
+  in
+  keep_values_alive out;
+  result
 ;;
 
 let unsqueeze self ~dim = stubs_unsqueeze self (Int64.of_int dim) |> with_tensor_gc
@@ -21725,16 +22407,24 @@ let vsplit_array self ~indices =
 ;;
 
 let vstack tensors =
-  stubs_vstack (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_vstack (CArray.of_list gc_tensor tensors |> CArray.start) (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let vstack_out ~out tensors =
-  stubs_vstack_out
-    out
-    (CArray.of_list gc_tensor tensors |> CArray.start)
-    (List.length tensors)
-  |> with_tensor_gc
+  let result =
+    stubs_vstack_out
+      out
+      (CArray.of_list gc_tensor tensors |> CArray.start)
+      (List.length tensors)
+    |> with_tensor_gc
+  in
+  keep_values_alive tensors;
+  result
 ;;
 
 let where ~condition = stubs_where condition |> to_tensor_list

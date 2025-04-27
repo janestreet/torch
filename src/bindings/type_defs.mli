@@ -4,6 +4,7 @@ type raw_tensor
 type gc_tensor
 type ivalue
 type module_
+type aoti_runner_cuda
 type optimizer
 type scalar
 
@@ -11,6 +12,7 @@ val raw_tensor : raw_tensor typ
 val gc_tensor : gc_tensor typ
 val ivalue : ivalue typ
 val module_ : module_ typ
+val aoti_runner_cuda : aoti_runner_cuda typ
 val optimizer : optimizer typ
 val scalar : scalar typ
 val none_gc_tensor : gc_tensor

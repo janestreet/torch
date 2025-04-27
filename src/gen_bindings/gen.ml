@@ -60,6 +60,8 @@ let excluded_functions =
     ; "to_sparse_csc"
     ; "to_sparse_bsr"
     ; "to_sparse_bsc"
+    ; (* Can't build this one due to new combination of optional ScalarType *)
+      "_sparse_semi_structured_addmm"
     ]
 ;;
 
@@ -126,13 +128,13 @@ module Func = struct
     | Scalar
     | ScalarType
     | Device
+    | DeviceOption
     | String
     | StringOption
 
   type arg =
     { arg_name : string
     ; arg_type : arg_type
-    ; default_value : string option
     ; is_const : bool
     }
 
@@ -154,6 +156,7 @@ module Func = struct
     | Scalar -> "'a scalar"
     | ScalarType -> "Kind.packed"
     | Device -> "Device.t"
+    | DeviceOption -> "Device.t option"
     | String -> "string"
     | StringOption -> "string option"
   ;;
@@ -186,7 +189,7 @@ module Func = struct
     | "at::arrayref<double>" -> Some DoubleList
     | "const c10::list<c10::optional<at::tensor>> &" -> Some TensorOptList
     | "const at::itensorlistref &" | "at::tensorlist" -> Some TensorList
-    | "at::device" -> Some Device
+    | "at::device" -> Some (if is_nullable then DeviceOption else Device)
     | "const at::scalar &" | "at::scalar" -> Some Scalar
     | "at::scalartype" -> Some ScalarType
     | "c10::string_view" -> Some (if is_nullable then StringOption else String)
@@ -213,7 +216,7 @@ module Func = struct
           | Double -> "double"
           | Tensor | TensorOption -> "gc_tensor"
           | ScalarType -> "int"
-          | Device -> "int"
+          | Device | DeviceOption -> "int"
           | Scalar -> "scalar"
           | String -> "char *"
           | Int64Option
@@ -265,6 +268,7 @@ module Func = struct
         [%string "%{arg_name}_null ? c10::nullopt : c10::optional<double>(%{arg_name}_v)"]
       | ScalarType, _ -> [%string "torch::ScalarType(%{arg_name})"]
       | Device, _ -> [%string "device_of_int(%{arg_name})"]
+      | DeviceOption, _ -> [%string "optional_device_of_int(%{arg_name})"]
       | Int64, _ | Double, _ -> arg_name)
     |> String.concat ~sep:", "
   ;;
@@ -318,6 +322,7 @@ module Func = struct
         | TensorOptions -> [ "int"; "int" ]
         | ScalarType -> [ "int" ]
         | Device -> [ "int" ]
+        | DeviceOption -> [ "int" ]
         | IntList | IntListOption -> [ "ptr int64_t"; "int" ]
         | DoubleList -> [ "ptr double"; "int" ]
         | TensorOptList | TensorList -> [ "ptr gc_tensor"; "int" ]
@@ -355,6 +360,35 @@ module Func = struct
     |> String.concat ~sep:" "
   ;;
 
+  let caml_keepalive_args t =
+    let filtered =
+      List.filter_map t.args ~f:(fun arg ->
+        match arg.arg_type with
+        | IntList
+        | IntListOption
+        | Int64Option
+        | DoubleOption
+        | StringOption
+        | DoubleList
+        | Bool
+        | ScalarType
+        | TensorOptions
+        | Device
+        | DeviceOption
+        | Int64
+        | TensorOption
+        | Double
+        | String
+        | Scalar
+        | Tensor -> None
+        | TensorList | TensorOptList ->
+          Some [%string "keep_values_alive %{caml_name arg.arg_name};"])
+    in
+    match filtered with
+    | [] -> None
+    | l -> Some (String.concat l ~sep:" ")
+  ;;
+
   let caml_binding_args t =
     List.map t.args ~f:(fun arg ->
       let name = caml_name arg.arg_name in
@@ -390,6 +424,7 @@ module Func = struct
       | TensorOptions ->
         [%string "(Kind.packed_to_int (fst %{name})) (Device.to_int (snd %{name}))"]
       | Device -> [%string "(Device.to_int %{name})"]
+      | DeviceOption -> [%string {| (Device.option_to_int %{name}) |}]
       | Int64 ->
         if String.( = ) name "reduction"
         then "(Reduction.to_int reduction |> Int64.of_int)"
@@ -481,17 +516,13 @@ let read_yaml filename =
                 Map.find arg "is_nullable"
                 |> Option.value_map ~default:false ~f:extract_bool
               in
-              let default_value =
-                Map.find arg "default" |> Option.map ~f:extract_string
-              in
+              let has_default_value = Map.find arg "default" |> Option.is_some in
               match Func.arg_type_of_string arg_type ~is_nullable with
-              | Some Scalar when Option.is_some default_value && not is_nullable -> None
+              | Some Scalar when has_default_value && not is_nullable -> None
               | Some TensorOptions
-                when Option.is_some default_value && Set.mem no_tensor_options name ->
-                None
-              | Some arg_type -> Some { Func.arg_name; arg_type; default_value; is_const }
-              | None ->
-                if Option.is_some default_value then None else raise Not_a_simple_arg)
+                when has_default_value && Set.mem no_tensor_options name -> None
+              | Some arg_type -> Some { Func.arg_name; arg_type; is_const }
+              | None -> if has_default_value then None else raise Not_a_simple_arg)
           in
           Some { Func.name; operator_name; overload_name; args; returns; kind }
         with
@@ -616,11 +647,19 @@ let write_wrapper funcs filename =
     Out_channel.with_file (filename ^ "_intf.ml") ~f:(fun out_intf ->
       let pm s = p out_ml s in
       let pi s = p out_intf s in
+      let keep_alive_for_call ~call = function
+        | None -> pm "  %s" call
+        | Some keep_alive ->
+          pm "  let result = %s in" call;
+          pm "  %s" keep_alive;
+          pm "  result"
+      in
       pm "(* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND! *)";
       pm "";
       pm "open Ctypes";
       pm "open Torch_bindings.Type_defs";
       pm "open Torch_stubs";
+      pm "open Wrapper_utils";
       pm "open C.Generated";
       pm "";
       pi "(* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND! *)";
@@ -634,9 +673,15 @@ let write_wrapper funcs filename =
         pm "let %s %s =" caml_name (Func.caml_args func);
         (match func.returns with
          | `nothing | `bool | `int64_t | `double ->
-           pm "  stubs_%s %s" caml_name (Func.caml_binding_args func)
+           keep_alive_for_call
+             ~call:[%string "stubs_%{caml_name} %{Func.caml_binding_args func}"]
+             (Func.caml_keepalive_args func)
          | `fixed 1 ->
-           pm "  stubs_%s %s |> with_tensor_gc" caml_name (Func.caml_binding_args func)
+           keep_alive_for_call
+             ~call:
+               [%string
+                 "stubs_%{caml_name} %{Func.caml_binding_args func} |> with_tensor_gc"]
+             (Func.caml_keepalive_args func)
          | `fixed ntensors ->
            pm "  let out__ = CArray.make raw_tensor %d in" ntensors;
            pm
@@ -646,11 +691,16 @@ let write_wrapper funcs filename =
            for i = 0 to ntensors - 1 do
              pm "  let t%d = CArray.get out__ %d |> with_tensor_gc in" i i
            done;
+           Func.caml_keepalive_args func |> Option.iter ~f:(pm "  %s");
            pm
              "  %s"
              (List.init ntensors ~f:(Printf.sprintf "t%d") |> String.concat ~sep:", ")
          | `dynamic ->
-           pm "  stubs_%s %s |> to_tensor_list" caml_name (Func.caml_binding_args func));
+           keep_alive_for_call
+             ~call:
+               [%string
+                 "stubs_%{caml_name} %{Func.caml_binding_args func} |> to_tensor_list"]
+             (Func.caml_keepalive_args func));
         pm "";
         let intf_args =
           List.map func.args ~f:(fun arg ->
@@ -690,9 +740,7 @@ let methods =
     ; kind = `method_
     }
   in
-  let ca arg_name arg_type =
-    { Func.arg_name; arg_type; default_value = None; is_const = true }
-  in
+  let ca arg_name arg_type = { Func.arg_name; arg_type; is_const = true } in
   [ c "grad" [ ca "self" Tensor ]
   ; c "set_requires_grad" [ ca "self" Tensor; ca "r" Bool ]
   ; c "toType" [ ca "self" Tensor; ca "scalar_type" ScalarType ]

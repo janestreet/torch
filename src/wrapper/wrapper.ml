@@ -1,5 +1,6 @@
 open Ctypes
 open Torch_stubs
+open Wrapper_utils
 open Torch_bindings.Type_defs
 
 let ptr_of_string str =
@@ -83,9 +84,20 @@ module Tensor = struct
     with_tensor_gc t
   ;;
 
+  let copy_to_bigstring
+    ~src:t
+    ~dst:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t)
+    ~dst_pos
+    =
+    copy_to_bytes
+      t
+      (bigarray_start array1 b +@ dst_pos |> to_voidp)
+      (Bigarray.Array1.dim b - dst_pos |> Int64.of_int)
+  ;;
+
   let copy_to_bigarray (type a b) t (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
     let kind = Bigarray.Genarray.kind ga in
-    copy_data
+    copy_to_elements
       t
       (bigarray_start genarray ga |> to_voidp)
       (Bigarray.Genarray.dims ga |> Array.fold_left ( * ) 1 |> Int64.of_int)
@@ -179,7 +191,8 @@ module Tensor = struct
   let argmax ?dim ?(keepdim = false) t = argmax t ~dim ~keepdim
   let max = maximum
   let min = minimum
-  let copy_ t ~src = copy_ t src
+  let copy_nonblocking_ t ~src = copy_ t src true
+  let copy_ t ~src = copy_ t src false
   let set_data t ~src = set_data t src
   let defined = defined
   let device t = device t |> Device.of_int
@@ -199,11 +212,14 @@ module Tensor = struct
       (CArray.start out_)
       (if keep_graph then 1 else 0)
       (if create_graph then 1 else 0);
+    keep_values_alive tensors;
+    keep_values_alive inputs;
     List.map with_tensor_gc (CArray.to_list out_)
   ;;
 
   let sum t = sum t ~dtype:(kind t)
   let mean t = mean t ~dtype:(kind t)
+  let use_count t = use_count t
 end
 
 module Scalar = struct
@@ -250,7 +266,8 @@ module Optimizer = struct
   ;;
 
   let add_parameters t tensors =
-    add_parameters t CArray.(of_list gc_tensor tensors |> start) (List.length tensors)
+    add_parameters t CArray.(of_list gc_tensor tensors |> start) (List.length tensors);
+    keep_values_alive tensors
   ;;
 end
 
@@ -284,7 +301,8 @@ module Serialize = struct
       CArray.(of_list gc_tensor tensors |> start)
       (ptr_of_strings names)
       (List.length named_tensors)
-      filename
+      filename;
+    keep_values_alive tensors
   ;;
 
   let load_multi ~names ~filename =
@@ -303,7 +321,8 @@ module Serialize = struct
       CArray.(of_list gc_tensor tensors |> start)
       (ptr_of_strings names)
       (List.length named_tensors)
-      filename
+      filename;
+    keep_values_alive tensors
   ;;
 
   let load_all ~filename =
@@ -384,12 +403,14 @@ module Ivalue = struct
   let tuple ts =
     let t = tuple CArray.(of_list ivalue ts |> start) (List.length ts) in
     Gc.finalise free t;
+    keep_values_alive ts;
     t
   ;;
 
   let tensor_list ts =
     let t = tensor_list CArray.(of_list gc_tensor ts |> start) (List.length ts) in
     Gc.finalise free t;
+    keep_values_alive ts;
     t
   ;;
 
@@ -443,8 +464,12 @@ module Module = struct
   type t = module_
 
   let forward t tensors =
-    forward t CArray.(of_list gc_tensor tensors |> start) (List.length tensors)
-    |> with_tensor_gc
+    let t =
+      forward t CArray.(of_list gc_tensor tensors |> start) (List.length tensors)
+      |> with_tensor_gc
+    in
+    keep_values_alive tensors;
+    t
   ;;
 
   let forward_ t ivalues =
@@ -452,6 +477,7 @@ module Module = struct
       forward_ t CArray.(of_list ivalue ivalues |> start) (List.length ivalues)
     in
     Gc.finalise C.Ivalue.free ivalue;
+    keep_values_alive ivalues;
     ivalue
   ;;
 
@@ -481,6 +507,24 @@ module Module = struct
     let m = load_str str (String.length str) (Device.option_to_int device) in
     Gc.finalise free m;
     m
+  ;;
+end
+
+module Aoti_runner_cuda = struct
+  include C.Aoti_runner_cuda
+
+  type t = aoti_runner_cuda
+
+  let load ?(max_concurrent_executions = 1) ~device ~cubin_dir ~so_path () : t =
+    let m = load so_path max_concurrent_executions (Device.to_int device) cubin_dir in
+    Gc.finalise free m;
+    m
+  ;;
+
+  let run_unit t tensors =
+    let array = CArray.of_list gc_tensor tensors in
+    run_unit t (CArray.start array) (CArray.length array);
+    keep_values_alive tensors
   ;;
 end
 

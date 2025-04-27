@@ -17,13 +17,13 @@ open Bigarray
 (*####################*)
 (** {1 Image writing} *)
 
-(** [buffer] simply is an alias to a bigarray with c_layout.
-    Two kind of pixel buffers are manipulated:
+(** [buffer] simply is an alias to a bigarray with c_layout. Two kind of pixel buffers are
+    manipulated:
     - int8 for images with 8-bit channels
     - float32 for images with floating point channels
 
-    Content of an image with [c] channels of width [w] and height [h] is
-    represented as a contiguous sequence of items such that:
+    Content of an image with [c] channels of width [w] and height [h] is represented as a
+    contiguous sequence of items such that:
     - channels are interleaved
     - each pixel is made of [c] items
     - each line is made of [w] pixels
