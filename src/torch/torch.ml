@@ -7,6 +7,7 @@ module Ivalue = Ivalue
 module Layer = Layer
 module Mnist_helper = Mnist_helper
 module Module = Module
+module Aoti_runner = Aoti_runner
 
 (* [Nn] is an alias to [Layer] to keep coherence with the pytorch names. *)
 module Nn = Layer

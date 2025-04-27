@@ -2,5 +2,6 @@
  (modes byte exe)
  (names seq2seq)
  (libraries stdio torch unix)
+ (flags :standard -w -32)
  (preprocess
   (pps ppx_jane)))

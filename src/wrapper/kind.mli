@@ -11,6 +11,10 @@ type _ t =
   | ComplexFloat : [ `c32 ] t
   | ComplexDouble : [ `c64 ] t
   | Bool : [ `bool ] t
+  | QInt8 : [ `qi8 ] t
+  | QUInt8 : [ `qu8 ] t
+  | QInt32 : [ `qi32 ] t
+  | BFloat16 : [ `bf16 ] t
 
 val u8 : [ `u8 ] t
 val i8 : [ `i8 ] t

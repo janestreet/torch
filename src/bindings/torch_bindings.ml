@@ -29,9 +29,9 @@ module C (F : Cstubs.FOREIGN) = struct
          @-> returning raw_tensor)
     ;;
 
-    let copy_data =
+    let copy_to_elements =
       foreign
-        "at_copy_data"
+        "at_copy_to_elements"
         (gc_tensor
          (* tensor *)
          @-> ptr void
@@ -43,8 +43,28 @@ module C (F : Cstubs.FOREIGN) = struct
          @-> returning void)
     ;;
 
+    let copy_to_bytes =
+      foreign
+        "at_copy_to_bytes"
+        (gc_tensor
+         (* tensor *)
+         @-> ptr void
+         (* data *)
+         @-> int64_t
+         (* max_size *)
+         @-> returning void)
+    ;;
+
     let copy_ =
-      foreign "at_copy_" (gc_tensor (* dst *) @-> gc_tensor (* src *) @-> returning void)
+      foreign
+        "at_copy_"
+        (gc_tensor
+         (* dst *)
+         @-> gc_tensor
+         (* src *)
+         @-> bool
+         (* non_blocking *)
+         @-> returning void)
     ;;
 
     let set_data =
@@ -79,6 +99,7 @@ module C (F : Cstubs.FOREIGN) = struct
     let num_dims = foreign "at_dim" (gc_tensor @-> returning int)
     let shape = foreign "at_shape" (gc_tensor @-> ptr int (* dims *) @-> returning void)
     let scalar_type = foreign "at_scalar_type" (gc_tensor @-> returning int)
+    let use_count = foreign "at_use_count" (gc_tensor @-> returning int)
     let backward = foreign "at_backward" (gc_tensor @-> int @-> int @-> returning void)
     let requires_grad = foreign "at_requires_grad" (gc_tensor @-> returning int)
     let grad_set_enabled = foreign "at_grad_set_enabled" (int @-> returning int)
@@ -279,6 +300,22 @@ module C (F : Cstubs.FOREIGN) = struct
 
     let named_buffers = foreign "atm_named_buffers" (module_ @-> returning ivalue)
     let free = foreign "atm_free" (module_ @-> returning void)
+  end
+
+  module Aoti_runner_cuda = struct
+    let load =
+      foreign
+        "aoti_runner_cuda_load"
+        (string @-> int @-> int @-> string @-> returning aoti_runner_cuda)
+    ;;
+
+    let run_unit =
+      foreign
+        "aoti_runner_cuda_run_unit"
+        (aoti_runner_cuda @-> ptr gc_tensor @-> int @-> returning void)
+    ;;
+
+    let free = foreign "aoti_runner_cuda_free" (aoti_runner_cuda @-> returning void)
   end
 
   module Generated = Torch_bindings_generated.C (F)

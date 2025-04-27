@@ -64,15 +64,37 @@ let%expect_test _ =
   let t = Tensor.zeros [ 2; 3; 2 ] in
   let u = Tensor.narrow t ~dim:1 ~start:1 ~length:2 in
   let v = Tensor.get u 1 in
-  let w = Tensor.copy v in
-  Tensor.(w += f 1.);
-  Stdio.printf !"%{sexp:float array array}\n" (Tensor.to_float2_exn w);
+  let w1 = Tensor.copy v in
+  let w2 = Tensor.copy v in
+  Tensor.(w1 += f 1.);
+  Stdio.printf !"%{sexp:float array array}\n" (Tensor.to_float2_exn w1);
   [%expect {| ((1 1) (1 1)) |}];
+  Stdio.printf !"%{sexp:float array array}\n" (Tensor.to_float2_exn w2);
+  [%expect {| ((0 0) (0 0)) |}];
   Stdio.printf !"%{sexp:float array array array}\n" (Tensor.to_float3_exn t);
   [%expect {| (((0 0) (0 0) (0 0)) ((0 0) (0 0) (0 0))) |}];
   Tensor.(v += f 1.);
   Stdio.printf !"%{sexp:float array array array}\n" (Tensor.to_float3_exn t);
   [%expect {| (((0 0) (0 0) (0 0)) ((0 0) (1 1) (1 1))) |}]
+;;
+
+let%expect_test "copy_to_bigstring works" =
+  (* not just any string will do *)
+  let initial_bytes = " (^._.^)__/ " |> String.to_array in
+  let n_bytes = Array.length initial_bytes in
+  let src =
+    Bigarray.Array1.of_array Bigarray.char Bigarray.c_layout initial_bytes
+    |> Bigarray.genarray_of_array1
+    |> Tensor.of_bigarray
+  in
+  let dst = Bigarray.Array1.create Bigarray.char Bigarray.c_layout n_bytes in
+  Tensor.copy_to_bigstring ~src ~dst ~dst_pos:0;
+  let dst_array = Array.init n_bytes ~f:(fun _ -> Char.of_int_exn 0) in
+  for i = 0 to n_bytes - 1 do
+    Array.set dst_array i (Bigarray.Array1.get dst i)
+  done;
+  Stdio.print_endline (String.of_array dst_array);
+  [%expect {| (^._.^)__/ |}]
 ;;
 
 let%expect_test _ =
@@ -264,4 +286,90 @@ let%expect_test "precision" =
   Tensor.(t_double.%.{[]} <- 1.2345678901);
   Stdio.printf !"%.10f\n" Tensor.(to_float0_exn t_double);
   [%expect {| 1.2345678901 |}]
+;;
+
+let%expect_test "bfloat16" =
+  let x = 1.2 in
+  let t_float = Tensor.of_float0 x in
+  let t_float16 =
+    t_float |> Tensor.to_kind ~kind:(T Half) |> Tensor.to_kind ~kind:(T Float)
+  in
+  let t_bfloat16 =
+    t_float |> Tensor.to_kind ~kind:(T BFloat16) |> Tensor.to_kind ~kind:(T Float)
+  in
+  Stdio.printf !"%.10f\n" Tensor.(t_float16 |> to_float0_exn);
+  Stdio.printf !"%.10f\n" Tensor.(t_bfloat16 |> to_float0_exn);
+  [%expect
+    {|
+    1.2001953125
+    1.2031250000
+    |}]
+;;
+
+let%expect_test "gc_test" =
+  let open Ctypes in
+  let open Torch_bindings.Type_defs in
+  let a = Tensor.zeros [ 1; 2; 3 ] in
+  let b = Tensor.zeros [ 3; 2; 1 ] in
+  Stdlib.Gc.finalise (fun _ -> Stdio.print_endline "freed a") a;
+  Stdlib.Gc.finalise (fun _ -> Stdio.print_endline "freed b") b;
+  let tensors = [ a; b ] in
+  let array =
+    (* This is copied from [CArray.of_list] except that there is a custom finaliser so
+       we can see when the array goes away. *)
+    let arr =
+      CArray.make
+        ~finalise:(fun _ -> Stdio.print_endline "freed array")
+        gc_tensor
+        (List.length tensors)
+    in
+    List.iteri ~f:(CArray.set arr) tensors;
+    arr
+  in
+  (* At this point [array] doesn't actually keep its contents alive. Usually in the
+     bindings we'd call into a C++ function now, but if there is a GC first, the
+     gc_tensors in the array will be collected. *)
+  Stdlib.Gc.full_major ();
+  Stdio.print_endline "after gc";
+  [%expect {| after gc |}];
+  (* Pretend that we called into a C++ function (not necessary for the test) and now
+     receive back the results. We'd expect the tensor to still be alive. *)
+  let result = CArray.to_list array in
+  (* Note: this test is actually still broken. [CArray.to_list] does not increment the
+     ref count. Ideally we can put [keep_values_alive] right here, but since the above
+     doesn't increment the ref count and there is no good way to do it given the API, we
+     have to put [keep_values_alive] at the end. *)
+  Stdlib.Gc.full_major ();
+  Stdio.print_endline "after second gc";
+  List.map result ~f:(Tensor.to_string ~line_size:90)
+  |> String.concat ~sep:"\n"
+  |> Stdio.print_endline;
+  Torch_core.Wrapper_utils.keep_values_alive tensors;
+  [%expect
+    {|
+    freed array
+    after second gc
+    (1,.,.) =
+      0  0  0
+      0  0  0
+    [ CPUFloatType{1,2,3} ]
+    (1,.,.) =
+      0
+      0
+
+    (2,.,.) =
+      0
+      0
+
+    (3,.,.) =
+      0
+      0
+    [ CPUFloatType{3,2,1} ]
+    |}];
+  Stdlib.Gc.full_major ();
+  [%expect
+    {|
+    freed b
+    freed a
+    |}]
 ;;

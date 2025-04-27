@@ -9,6 +9,7 @@ extern "C" {
 typedef torch::Scalar *scalar;
 typedef torch::optim::Optimizer *optimizer;
 typedef torch::jit::script::Module *module;
+typedef torch::inductor::AOTIModelContainerRunnerCuda *aoti_runner_cuda;
 typedef torch::jit::IValue *ivalue;
 typedef torch::TensorImpl *raw_tensor;
 typedef torch::TensorImpl *gc_tensor;
@@ -22,6 +23,7 @@ typedef torch::TensorImpl *gc_tensor;
 typedef void *optimizer;
 typedef void *scalar;
 typedef void *module;
+typedef void *aoti_runner_cuda;
 typedef void *ivalue;
 typedef void *raw_tensor;
 typedef void *gc_tensor;
@@ -34,7 +36,8 @@ void at_manual_seed(int64_t);
 raw_tensor at_new_tensor();
 raw_tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims,
                              int element_size_in_bytes, int type);
-void at_copy_data(gc_tensor t, void *vs, int64_t numel, int element_size_in_bytes);
+void at_copy_to_elements(gc_tensor t, void *vs, int64_t numel, int element_size_in_bytes);
+void at_copy_to_bytes(gc_tensor t, void *vs, int64_t max_size);
 
 raw_tensor at_float_vec(double *values, int value_len, int type);
 raw_tensor at_int_vec(int64_t *values, int value_len, int type);
@@ -46,6 +49,7 @@ int at_dim(gc_tensor);
 void at_shape(gc_tensor, int *);
 void at_stride(gc_tensor, int *);
 int at_scalar_type(gc_tensor);
+int at_use_count(gc_tensor);
 
 void at_autocast_clear_cache();
 int at_autocast_decrement_nesting();
@@ -66,7 +70,7 @@ int64_t at_int64_value_at_indexes(gc_tensor, int *indexes, int indexes_len);
 void at_set_double_value_at_indexes(gc_tensor, int *indexes, int indexes_len, double v);
 void at_set_int64_value_at_indexes(gc_tensor, int *indexes, int indexes_len, int64_t v);
 
-void at_copy_(gc_tensor dst, gc_tensor src);
+void at_copy_(gc_tensor dst, gc_tensor src, int nonblocking);
 void at_set_data(gc_tensor dst, gc_tensor src);
 
 void at_print(gc_tensor);
@@ -120,6 +124,11 @@ raw_tensor atm_forward(module, gc_tensor *tensors, int ntensors);
 ivalue atm_forward_(module, ivalue *ivalues, int nivalues);
 ivalue atm_named_buffers(module);
 void atm_free(module);
+
+aoti_runner_cuda aoti_runner_cuda_load(char *filename, int num_concurrent_executions,
+                                       int device, char *cubin_dir);
+void aoti_runner_cuda_run_unit(aoti_runner_cuda, gc_tensor *tensors, int ntensors);
+void aoti_runner_cuda_free(aoti_runner_cuda);
 
 ivalue ati_none();
 ivalue ati_tensor(gc_tensor);

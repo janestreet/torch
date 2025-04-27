@@ -14,7 +14,7 @@ module Scalar : sig
 end
 
 module Tensor : sig
-  type t
+  type t = Torch_bindings.Type_defs.gc_tensor
 
   include Wrapper_generated_intf.S with type t := t and type 'a scalar := 'a Scalar.t
 
@@ -22,6 +22,13 @@ module Tensor : sig
   val float_vec : ?kind:[ `double | `float | `half ] -> float list -> t
   val int_vec : ?kind:[ `int | `int16 | `int64 | `int8 | `uint8 ] -> int list -> t
   val of_bigarray : (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> t
+
+  val copy_to_bigstring
+    :  src:t
+    -> dst:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+    -> dst_pos:int
+    -> unit
+
   val copy_to_bigarray : t -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> unit
   val shape : t -> int list
   val size : t -> int list
@@ -62,9 +69,14 @@ module Tensor : sig
   (* Note: copy_ is effectively memcpy, so that src and dst must have same the shape,
      whereas set_data will point the dst data to wherever src.data is. *)
   val copy_ : t -> src:t -> unit
+
+  (** copy_nonblocking_ requires that the host-side tensor is already pinned. *)
+  val copy_nonblocking_ : t -> src:t -> unit
+
   val set_data : t -> src:t -> unit
   val max : t -> t -> t
   val min : t -> t -> t
+  val use_count : t -> int
 end
 
 module Optimizer : sig
@@ -164,4 +176,28 @@ module Module : sig
   val forward : t -> Tensor.t list -> Tensor.t
   val forward_ : t -> Ivalue.t list -> Ivalue.t
   val named_buffers : t -> (string, Tensor.t, String.comparator_witness) Base.Map.t
+end
+
+module Aoti_runner_cuda : sig
+  type t
+
+  (** Load an AOT inductor-compiled model from a shared object [file].
+
+      @param so_path the shared object file containing the AOT compiled model
+      @param cubin_dir
+        load the cubin files from this directory instead of the directory hardcoded in
+        [file]
+      @param device load the model onto this device
+      @param max_concurrent_executions
+        maximum number of concurrent invocations of the model that are possible
+        (default: 1) *)
+  val load
+    :  ?max_concurrent_executions:int
+    -> device:Device.t
+    -> cubin_dir:string
+    -> so_path:string
+    -> unit
+    -> t
+
+  val run_unit : t -> Tensor.t list -> unit
 end
