@@ -11,6 +11,10 @@ type _ t =
   | ComplexFloat : [ `c32 ] t
   | ComplexDouble : [ `c64 ] t
   | Bool : [ `bool ] t
+  | QInt8 : [ `qi8 ] t
+  | QUInt8 : [ `qu8 ] t
+  | QInt32 : [ `qi32 ] t
+  | BFloat16 : [ `bf16 ] t
 
 let u8 = Uint8
 let i8 = Int8
@@ -41,6 +45,10 @@ let to_int : type a. a t -> int = function
   | ComplexFloat -> 9
   | ComplexDouble -> 10
   | Bool -> 11
+  | QInt8 -> 12
+  | QUInt8 -> 13
+  | QInt32 -> 14
+  | BFloat16 -> 15
 ;;
 
 let packed_to_int (T t) = to_int t
@@ -58,6 +66,10 @@ let of_int_exn = function
   | 9 -> T ComplexFloat
   | 10 -> T ComplexDouble
   | 11 -> T Bool
+  | 12 -> T QInt8
+  | 13 -> T QUInt8
+  | 14 -> T QInt32
+  | 15 -> T BFloat16
   | d -> failwith (Printf.sprintf "unexpected kind %d" d)
 ;;
 
