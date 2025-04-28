@@ -2,13 +2,16 @@
 #include <torch/torch.h>
 #include <ATen/autocast_mode.h>
 #include <torch/script.h>
+#include <torch/csrc/inductor/aoti_runner/model_container_runner_cuda.h>
 #include <stdexcept>
 #include <vector>
 #include <caml/fail.h>
 #include <caml/memory.h>
 #undef invalid_argument
+#include <cuda_runtime.h>
 #include "torch_api.h"
 #include "ctypes_cstubs_internals.h"
+#include "ocaml_runtime_props.h"
 
 using namespace std;
 
@@ -17,6 +20,13 @@ torch::Tensor tensor_from_ocaml(gc_tensor t) {
   // gets dropped by C++)
   auto ptr =
       c10::intrusive_ptr<torch::TensorImpl, torch::UndefinedTensorImpl>::reclaim_copy(t);
+  return torch::Tensor(ptr);
+}
+
+// Same as tensor_from_ocaml, but does not increment refcount (for use in finaliser)
+torch::Tensor take_tensor_from_ocaml(gc_tensor t) {
+  auto ptr =
+      c10::intrusive_ptr<torch::TensorImpl, torch::UndefinedTensorImpl>::reclaim(t);
   return torch::Tensor(ptr);
 }
 
@@ -31,9 +41,18 @@ raw_tensor tensor_to_ocaml(const torch::Tensor &cpp_tensor) {
 
 void finalize_managed_tensor_internal(value managed) {
   raw_tensor t = *(raw_tensor *)Data_custom_val(managed);
-  // reclaim the tensor and immediately let it go out of scope, decrementing its
-  // refcount
-  c10::intrusive_ptr<torch::TensorImpl, torch::UndefinedTensorImpl>::reclaim(t);
+
+  torch::Tensor tensor = take_tensor_from_ocaml(t);
+#if OCAML_DEPENDENT_MEM_TRACKING
+  // tell OCaml GC that the off-heap dependent memory is going away
+  unsigned long int off_heap_cpu_memory_bytes = 0;
+  if (tensor.defined() && tensor.device() == at::kCPU) {
+    off_heap_cpu_memory_bytes = tensor.numel() * tensor.element_size();
+    caml_free_dependent_memory(managed, off_heap_cpu_memory_bytes);
+  }
+#endif
+
+  // Refcount decremented here when tensor goes out of scope
 }
 
 static struct custom_operations ops = {"torch-tensor",
@@ -45,9 +64,29 @@ static struct custom_operations ops = {"torch-tensor",
                                        custom_compare_ext_default,
                                        custom_fixed_length_default};
 
+// This signature is used in src/c_api, so don't break it.
+value prepare_ocaml_tensor(const torch::Tensor &tensor) {
+  CAMLparam0();
+  CAMLlocal1(managed);
+
+  // See https://v2.ocaml.org/manual/intfc.html#s%3Ac-custom
+  unsigned long int off_heap_cpu_memory_bytes = 0;
+  if (tensor.defined() && tensor.device() == at::kCPU) {
+    off_heap_cpu_memory_bytes = tensor.numel() * tensor.element_size();
+  }
+  managed = caml_alloc_custom_mem(&ops, sizeof(raw_tensor), off_heap_cpu_memory_bytes);
+#if OCAML_DEPENDENT_MEM_TRACKING
+  if (off_heap_cpu_memory_bytes) {
+    caml_alloc_dependent_memory(managed, off_heap_cpu_memory_bytes);
+  }
+#endif
+  *(raw_tensor *)Data_custom_val(managed) = tensor_to_ocaml(tensor);
+
+  CAMLreturn(managed);
+}
+
 CAMLprim value make_managed_tensor_internal(value addr) {
   CAMLparam1(addr);
-  CAMLlocal1(managed);
 
   raw_tensor t = *(raw_tensor *)Data_custom_val(addr);
 
@@ -58,16 +97,8 @@ CAMLprim value make_managed_tensor_internal(value addr) {
       c10::intrusive_ptr<torch::TensorImpl, torch::UndefinedTensorImpl>::reclaim(t);
 
   torch::Tensor tensor = torch::Tensor(ptr);
-  // See https://v2.ocaml.org/manual/intfc.html#s%3Ac-custom
-  unsigned long int off_heap_cpu_memory_bytes = 0;
-  if (tensor.defined() && tensor.device() == at::kCPU) {
-    off_heap_cpu_memory_bytes = tensor.numel() * tensor.element_size();
-  }
 
-  managed = caml_alloc_custom_mem(&ops, sizeof(raw_tensor), off_heap_cpu_memory_bytes);
-  *(raw_tensor *)Data_custom_val(managed) = tensor_to_ocaml(tensor);
-
-  CAMLreturn(managed);
+  CAMLreturn(prepare_ocaml_tensor(tensor));
 }
 
 void at_manual_seed(int64_t seed) { torch::manual_seed(seed); }
@@ -118,22 +149,46 @@ raw_tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims,
   return nullptr;
 }
 
-void at_copy_data(gc_tensor t, void *vs, int64_t numel, int elt_size_in_bytes) {
-  PROTECT(
-      torch::Tensor tensor = tensor_from_ocaml(t);
-      if ((int64_t)elt_size_in_bytes != tensor.element_size()) throw std::
-          invalid_argument("incoherent element sizes in bytes");
-      if ((int64_t)numel > tensor.numel()) throw std::invalid_argument(
-          "target numel is larger than tensor numel");
-      if (tensor.device().type() != at::kCPU) {
-        torch::Tensor tmp_tensor = tensor.to(at::kCPU).contiguous();
-        void *tensor_data = tmp_tensor.data_ptr();
-        memcpy(vs, tensor_data, numel * elt_size_in_bytes);
-      } else {
-        auto tmp_tensor = tensor.contiguous();
-        void *tensor_data = tmp_tensor.data_ptr();
-        memcpy(vs, tensor_data, numel * elt_size_in_bytes);
-      })
+template <typename... Args> std::string sstr(Args &&...args) {
+  std::ostringstream sstr;
+  // fold expression
+  ((sstr << std::dec) << ... << args);
+  return sstr.str();
+}
+
+static void copy_to(torch::Tensor tensor, void *vs, size_t copy_size) {
+  if (tensor.device().type() != at::kCPU) {
+    // First, move the tensor to the CPU
+    torch::Tensor tmp_tensor = tensor.to(at::kCPU).contiguous();
+    void *tensor_data = tmp_tensor.data_ptr();
+    memcpy(vs, tensor_data, copy_size);
+  } else {
+    // Make sure the tensor is contiguous before copying
+    auto tmp_tensor = tensor.contiguous();
+    void *tensor_data = tmp_tensor.data_ptr();
+    memcpy(vs, tensor_data, copy_size);
+  }
+}
+
+void at_copy_to_elements(gc_tensor t, void *vs, int64_t numel, int elt_size_in_bytes) {
+  PROTECT(torch::Tensor tensor = tensor_from_ocaml(t);
+          if (elt_size_in_bytes != 0 &&
+              (int64_t)elt_size_in_bytes != tensor.element_size()) throw std::
+              invalid_argument(sstr("incoherent element sizes in bytes: dst (",
+                                    elt_size_in_bytes, ") != src (",
+                                    tensor.element_size(), ")"));
+          if ((int64_t)numel > tensor.numel()) throw std::invalid_argument(
+              sstr("target numel (", numel, ") is larger than tensor numel (",
+                   tensor.numel(), ")"));
+          copy_to(tensor, vs, elt_size_in_bytes * numel);)
+}
+
+void at_copy_to_bytes(gc_tensor t, void *vs, int64_t max_size) {
+  PROTECT(if (max_size < 0) throw std::invalid_argument("cannot copy a negative size");
+          torch::Tensor tensor = tensor_from_ocaml(t);
+          size_t tensor_total_size = tensor.numel() * tensor.element_size();
+          size_t copy_size = std::min((size_t)max_size, tensor_total_size);
+          copy_to(tensor, vs, copy_size);)
 }
 
 raw_tensor at_float_vec(double *vs, int len, int type) {
@@ -176,6 +231,9 @@ void at_stride(gc_tensor t, int64_t *dims) {
 int at_scalar_type(gc_tensor t) {
   PROTECT(return static_cast<int>(tensor_from_ocaml(t).scalar_type());)
 }
+int at_use_count(gc_tensor t) {
+  PROTECT(return static_cast<int>(tensor_from_ocaml(t).use_count());)
+}
 
 void at_autocast_clear_cache() { at::autocast::clear_cache(); }
 
@@ -190,13 +248,13 @@ int at_autocast_increment_nesting() {
 }
 
 int at_autocast_is_enabled() {
-  PROTECT(return at::autocast::is_enabled();)
+  PROTECT(return at::autocast::is_autocast_enabled(at::kCUDA);)
   return -1;
 }
 
 int at_autocast_set_enabled(int b) {
-  PROTECT(bool is_enabled = at::autocast::is_enabled(); at::autocast::set_enabled(b);
-          return is_enabled;)
+  PROTECT(bool is_enabled = at::autocast::is_autocast_enabled(at::kCUDA);
+          at::autocast::set_autocast_enabled(at::kCUDA, b); return is_enabled;)
   return -1;
 }
 
@@ -207,9 +265,13 @@ int at_device(gc_tensor t) {
 
 void at_backward(gc_tensor t, int keep_graph, int create_graph) {
   PROTECT(
-      caml_release_runtime_system(); try {
-        tensor_from_ocaml(t).backward({}, keep_graph, create_graph);
-      } catch (const exception &) {
+      // Need to be careful about the order. We have to call
+      // [tensor_from_ocaml] before releasing the runtime lock because
+      // at this point nothing inside of ocaml is keeping this alive
+      // any more.
+
+      auto tensor = tensor_from_ocaml(t); caml_release_runtime_system();
+      try { tensor.backward({}, keep_graph, create_graph); } catch (const exception &) {
         caml_acquire_runtime_system();
         throw;
       } caml_acquire_runtime_system();)
@@ -275,8 +337,8 @@ char *at_to_string(gc_tensor t, int line_size) {
   return nullptr;
 }
 
-void at_copy_(gc_tensor dst, gc_tensor src) {
-  PROTECT(tensor_from_ocaml(dst).copy_(tensor_from_ocaml(src));)
+void at_copy_(gc_tensor dst, gc_tensor src, int non_blocking) {
+  PROTECT(tensor_from_ocaml(dst).copy_(tensor_from_ocaml(src), non_blocking);)
 }
 void at_set_data(gc_tensor dst, gc_tensor src) {
   PROTECT(tensor_from_ocaml(dst).set_data(tensor_from_ocaml(src));)
@@ -680,6 +742,37 @@ void atm_free(module m) { delete (m); }
 void atm_to(module m, int device, int dtype, bool non_blocking) {
   PROTECT(m->to(device_of_int(device), at::ScalarType(dtype), non_blocking);)
 }
+
+aoti_runner_cuda aoti_runner_cuda_load(char *filename, int num_concurrent_executions,
+                                       int device, char *cubin_dir) {
+  PROTECT(at::Device torch_device = device_of_int(device);
+          return new torch::inductor::AOTIModelContainerRunnerCuda(
+              filename, num_concurrent_executions, torch_device.str(), cubin_dir);)
+  return nullptr;
+}
+
+class no_runtime_system {
+public:
+  no_runtime_system() { caml_release_runtime_system(); }
+  ~no_runtime_system() { caml_acquire_runtime_system(); }
+};
+
+void aoti_runner_cuda_run_unit(aoti_runner_cuda r, gc_tensor *inputs_ptr, int ninputs) {
+  PROTECT(
+      std::vector<torch::Tensor> inputs; inputs.reserve(ninputs);
+      for (int i = 0; i < ninputs; ++i) { // extract and convert the inputs into a vector
+        inputs.push_back(tensor_from_ocaml(inputs_ptr[i]));
+      }
+      // release the runtime lock because running the aoti kernel could take several ms
+      {
+        no_runtime_system nosys;
+        r->run(inputs);
+      }
+      //
+      return;)
+}
+
+void aoti_runner_cuda_free(aoti_runner_cuda r) { delete r; }
 
 ivalue ati_tensor(gc_tensor t) {
   PROTECT(return new torch::jit::IValue(tensor_from_ocaml(t));)

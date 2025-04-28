@@ -21,7 +21,7 @@ depends: [
   "stdio"
   "ctypes"              {>= "0.18.0"}
   "ctypes-foreign"
-  "dune"                {>= "3.11.0"}
+  "dune"                {>= "3.17.0"}
   "dune-configurator"
   "ocaml-compiler-libs" {>= "v0.11.0"}
 ]

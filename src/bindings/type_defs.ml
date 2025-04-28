@@ -4,6 +4,7 @@ type raw_tensor = unit ptr
 type gc_tensor = unit ptr
 type ivalue = unit ptr
 type module_ = unit ptr
+type aoti_runner_cuda = unit ptr
 type optimizer = unit ptr
 type scalar = unit ptr
 
@@ -11,6 +12,7 @@ let raw_tensor : raw_tensor typ = ptr void
 let gc_tensor : gc_tensor typ = ptr void
 let ivalue : ivalue typ = ptr void
 let module_ : module_ typ = ptr void
+let aoti_runner_cuda : aoti_runner_cuda typ = ptr void
 let optimizer : optimizer typ = ptr void
 let scalar : scalar typ = ptr void
 let none_gc_tensor = null
