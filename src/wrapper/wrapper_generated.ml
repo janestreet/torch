@@ -225,7 +225,7 @@ let _amp_update_scale_out
 
 let _assert_scalar self ~assert_msg = stubs__assert_scalar self assert_msg
 
-let _assert_tensor_metadata ~a ~size ~stride ~dtype =
+let _assert_tensor_metadata ~a ~size ~stride ~dtype ~device =
   stubs__assert_tensor_metadata
     a
     (match size with
@@ -241,6 +241,7 @@ let _assert_tensor_metadata ~a ~size ~stride ~dtype =
      | None -> -1
      | Some v -> List.length v)
     (Kind.packed_to_int dtype)
+    (Device.option_to_int device)
 ;;
 
 let _autocast_to_full_precision self ~cuda_enabled ~cpu_enabled =
@@ -608,6 +609,11 @@ let _convert_weight_to_int4pack self ~innerktiles =
   stubs__convert_weight_to_int4pack self (Int64.of_int innerktiles) |> with_tensor_gc
 ;;
 
+let _convert_weight_to_int4pack_for_cpu self ~innerktiles =
+  stubs__convert_weight_to_int4pack_for_cpu self (Int64.of_int innerktiles)
+  |> with_tensor_gc
+;;
+
 let _convolution
   input
   ~weight
@@ -764,6 +770,8 @@ let _cslt_sparse_mm
   ~out_dtype
   ~transpose_result
   ~alg_id
+  ~split_k
+  ~split_k_one_kernel
   =
   stubs__cslt_sparse_mm
     compressed_a
@@ -777,6 +785,8 @@ let _cslt_sparse_mm
     (Kind.packed_to_int out_dtype)
     (if transpose_result then 1 else 0)
     (Int64.of_int alg_id)
+    (Int64.of_int split_k)
+    (if split_k_one_kernel then 1 else 0)
   |> with_tensor_gc
 ;;
 
@@ -1260,6 +1270,36 @@ let _dirichlet_grad ~x ~alpha ~total =
 
 let _dirichlet_grad_out ~out ~x ~alpha ~total =
   stubs__dirichlet_grad_out out x alpha total |> with_tensor_gc
+;;
+
+let _dyn_quant_matmul_4bit ~inp ~packed_weights ~block_size ~in_features ~out_features =
+  stubs__dyn_quant_matmul_4bit
+    inp
+    packed_weights
+    (Int64.of_int block_size)
+    (Int64.of_int in_features)
+    (Int64.of_int out_features)
+  |> with_tensor_gc
+;;
+
+let _dyn_quant_pack_4bit_weight
+  ~weights
+  ~scales_zeros
+  ~bias
+  ~block_size
+  ~in_features
+  ~out_features
+  =
+  stubs__dyn_quant_pack_4bit_weight
+    weights
+    scales_zeros
+    (match bias with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (Int64.of_int block_size)
+    (Int64.of_int in_features)
+    (Int64.of_int out_features)
+  |> with_tensor_gc
 ;;
 
 let _efficient_attention_backward
@@ -1969,8 +2009,8 @@ let _flash_attention_backward
   ~max_k
   ~dropout_p
   ~is_causal
-  ~philox_seed
-  ~philox_offset
+  ~rng_state
+  ~unused
   ~scale
   ~window_size_left
   ~window_size_right
@@ -1990,8 +2030,8 @@ let _flash_attention_backward
     (Int64.of_int max_k)
     dropout_p
     (if is_causal then 1 else 0)
-    philox_seed
-    philox_offset
+    rng_state
+    unused
     (Option.value scale ~default:0.0)
     (match scale with
      | Some _ -> 0
@@ -3994,6 +4034,35 @@ let _nested_from_padded_out ~out ~padded ~cpu_nested_shape_example ~fuse_transfo
   |> with_tensor_gc
 ;;
 
+let _nested_from_padded_tensor
+  ~padded
+  ~offsets
+  ~dummy
+  ~ragged_idx
+  ~min_seqlen
+  ~max_seqlen
+  ~sum_s
+  =
+  stubs__nested_from_padded_tensor
+    padded
+    offsets
+    dummy
+    (Int64.of_int ragged_idx)
+    (match min_seqlen with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match max_seqlen with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match sum_s with
+     | None -> Int64.zero
+     | Some v -> Int64.of_int v)
+    (match sum_s with
+     | Some _ -> 0
+     | None -> 1)
+  |> with_tensor_gc
+;;
+
 let _nested_get_jagged_dummy ~any = stubs__nested_get_jagged_dummy any |> with_tensor_gc
 let _nested_get_lengths self = stubs__nested_get_lengths self |> with_tensor_gc
 let _nested_get_max_seqlen self = stubs__nested_get_max_seqlen self |> with_tensor_gc
@@ -4627,6 +4696,36 @@ let _scaled_dot_product_flash_attention_for_cpu_backward
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   let t2 = CArray.get out__ 2 |> with_tensor_gc in
   t0, t1, t2
+;;
+
+let _scaled_grouped_mm
+  self
+  ~mat2
+  ~scale_a
+  ~scale_b
+  ~offs
+  ~bias
+  ~scale_result
+  ~out_dtype
+  ~use_fast_accum
+  =
+  stubs__scaled_grouped_mm
+    self
+    mat2
+    scale_a
+    scale_b
+    (match offs with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match bias with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (match scale_result with
+     | Some v -> v
+     | None -> none_gc_tensor)
+    (Kind.packed_to_int out_dtype)
+    (if use_fast_accum then 1 else 0)
+  |> with_tensor_gc
 ;;
 
 let _scaled_mm self ~mat2 ~scale_a ~scale_b ~bias ~scale_result ~out_dtype ~use_fast_accum
@@ -6785,6 +6884,11 @@ let _weight_int4pack_mm self ~mat2 ~qgroupsize ~qscaleandzeros =
   |> with_tensor_gc
 ;;
 
+let _weight_int4pack_mm_for_cpu self ~mat2 ~qgroupsize ~qscaleandzeros =
+  stubs__weight_int4pack_mm_for_cpu self mat2 (Int64.of_int qgroupsize) qscaleandzeros
+  |> with_tensor_gc
+;;
+
 let _weight_int8pack_mm self ~mat2 ~scales =
   stubs__weight_int8pack_mm self mat2 scales |> with_tensor_gc
 ;;
@@ -6899,6 +7003,15 @@ let acosh_out ~out self = stubs_acosh_out out self |> with_tensor_gc
 
 let adaptive_avg_pool1d self ~output_size =
   stubs_adaptive_avg_pool1d
+    self
+    (List.map Int64.of_int output_size |> CArray.of_list int64_t |> CArray.start)
+    (List.length output_size)
+  |> with_tensor_gc
+;;
+
+let adaptive_avg_pool1d_out ~out self ~output_size =
+  stubs_adaptive_avg_pool1d_out
+    out
     self
     (List.map Int64.of_int output_size |> CArray.of_list int64_t |> CArray.start)
     (List.length output_size)
@@ -7557,6 +7670,21 @@ let atleast_3d_sequence tensors =
 
 let avg_pool1d self ~kernel_size ~stride ~padding ~ceil_mode ~count_include_pad =
   stubs_avg_pool1d
+    self
+    (List.map Int64.of_int kernel_size |> CArray.of_list int64_t |> CArray.start)
+    (List.length kernel_size)
+    (List.map Int64.of_int stride |> CArray.of_list int64_t |> CArray.start)
+    (List.length stride)
+    (List.map Int64.of_int padding |> CArray.of_list int64_t |> CArray.start)
+    (List.length padding)
+    (if ceil_mode then 1 else 0)
+    (if count_include_pad then 1 else 0)
+  |> with_tensor_gc
+;;
+
+let avg_pool1d_out ~out self ~kernel_size ~stride ~padding ~ceil_mode ~count_include_pad =
+  stubs_avg_pool1d_out
+    out
     self
     (List.map Int64.of_int kernel_size |> CArray.of_list int64_t |> CArray.start)
     (List.length kernel_size)
@@ -18690,6 +18818,18 @@ let rrelu_with_noise_backward_out
   |> with_tensor_gc
 ;;
 
+let rrelu_with_noise_functional self ~noise ~training =
+  let out__ = CArray.make raw_tensor 2 in
+  stubs_rrelu_with_noise_functional
+    (CArray.start out__)
+    self
+    noise
+    (if training then 1 else 0);
+  let t0 = CArray.get out__ 0 |> with_tensor_gc in
+  let t1 = CArray.get out__ 1 |> with_tensor_gc in
+  t0, t1
+;;
+
 let rrelu_with_noise_out ~out self ~noise ~training =
   stubs_rrelu_with_noise_out out self noise (if training then 1 else 0) |> with_tensor_gc
 ;;
@@ -20698,7 +20838,16 @@ let std_out ~out self ~dim ~unbiased ~keepdim =
   |> with_tensor_gc
 ;;
 
-let stft self ~n_fft ~hop_length ~win_length ~window ~normalized ~onesided ~return_complex
+let stft
+  self
+  ~n_fft
+  ~hop_length
+  ~win_length
+  ~window
+  ~normalized
+  ~onesided
+  ~return_complex
+  ~align_to_window
   =
   stubs_stft
     self
@@ -20721,6 +20870,7 @@ let stft self ~n_fft ~hop_length ~win_length ~window ~normalized ~onesided ~retu
     (if normalized then 1 else 0)
     (if onesided then 1 else 0)
     (if return_complex then 1 else 0)
+    (if align_to_window then 1 else 0)
   |> with_tensor_gc
 ;;
 
@@ -20735,6 +20885,7 @@ let stft_center
   ~normalized
   ~onesided
   ~return_complex
+  ~align_to_window
   =
   stubs_stft_center
     self
@@ -20759,6 +20910,7 @@ let stft_center
     (if normalized then 1 else 0)
     (if onesided then 1 else 0)
     (if return_complex then 1 else 0)
+    (if align_to_window then 1 else 0)
   |> with_tensor_gc
 ;;
 
@@ -21693,6 +21845,22 @@ let upsample_bilinear2d_vec input ~output_size ~align_corners ~scale_factors =
   |> with_tensor_gc
 ;;
 
+let upsample_bilinear2d_vec_out ~out input ~output_size ~align_corners ~scale_factors =
+  stubs_upsample_bilinear2d_vec_out
+    out
+    input
+    (match output_size with
+     | None -> from_voidp int64_t null
+     | Some v -> List.map Int64.of_int v |> CArray.of_list int64_t |> CArray.start)
+    (match output_size with
+     | None -> -1
+     | Some v -> List.length v)
+    (if align_corners then 1 else 0)
+    (scale_factors |> CArray.of_list double |> CArray.start)
+    (List.length scale_factors)
+  |> with_tensor_gc
+;;
+
 let upsample_linear1d self ~output_size ~align_corners ~scales =
   stubs_upsample_linear1d
     self
@@ -21932,6 +22100,21 @@ let upsample_nearest2d_out ~out self ~output_size ~scales_h ~scales_w =
 
 let upsample_nearest2d_vec input ~output_size ~scale_factors =
   stubs_upsample_nearest2d_vec
+    input
+    (match output_size with
+     | None -> from_voidp int64_t null
+     | Some v -> List.map Int64.of_int v |> CArray.of_list int64_t |> CArray.start)
+    (match output_size with
+     | None -> -1
+     | Some v -> List.length v)
+    (scale_factors |> CArray.of_list double |> CArray.start)
+    (List.length scale_factors)
+  |> with_tensor_gc
+;;
+
+let upsample_nearest2d_vec_out ~out input ~output_size ~scale_factors =
+  stubs_upsample_nearest2d_vec_out
+    out
     input
     (match output_size with
      | None -> from_voidp int64_t null
