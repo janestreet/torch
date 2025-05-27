@@ -85,6 +85,7 @@ module type S = sig
     -> size:int list option
     -> stride:int list option
     -> dtype:Kind.packed
+    -> device:Device.t option
     -> unit
 
   val _autocast_to_full_precision : t -> cuda_enabled:bool -> cpu_enabled:bool -> t
@@ -222,6 +223,7 @@ module type S = sig
     -> t
 
   val _convert_weight_to_int4pack : t -> innerktiles:int -> t
+  val _convert_weight_to_int4pack_for_cpu : t -> innerktiles:int -> t
 
   val _convolution
     :  t
@@ -295,6 +297,8 @@ module type S = sig
     -> out_dtype:Kind.packed
     -> transpose_result:bool
     -> alg_id:int
+    -> split_k:int
+    -> split_k_one_kernel:bool
     -> t
 
   val _cslt_sparse_mm_search
@@ -503,6 +507,23 @@ module type S = sig
   val _dimv : t -> int64
   val _dirichlet_grad : x:t -> alpha:t -> total:t -> t
   val _dirichlet_grad_out : out:t -> x:t -> alpha:t -> total:t -> t
+
+  val _dyn_quant_matmul_4bit
+    :  inp:t
+    -> packed_weights:t
+    -> block_size:int
+    -> in_features:int
+    -> out_features:int
+    -> t
+
+  val _dyn_quant_pack_4bit_weight
+    :  weights:t
+    -> scales_zeros:t
+    -> bias:t option
+    -> block_size:int
+    -> in_features:int
+    -> out_features:int
+    -> t
 
   val _efficient_attention_backward
     :  grad_out_:t
@@ -805,8 +826,8 @@ module type S = sig
     -> max_k:int
     -> dropout_p:float
     -> is_causal:bool
-    -> philox_seed:t
-    -> philox_offset:t
+    -> rng_state:t
+    -> unused:t
     -> scale:float option
     -> window_size_left:int option
     -> window_size_right:int option
@@ -1573,6 +1594,16 @@ module type S = sig
     -> fuse_transform_0213:bool
     -> t
 
+  val _nested_from_padded_tensor
+    :  padded:t
+    -> offsets:t
+    -> dummy:t
+    -> ragged_idx:int
+    -> min_seqlen:t option
+    -> max_seqlen:t option
+    -> sum_s:int option
+    -> t
+
   val _nested_get_jagged_dummy : any:t -> t
   val _nested_get_lengths : t -> t
   val _nested_get_max_seqlen : t -> t
@@ -1805,6 +1836,18 @@ module type S = sig
     -> attn_mask:t option
     -> scale:float option
     -> t * t * t
+
+  val _scaled_grouped_mm
+    :  t
+    -> mat2:t
+    -> scale_a:t
+    -> scale_b:t
+    -> offs:t option
+    -> bias:t option
+    -> scale_result:t option
+    -> out_dtype:Kind.packed
+    -> use_fast_accum:bool
+    -> t
 
   val _scaled_mm
     :  t
@@ -2660,6 +2703,7 @@ module type S = sig
   val _values_copy_out : out:t -> t -> t
   val _version : t -> int64
   val _weight_int4pack_mm : t -> mat2:t -> qgroupsize:int -> qscaleandzeros:t -> t
+  val _weight_int4pack_mm_for_cpu : t -> mat2:t -> qgroupsize:int -> qscaleandzeros:t -> t
   val _weight_int8pack_mm : t -> mat2:t -> scales:t -> t
   val _weight_norm : v:t -> g:t -> dim:int -> t
 
@@ -2723,6 +2767,7 @@ module type S = sig
   val acosh_ : t -> t
   val acosh_out : out:t -> t -> t
   val adaptive_avg_pool1d : t -> output_size:int list -> t
+  val adaptive_avg_pool1d_out : out:t -> t -> output_size:int list -> t
   val adaptive_avg_pool2d : t -> output_size:int list -> t
   val adaptive_avg_pool2d_out : out:t -> t -> output_size:int list -> t
   val adaptive_avg_pool3d : t -> output_size:int list -> t
@@ -2922,6 +2967,16 @@ module type S = sig
 
   val avg_pool1d
     :  t
+    -> kernel_size:int list
+    -> stride:int list
+    -> padding:int list
+    -> ceil_mode:bool
+    -> count_include_pad:bool
+    -> t
+
+  val avg_pool1d_out
+    :  out:t
+    -> t
     -> kernel_size:int list
     -> stride:int list
     -> padding:int list
@@ -7279,6 +7334,7 @@ module type S = sig
     -> self_is_result:bool
     -> t
 
+  val rrelu_with_noise_functional : t -> noise:t -> training:bool -> t * t
   val rrelu_with_noise_out : out:t -> t -> noise:t -> training:bool -> t
   val rsqrt : t -> t
   val rsqrt_ : t -> t
@@ -8143,6 +8199,7 @@ module type S = sig
     -> normalized:bool
     -> onesided:bool
     -> return_complex:bool
+    -> align_to_window:bool
     -> t
 
   val stft_center
@@ -8156,6 +8213,7 @@ module type S = sig
     -> normalized:bool
     -> onesided:bool
     -> return_complex:bool
+    -> align_to_window:bool
     -> t
 
   val stride : t -> dim:int -> int64
@@ -8537,6 +8595,14 @@ module type S = sig
     -> scale_factors:float list
     -> t
 
+  val upsample_bilinear2d_vec_out
+    :  out:t
+    -> t
+    -> output_size:int list option
+    -> align_corners:bool
+    -> scale_factors:float list
+    -> t
+
   val upsample_linear1d
     :  t
     -> output_size:int list
@@ -8640,6 +8706,13 @@ module type S = sig
 
   val upsample_nearest2d_vec
     :  t
+    -> output_size:int list option
+    -> scale_factors:float list
+    -> t
+
+  val upsample_nearest2d_vec_out
+    :  out:t
+    -> t
     -> output_size:int list option
     -> scale_factors:float list
     -> t
