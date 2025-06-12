@@ -23,7 +23,7 @@ depends: [
   "ctypes-foreign"
   "dune"                {>= "3.17.0"}
   "dune-configurator"
-  "ocaml-compiler-libs" {= "v0.17.0+jst"}
+  "ocaml-compiler-libs" {= "v0.17.0+ox"}
 ]
 depopts: [
   "libtorch"
