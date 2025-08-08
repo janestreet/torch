@@ -22,7 +22,7 @@ let or_else o ~f =
   | None -> f ()
 ;;
 
-let required_libs = [ "c10"; "torch_cpu"; "torch" ]
+let required_libs = [ "c10"; "torch_cpu"; "torch_cuda"; "torch" ]
 
 let choose_dynamic_links ~lib_dir =
   let optional_libs = [ "torch_cuda" ] in

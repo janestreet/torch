@@ -157,37 +157,47 @@ module C0 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs__add_relu =
-    foreign "atg__add_relu" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign "atg__add_relu" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs__add_relu_ =
-    foreign "atg__add_relu_" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign "atg__add_relu_" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs__add_relu_out =
     foreign
       "atg__add_relu_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs__add_relu_scalar =
-    foreign "atg__add_relu_scalar" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign
+      "atg__add_relu_scalar"
+      (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs__add_relu_scalar_ =
-    foreign "atg__add_relu_scalar_" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign
+      "atg__add_relu_scalar_"
+      (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs__add_relu_scalar_out =
     foreign
       "atg__add_relu_scalar_out"
-      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs__addmm_activation =
     foreign
       "atg__addmm_activation"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> int @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> int
+       @-> returning raw_tensor)
   ;;
 
   let stubs__addmm_activation_out =
@@ -197,6 +207,8 @@ module C0 (F : Cstubs.FOREIGN) = struct
        @-> gc_tensor
        @-> gc_tensor
        @-> gc_tensor
+       @-> scalar
+       @-> scalar
        @-> int
        @-> returning raw_tensor)
   ;;
@@ -3389,13 +3401,24 @@ module C3 (F : Cstubs.FOREIGN) = struct
   let stubs__sparse_addmm =
     foreign
       "atg__sparse_addmm"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs__sparse_addmm_out =
     foreign
       "atg__sparse_addmm_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs__sparse_broadcast_to =
@@ -3937,7 +3960,7 @@ module C4 (F : Cstubs.FOREIGN) = struct
   let stubs__test_serialization_subcmul =
     foreign
       "atg__test_serialization_subcmul"
-      (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs__test_string_default =
@@ -5034,109 +5057,214 @@ module C5 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_add = foreign "atg_add" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
-  let stubs_add_ = foreign "atg_add_" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+  let stubs_add =
+    foreign "atg_add" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
+
+  let stubs_add_ =
+    foreign "atg_add_" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_add_out =
-    foreign "atg_add_out" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_add_out"
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_add_scalar =
-    foreign "atg_add_scalar" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign "atg_add_scalar" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_add_scalar_ =
-    foreign "atg_add_scalar_" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign "atg_add_scalar_" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_add_scalar_out =
     foreign
       "atg_add_scalar_out"
-      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_addbmm =
-    foreign "atg_addbmm" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addbmm"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addbmm_ =
-    foreign "atg_addbmm_" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addbmm_"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addbmm_out =
     foreign
       "atg_addbmm_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addcdiv =
-    foreign "atg_addcdiv" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addcdiv"
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_addcdiv_ =
-    foreign "atg_addcdiv_" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addcdiv_"
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_addcdiv_out =
     foreign
       "atg_addcdiv_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addcmul =
-    foreign "atg_addcmul" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addcmul"
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_addcmul_ =
-    foreign "atg_addcmul_" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addcmul_"
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_addcmul_out =
     foreign
       "atg_addcmul_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addmm =
-    foreign "atg_addmm" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addmm"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addmm_ =
-    foreign "atg_addmm_" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addmm_"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addmm_out =
     foreign
       "atg_addmm_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addmv =
-    foreign "atg_addmv" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addmv"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addmv_ =
-    foreign "atg_addmv_" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addmv_"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addmv_out =
     foreign
       "atg_addmv_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addr =
-    foreign "atg_addr" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addr"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addr_ =
-    foreign "atg_addr_" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_addr_"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_addr_out =
     foreign
       "atg_addr_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_adjoint = foreign "atg_adjoint" (gc_tensor @-> returning raw_tensor)
@@ -5303,7 +5431,7 @@ module C6 (F : Cstubs.FOREIGN) = struct
   let stubs_arange_start_step =
     foreign
       "atg_arange_start_step"
-      (scalar @-> scalar @-> int @-> int @-> returning raw_tensor)
+      (scalar @-> scalar @-> scalar @-> int @-> int @-> returning raw_tensor)
   ;;
 
   let stubs_arccos = foreign "atg_arccos" (gc_tensor @-> returning raw_tensor)
@@ -5723,17 +5851,37 @@ module C6 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_baddbmm =
-    foreign "atg_baddbmm" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_baddbmm"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_baddbmm_ =
-    foreign "atg_baddbmm_" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_baddbmm_"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_baddbmm_out =
     foreign
       "atg_baddbmm_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_bartlett_window =
@@ -6406,11 +6554,11 @@ module C7 (F : Cstubs.FOREIGN) = struct
     foreign "atg_ceil_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
   ;;
 
-  let stubs_celu = foreign "atg_celu" (gc_tensor @-> returning raw_tensor)
-  let stubs_celu_ = foreign "atg_celu_" (gc_tensor @-> returning raw_tensor)
+  let stubs_celu = foreign "atg_celu" (gc_tensor @-> scalar @-> returning raw_tensor)
+  let stubs_celu_ = foreign "atg_celu_" (gc_tensor @-> scalar @-> returning raw_tensor)
 
   let stubs_celu_out =
-    foreign "atg_celu_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign "atg_celu_out" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_chain_matmul =
@@ -6716,13 +6864,13 @@ module C8 (F : Cstubs.FOREIGN) = struct
   let stubs_constant_pad_nd =
     foreign
       "atg_constant_pad_nd"
-      (gc_tensor @-> ptr int64_t @-> int @-> returning raw_tensor)
+      (gc_tensor @-> ptr int64_t @-> int @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_constant_pad_nd_out =
     foreign
       "atg_constant_pad_nd_out"
-      (gc_tensor @-> gc_tensor @-> ptr int64_t @-> int @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> ptr int64_t @-> int @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_contiguous = foreign "atg_contiguous" (gc_tensor @-> returning raw_tensor)
@@ -7545,13 +7693,15 @@ module C9 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_cumulative_trapezoid =
-    foreign "atg_cumulative_trapezoid" (gc_tensor @-> int64_t @-> returning raw_tensor)
+    foreign
+      "atg_cumulative_trapezoid"
+      (gc_tensor @-> gc_tensor @-> int64_t @-> returning raw_tensor)
   ;;
 
-  let stubs_cumulative_trapezoid_x =
+  let stubs_cumulative_trapezoid_dx =
     foreign
-      "atg_cumulative_trapezoid_x"
-      (gc_tensor @-> gc_tensor @-> int64_t @-> returning raw_tensor)
+      "atg_cumulative_trapezoid_dx"
+      (gc_tensor @-> scalar @-> int64_t @-> returning raw_tensor)
   ;;
 
   let stubs_data = foreign "atg_data" (gc_tensor @-> returning raw_tensor)
@@ -7716,10 +7866,14 @@ module C9 (F : Cstubs.FOREIGN) = struct
     foreign "atg_digamma_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
   ;;
 
-  let stubs_dist = foreign "atg_dist" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+  let stubs_dist =
+    foreign "atg_dist" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_dist_out =
-    foreign "atg_dist_out" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_dist_out"
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_div = foreign "atg_div" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
@@ -7867,8 +8021,15 @@ module C9 (F : Cstubs.FOREIGN) = struct
       (string @-> ptr gc_tensor @-> int @-> ptr int64_t @-> int @-> returning raw_tensor)
   ;;
 
-  let stubs_elu = foreign "atg_elu" (gc_tensor @-> returning raw_tensor)
-  let stubs_elu_ = foreign "atg_elu_" (gc_tensor @-> returning raw_tensor)
+  let stubs_elu =
+    foreign "atg_elu" (gc_tensor @-> scalar @-> scalar @-> scalar @-> returning raw_tensor)
+  ;;
+
+  let stubs_elu_ =
+    foreign
+      "atg_elu_"
+      (gc_tensor @-> scalar @-> scalar @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_elu_backward =
     foreign
@@ -7896,7 +8057,9 @@ module C9 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_elu_out =
-    foreign "atg_elu_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_elu_out"
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_embedding =
@@ -9624,7 +9787,9 @@ module C12 (F : Cstubs.FOREIGN) = struct
       (gc_tensor @-> int64_t @-> int @-> returning raw_tensor)
   ;;
 
-  let stubs_hardshrink = foreign "atg_hardshrink" (gc_tensor @-> returning raw_tensor)
+  let stubs_hardshrink =
+    foreign "atg_hardshrink" (gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_hardshrink_backward =
     foreign
@@ -9639,7 +9804,9 @@ module C12 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_hardshrink_out =
-    foreign "atg_hardshrink_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_hardshrink_out"
+      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_hardsigmoid = foreign "atg_hardsigmoid" (gc_tensor @-> returning raw_tensor)
@@ -9676,8 +9843,13 @@ module C12 (F : Cstubs.FOREIGN) = struct
     foreign "atg_hardswish_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
   ;;
 
-  let stubs_hardtanh = foreign "atg_hardtanh" (gc_tensor @-> returning raw_tensor)
-  let stubs_hardtanh_ = foreign "atg_hardtanh_" (gc_tensor @-> returning raw_tensor)
+  let stubs_hardtanh =
+    foreign "atg_hardtanh" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
+  ;;
+
+  let stubs_hardtanh_ =
+    foreign "atg_hardtanh_" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_hardtanh_backward =
     foreign
@@ -9697,7 +9869,9 @@ module C12 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_hardtanh_out =
-    foreign "atg_hardtanh_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_hardtanh_out"
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_heaviside =
@@ -9720,10 +9894,16 @@ module C12 (F : Cstubs.FOREIGN) = struct
       (gc_tensor @-> gc_tensor @-> double @-> int64_t @-> returning raw_tensor)
   ;;
 
-  let stubs_histc = foreign "atg_histc" (gc_tensor @-> int64_t @-> returning raw_tensor)
+  let stubs_histc =
+    foreign
+      "atg_histc"
+      (gc_tensor @-> int64_t @-> scalar @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_histc_out =
-    foreign "atg_histc_out" (gc_tensor @-> gc_tensor @-> int64_t @-> returning raw_tensor)
+    foreign
+      "atg_histc_out"
+      (gc_tensor @-> gc_tensor @-> int64_t @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_hsplit =
@@ -9878,13 +10058,23 @@ module C13 (F : Cstubs.FOREIGN) = struct
   let stubs_index_add =
     foreign
       "atg_index_add"
-      (gc_tensor @-> int64_t @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> int64_t
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_index_add_ =
     foreign
       "atg_index_add_"
-      (gc_tensor @-> int64_t @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> int64_t
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_index_add_out =
@@ -9895,6 +10085,7 @@ module C13 (F : Cstubs.FOREIGN) = struct
        @-> int64_t
        @-> gc_tensor
        @-> gc_tensor
+       @-> scalar
        @-> returning raw_tensor)
   ;;
 
@@ -10313,8 +10504,13 @@ module C13 (F : Cstubs.FOREIGN) = struct
       (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
   ;;
 
-  let stubs_leaky_relu = foreign "atg_leaky_relu" (gc_tensor @-> returning raw_tensor)
-  let stubs_leaky_relu_ = foreign "atg_leaky_relu_" (gc_tensor @-> returning raw_tensor)
+  let stubs_leaky_relu =
+    foreign "atg_leaky_relu" (gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
+
+  let stubs_leaky_relu_ =
+    foreign "atg_leaky_relu_" (gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_leaky_relu_backward =
     foreign
@@ -10329,7 +10525,9 @@ module C13 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_leaky_relu_out =
-    foreign "atg_leaky_relu_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_leaky_relu_out"
+      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_lerp =
@@ -13271,10 +13469,14 @@ module C17 (F : Cstubs.FOREIGN) = struct
        @-> returning void)
   ;;
 
-  let stubs_native_norm = foreign "atg_native_norm" (gc_tensor @-> returning raw_tensor)
+  let stubs_native_norm =
+    foreign "atg_native_norm" (gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_native_norm_out =
-    foreign "atg_native_norm_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_native_norm_out"
+      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_native_norm_scalaropt_dim_dtype =
@@ -13576,7 +13778,7 @@ module C18 (F : Cstubs.FOREIGN) = struct
       (gc_tensor @-> gc_tensor @-> int64_t @-> int64_t @-> returning raw_tensor)
   ;;
 
-  let stubs_norm = foreign "atg_norm" (gc_tensor @-> returning raw_tensor)
+  let stubs_norm = foreign "atg_norm" (gc_tensor @-> scalar @-> returning raw_tensor)
 
   let stubs_norm_dtype_out =
     foreign
@@ -13610,7 +13812,9 @@ module C18 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_norm_scalar_out =
-    foreign "atg_norm_scalar_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_norm_scalar_out"
+      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_norm_scalaropt_dim =
@@ -14464,7 +14668,9 @@ module C19 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_range_out =
-    foreign "atg_range_out" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
+    foreign
+      "atg_range_out"
+      (gc_tensor @-> scalar @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_range_out_ =
@@ -14472,7 +14678,9 @@ module C19 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_range_step =
-    foreign "atg_range_step" (scalar @-> scalar @-> int @-> int @-> returning raw_tensor)
+    foreign
+      "atg_range_step"
+      (scalar @-> scalar @-> scalar @-> int @-> int @-> returning raw_tensor)
   ;;
 
   let stubs_ravel = foreign "atg_ravel" (gc_tensor @-> returning raw_tensor)
@@ -15012,19 +15220,24 @@ module C20 (F : Cstubs.FOREIGN) = struct
       (gc_tensor @-> ptr gc_tensor @-> int @-> returning raw_tensor)
   ;;
 
-  let stubs_rrelu = foreign "atg_rrelu" (gc_tensor @-> int @-> returning raw_tensor)
-  let stubs_rrelu_ = foreign "atg_rrelu_" (gc_tensor @-> int @-> returning raw_tensor)
+  let stubs_rrelu =
+    foreign "atg_rrelu" (gc_tensor @-> scalar @-> scalar @-> int @-> returning raw_tensor)
+  ;;
+
+  let stubs_rrelu_ =
+    foreign "atg_rrelu_" (gc_tensor @-> scalar @-> scalar @-> int @-> returning raw_tensor)
+  ;;
 
   let stubs_rrelu_with_noise =
     foreign
       "atg_rrelu_with_noise"
-      (gc_tensor @-> gc_tensor @-> int @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> int @-> returning raw_tensor)
   ;;
 
   let stubs_rrelu_with_noise_ =
     foreign
       "atg_rrelu_with_noise_"
-      (gc_tensor @-> gc_tensor @-> int @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> int @-> returning raw_tensor)
   ;;
 
   let stubs_rrelu_with_noise_backward =
@@ -15057,13 +15270,25 @@ module C20 (F : Cstubs.FOREIGN) = struct
   let stubs_rrelu_with_noise_functional =
     foreign
       "atg_rrelu_with_noise_functional"
-      (ptr raw_tensor @-> gc_tensor @-> gc_tensor @-> int @-> returning void)
+      (ptr raw_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> int
+       @-> returning void)
   ;;
 
   let stubs_rrelu_with_noise_out =
     foreign
       "atg_rrelu_with_noise_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> int @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> int
+       @-> returning raw_tensor)
   ;;
 
   let stubs_rsqrt = foreign "atg_rsqrt" (gc_tensor @-> returning raw_tensor)
@@ -15073,22 +15298,24 @@ module C20 (F : Cstubs.FOREIGN) = struct
     foreign "atg_rsqrt_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
   ;;
 
-  let stubs_rsub = foreign "atg_rsub" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+  let stubs_rsub =
+    foreign "atg_rsub" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_rsub_scalar =
-    foreign "atg_rsub_scalar" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign "atg_rsub_scalar" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_rsub_scalar_out =
     foreign
       "atg_rsub_scalar_out"
-      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_rsub_tensor_out =
     foreign
       "atg_rsub_tensor_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_scalar_tensor =
@@ -15875,7 +16102,9 @@ module C21 (F : Cstubs.FOREIGN) = struct
       (gc_tensor @-> gc_tensor @-> int64_t @-> int @-> returning raw_tensor)
   ;;
 
-  let stubs_softplus = foreign "atg_softplus" (gc_tensor @-> returning raw_tensor)
+  let stubs_softplus =
+    foreign "atg_softplus" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_softplus_backward =
     foreign
@@ -15895,10 +16124,14 @@ module C21 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_softplus_out =
-    foreign "atg_softplus_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_softplus_out"
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
-  let stubs_softshrink = foreign "atg_softshrink" (gc_tensor @-> returning raw_tensor)
+  let stubs_softshrink =
+    foreign "atg_softshrink" (gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_softshrink_backward =
     foreign
@@ -15913,7 +16146,9 @@ module C21 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_softshrink_out =
-    foreign "atg_softshrink_out" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_softshrink_out"
+      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_sort =
@@ -16142,13 +16377,24 @@ module C21 (F : Cstubs.FOREIGN) = struct
   let stubs_sparse_sampled_addmm =
     foreign
       "atg_sparse_sampled_addmm"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_sparse_sampled_addmm_out =
     foreign
       "atg_sparse_sampled_addmm_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_special_airy_ai =
@@ -17128,13 +17374,26 @@ module C23 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_sspaddmm =
-    foreign "atg_sspaddmm" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_sspaddmm"
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_sspaddmm_out =
     foreign
       "atg_sspaddmm_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> gc_tensor
+       @-> scalar
+       @-> scalar
+       @-> returning raw_tensor)
   ;;
 
   let stubs_stack =
@@ -17269,47 +17528,59 @@ module C24 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_stride = foreign "atg_stride" (gc_tensor @-> int64_t @-> returning int64_t)
-  let stubs_sub = foreign "atg_sub" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
-  let stubs_sub_ = foreign "atg_sub_" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+
+  let stubs_sub =
+    foreign "atg_sub" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
+
+  let stubs_sub_ =
+    foreign "atg_sub_" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+  ;;
 
   let stubs_sub_out =
-    foreign "atg_sub_out" (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign
+      "atg_sub_out"
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_sub_scalar =
-    foreign "atg_sub_scalar" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign "atg_sub_scalar" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_sub_scalar_ =
-    foreign "atg_sub_scalar_" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign "atg_sub_scalar_" (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_sub_scalar_out =
     foreign
       "atg_sub_scalar_out"
-      (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_subtract =
-    foreign "atg_subtract" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign "atg_subtract" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_subtract_ =
-    foreign "atg_subtract_" (gc_tensor @-> gc_tensor @-> returning raw_tensor)
+    foreign "atg_subtract_" (gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_subtract_out =
     foreign
       "atg_subtract_out"
-      (gc_tensor @-> gc_tensor @-> gc_tensor @-> returning raw_tensor)
+      (gc_tensor @-> gc_tensor @-> gc_tensor @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_subtract_scalar =
-    foreign "atg_subtract_scalar" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign
+      "atg_subtract_scalar"
+      (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_subtract_scalar_ =
-    foreign "atg_subtract_scalar_" (gc_tensor @-> scalar @-> returning raw_tensor)
+    foreign
+      "atg_subtract_scalar_"
+      (gc_tensor @-> scalar @-> scalar @-> returning raw_tensor)
   ;;
 
   let stubs_sum = foreign "atg_sum" (gc_tensor @-> int @-> returning raw_tensor)
@@ -17614,13 +17885,11 @@ module C24 (F : Cstubs.FOREIGN) = struct
   ;;
 
   let stubs_trapezoid =
-    foreign "atg_trapezoid" (gc_tensor @-> int64_t @-> returning raw_tensor)
+    foreign "atg_trapezoid" (gc_tensor @-> gc_tensor @-> int64_t @-> returning raw_tensor)
   ;;
 
-  let stubs_trapezoid_x =
-    foreign
-      "atg_trapezoid_x"
-      (gc_tensor @-> gc_tensor @-> int64_t @-> returning raw_tensor)
+  let stubs_trapezoid_dx =
+    foreign "atg_trapezoid_dx" (gc_tensor @-> scalar @-> int64_t @-> returning raw_tensor)
   ;;
 
   let stubs_trapz =

@@ -259,17 +259,73 @@ let%expect_test "nan_to_num" =
 let%expect_test "svd" =
   let t = Tensor.of_float2 [| [| 1.0; 2.0 |]; [| 3.0; 4.0 |] |] in
   let u, s, vt = Tensor.linalg_svd ~a:t ~full_matrices:false ~driver:None in
-  Stdio.printf !"U: %{sexp: float array array}\n" (Tensor.to_float2_exn u);
-  Stdio.printf !"Sigma: %{sexp: float array}\n" (Tensor.to_float1_exn s);
-  Stdio.printf !"V^T: %{sexp: float array array}\n" (Tensor.to_float2_exn vt);
+  Expect_test_helpers_base.with_sexp_round_floats ~significant_digits:6 (fun () ->
+    Stdio.printf !"U: %{sexp: float array array}\n" (Tensor.to_float2_exn u);
+    Stdio.printf !"Sigma: %{sexp: float array}\n" (Tensor.to_float1_exn s);
+    Stdio.printf !"V^T: %{sexp: float array array}\n" (Tensor.to_float2_exn vt));
   [%expect
     {|
-    U: ((-0.40455365180969238 -0.91451436281204224)
-     (-0.914514422416687 0.40455359220504761))
-    Sigma: (5.4649853706359863 0.36596611142158508)
-    V^T: ((-0.57604849338531494 -0.81741553544998169)
-     (0.81741553544998169 -0.57604849338531494))
+    U: ((-0.404554 -0.914514) (-0.914514 0.404554))
+    Sigma: (5.46499 0.365966)
+    V^T: ((-0.576048 -0.817416) (0.817416 -0.576048))
     |}]
+;;
+
+let%expect_test "flatten" =
+  let t =
+    Tensor.of_float3
+      [| [| [| 1.0; 2.0 |]; [| 3.0; 4.0 |] |]; [| [| 5.0; 6.0 |]; [| 7.0; 8.0 |] |] |]
+  in
+  Stdio.printf
+    !"flatten (0, ...): %{sexp: float array}\n"
+    (Tensor.flatten t ~start_dim:0 |> Tensor.to_float1_exn);
+  [%expect {| flatten (0, ...): (1 2 3 4 5 6 7 8) |}];
+  Stdio.printf
+    !"flatten (1, ...): %{sexp: float array array}\n"
+    (Tensor.flatten t ~start_dim:1 |> Tensor.to_float2_exn);
+  [%expect {| flatten (1, ...): ((1 2 3 4) (5 6 7 8)) |}];
+  Stdio.printf
+    !"flatten (0, 1): %{sexp: float array array}\n"
+    (Tensor.flatten t ~start_dim:0 ~end_dim:1 |> Tensor.to_float2_exn);
+  [%expect {| flatten (0, 1): ((1 2) (3 4) (5 6) (7 8)) |}]
+;;
+
+let%expect_test "Ensuring optional tensors are passed properly" =
+  let query =
+    Tensor.of_float3 [| [| [| 1.0; 0.0 |]; [| 0.0; 1.0 |]; [| 1.0; 1.0 |] |] |]
+  in
+  let key = Tensor.of_float3 [| [| [| 1.0; 0.0 |]; [| 0.0; 1.0 |]; [| 1.0; 1.0 |] |] |] in
+  let value =
+    Tensor.of_float3 [| [| [| 2.0; 3.0 |]; [| 4.0; 5.0 |]; [| 6.0; 7.0 |] |] |]
+  in
+  let result =
+    Tensor.scaled_dot_product_attention
+      ~query
+      ~key
+      ~value
+      ~attn_mask:None
+      ~dropout_p:0.0
+      ~is_causal:true
+      ~scale:None
+      ~enable_gqa:false
+  in
+  (* We will see an error if torch receives is_causal=true and attn_mask != None *)
+  Stdio.printf !"Shape: %{sexp: int list}\n" (Tensor.shape result);
+  [%expect {| Shape: (1 3 2) |}];
+  let attn_mask = Tensor.zeros [ 3; 3 ] in
+  let result =
+    Tensor.scaled_dot_product_attention
+      ~query
+      ~key
+      ~value
+      ~attn_mask:(Some attn_mask)
+      ~dropout_p:0.0
+      ~is_causal:false
+      ~scale:None
+      ~enable_gqa:false
+  in
+  Stdio.printf !"Shape: %{sexp: int list}\n" (Tensor.shape result);
+  [%expect {| Shape: (1 3 2) |}]
 ;;
 
 let%expect_test "precision" =
@@ -371,5 +427,47 @@ let%expect_test "gc_test" =
     {|
     freed b
     freed a
+    |}]
+;;
+
+let%expect_test "non-nullable scalar arguments with default values" =
+  let t =
+    Tensor.arange_start_step
+      ~start:(Scalar.int 0)
+      ~end_:(Scalar.int 10)
+      ~step:(Scalar.int 2)
+      ~options:(T Float, Cpu)
+      ()
+  in
+  Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn t);
+  [%expect {| (0 2 4 6 8) |}];
+  let t =
+    Tensor.arange_start_step
+      ~start:(Scalar.int 0)
+      ~end_:(Scalar.int 10)
+      ~options:(T Float, Cpu)
+      ()
+  in
+  Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn t);
+  [%expect {| (0 1 2 3 4 5 6 7 8 9) |}]
+;;
+
+let%expect_test "non-nullable scalar arguments with multiple default values" =
+  (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in the right order *)
+  let t =
+    Tensor.arange_start_step
+      ~start:(Scalar.float (-0.5))
+      ~end_:(Scalar.float 1.0)
+      ~step:(Scalar.float 0.125)
+      ~options:(T Float, Cpu)
+      ()
+    |> Tensor.softplus ~beta:(Scalar.float 0.9) ~threshold:(Scalar.float 0.5)
+  in
+  Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn t);
+  [%expect
+    {|
+    (0.54805439710617065 0.59840929508209229 0.652180016040802
+     0.70942044258117676 0.77016353607177734 0.834420382976532 0.902180016040802
+     0.97340929508209229 1.0480543375015259 0.625 0.75 0.875)
     |}]
 ;;

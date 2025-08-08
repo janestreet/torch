@@ -102,22 +102,96 @@ let _add_batch_dim self ~batch_dim ~level =
   |> with_tensor_gc
 ;;
 
-let _add_relu self other = stubs__add_relu self other |> with_tensor_gc
-let _add_relu_ self other = stubs__add_relu_ self other |> with_tensor_gc
-let _add_relu_out ~out self other = stubs__add_relu_out out self other |> with_tensor_gc
-let _add_relu_scalar self other = stubs__add_relu_scalar self other |> with_tensor_gc
-let _add_relu_scalar_ self other = stubs__add_relu_scalar_ self other |> with_tensor_gc
-
-let _add_relu_scalar_out ~out self other =
-  stubs__add_relu_scalar_out out self other |> with_tensor_gc
+let _add_relu ?alpha self other =
+  stubs__add_relu
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let _addmm_activation self ~mat1 ~mat2 ~use_gelu =
-  stubs__addmm_activation self mat1 mat2 (if use_gelu then 1 else 0) |> with_tensor_gc
+let _add_relu_ ?alpha self other =
+  stubs__add_relu_
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let _addmm_activation_out ~out self ~mat1 ~mat2 ~use_gelu =
-  stubs__addmm_activation_out out self mat1 mat2 (if use_gelu then 1 else 0)
+let _add_relu_out ?alpha ~out self other =
+  stubs__add_relu_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let _add_relu_scalar ?alpha self other =
+  stubs__add_relu_scalar
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let _add_relu_scalar_ ?alpha self other =
+  stubs__add_relu_scalar_
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let _add_relu_scalar_out ?alpha ~out self other =
+  stubs__add_relu_scalar_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let _addmm_activation ?beta ?alpha self ~mat1 ~mat2 ~use_gelu =
+  stubs__addmm_activation
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+    (if use_gelu then 1 else 0)
+  |> with_tensor_gc
+;;
+
+let _addmm_activation_out ?beta ?alpha ~out self ~mat1 ~mat2 ~use_gelu =
+  stubs__addmm_activation_out
+    out
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+    (if use_gelu then 1 else 0)
   |> with_tensor_gc
 ;;
 
@@ -4949,10 +5023,33 @@ let _softmax_out ~out self ~dim ~half_to_float =
   |> with_tensor_gc
 ;;
 
-let _sparse_addmm self ~mat1 ~mat2 = stubs__sparse_addmm self mat1 mat2 |> with_tensor_gc
+let _sparse_addmm ?beta ?alpha self ~mat1 ~mat2 =
+  stubs__sparse_addmm
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
-let _sparse_addmm_out ~out self ~mat1 ~mat2 =
-  stubs__sparse_addmm_out out self mat1 mat2 |> with_tensor_gc
+let _sparse_addmm_out ?beta ?alpha ~out self ~mat1 ~mat2 =
+  stubs__sparse_addmm_out
+    out
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
 let _sparse_broadcast_to self ~size =
@@ -5551,8 +5648,14 @@ let _test_parallel_materialize self ~num_parallel ~skip_first =
   |> with_tensor_gc
 ;;
 
-let _test_serialization_subcmul self other =
-  stubs__test_serialization_subcmul self other |> with_tensor_gc
+let _test_serialization_subcmul ?alpha self other =
+  stubs__test_serialization_subcmul
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
 let _test_string_default ~dummy ~a ~b =
@@ -7138,48 +7241,308 @@ let adaptive_max_pool3d_out ~out ~indices self ~output_size =
   t0, t1
 ;;
 
-let add self other = stubs_add self other |> with_tensor_gc
-let add_ self other = stubs_add_ self other |> with_tensor_gc
-let add_out ~out self other = stubs_add_out out self other |> with_tensor_gc
-let add_scalar self other = stubs_add_scalar self other |> with_tensor_gc
-let add_scalar_ self other = stubs_add_scalar_ self other |> with_tensor_gc
-let add_scalar_out ~out self other = stubs_add_scalar_out out self other |> with_tensor_gc
-let addbmm self ~batch1 ~batch2 = stubs_addbmm self batch1 batch2 |> with_tensor_gc
-let addbmm_ self ~batch1 ~batch2 = stubs_addbmm_ self batch1 batch2 |> with_tensor_gc
-
-let addbmm_out ~out self ~batch1 ~batch2 =
-  stubs_addbmm_out out self batch1 batch2 |> with_tensor_gc
+let add ?alpha self other =
+  stubs_add
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let addcdiv self ~tensor1 ~tensor2 = stubs_addcdiv self tensor1 tensor2 |> with_tensor_gc
-
-let addcdiv_ self ~tensor1 ~tensor2 =
-  stubs_addcdiv_ self tensor1 tensor2 |> with_tensor_gc
+let add_ ?alpha self other =
+  stubs_add_
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let addcdiv_out ~out self ~tensor1 ~tensor2 =
-  stubs_addcdiv_out out self tensor1 tensor2 |> with_tensor_gc
+let add_out ?alpha ~out self other =
+  stubs_add_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let addcmul self ~tensor1 ~tensor2 = stubs_addcmul self tensor1 tensor2 |> with_tensor_gc
-
-let addcmul_ self ~tensor1 ~tensor2 =
-  stubs_addcmul_ self tensor1 tensor2 |> with_tensor_gc
+let add_scalar ?alpha self other =
+  stubs_add_scalar
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let addcmul_out ~out self ~tensor1 ~tensor2 =
-  stubs_addcmul_out out self tensor1 tensor2 |> with_tensor_gc
+let add_scalar_ ?alpha self other =
+  stubs_add_scalar_
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let addmm self ~mat1 ~mat2 = stubs_addmm self mat1 mat2 |> with_tensor_gc
-let addmm_ self ~mat1 ~mat2 = stubs_addmm_ self mat1 mat2 |> with_tensor_gc
-let addmm_out ~out self ~mat1 ~mat2 = stubs_addmm_out out self mat1 mat2 |> with_tensor_gc
-let addmv self ~mat ~vec = stubs_addmv self mat vec |> with_tensor_gc
-let addmv_ self ~mat ~vec = stubs_addmv_ self mat vec |> with_tensor_gc
-let addmv_out ~out self ~mat ~vec = stubs_addmv_out out self mat vec |> with_tensor_gc
-let addr self ~vec1 ~vec2 = stubs_addr self vec1 vec2 |> with_tensor_gc
-let addr_ self ~vec1 ~vec2 = stubs_addr_ self vec1 vec2 |> with_tensor_gc
-let addr_out ~out self ~vec1 ~vec2 = stubs_addr_out out self vec1 vec2 |> with_tensor_gc
+let add_scalar_out ?alpha ~out self other =
+  stubs_add_scalar_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addbmm ?beta ?alpha self ~batch1 ~batch2 =
+  stubs_addbmm
+    self
+    batch1
+    batch2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addbmm_ ?beta ?alpha self ~batch1 ~batch2 =
+  stubs_addbmm_
+    self
+    batch1
+    batch2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addbmm_out ?beta ?alpha ~out self ~batch1 ~batch2 =
+  stubs_addbmm_out
+    out
+    self
+    batch1
+    batch2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addcdiv ?value self ~tensor1 ~tensor2 =
+  stubs_addcdiv
+    self
+    tensor1
+    tensor2
+    (match value with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addcdiv_ ?value self ~tensor1 ~tensor2 =
+  stubs_addcdiv_
+    self
+    tensor1
+    tensor2
+    (match value with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addcdiv_out ?value ~out self ~tensor1 ~tensor2 =
+  stubs_addcdiv_out
+    out
+    self
+    tensor1
+    tensor2
+    (match value with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addcmul ?value self ~tensor1 ~tensor2 =
+  stubs_addcmul
+    self
+    tensor1
+    tensor2
+    (match value with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addcmul_ ?value self ~tensor1 ~tensor2 =
+  stubs_addcmul_
+    self
+    tensor1
+    tensor2
+    (match value with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addcmul_out ?value ~out self ~tensor1 ~tensor2 =
+  stubs_addcmul_out
+    out
+    self
+    tensor1
+    tensor2
+    (match value with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addmm ?beta ?alpha self ~mat1 ~mat2 =
+  stubs_addmm
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addmm_ ?beta ?alpha self ~mat1 ~mat2 =
+  stubs_addmm_
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addmm_out ?beta ?alpha ~out self ~mat1 ~mat2 =
+  stubs_addmm_out
+    out
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addmv ?beta ?alpha self ~mat ~vec =
+  stubs_addmv
+    self
+    mat
+    vec
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addmv_ ?beta ?alpha self ~mat ~vec =
+  stubs_addmv_
+    self
+    mat
+    vec
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addmv_out ?beta ?alpha ~out self ~mat ~vec =
+  stubs_addmv_out
+    out
+    self
+    mat
+    vec
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addr ?beta ?alpha self ~vec1 ~vec2 =
+  stubs_addr
+    self
+    vec1
+    vec2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addr_ ?beta ?alpha self ~vec1 ~vec2 =
+  stubs_addr_
+    self
+    vec1
+    vec2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let addr_out ?beta ?alpha ~out self ~vec1 ~vec2 =
+  stubs_addr_out
+    out
+    self
+    vec1
+    vec2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
 let adjoint self = stubs_adjoint self |> with_tensor_gc
 
 let affine_grid_generator ~theta ~size ~align_corners =
@@ -7404,10 +7767,13 @@ let arange_start ~start ~end_ ~options =
   |> with_tensor_gc
 ;;
 
-let arange_start_step ~start ~end_ ~options =
+let arange_start_step ?step ~start ~end_ ~options () =
   stubs_arange_start_step
     start
     end_
+    (match step with
+     | Some v -> v
+     | None -> none_scalar)
     (Kind.packed_to_int (fst options))
     (Device.to_int (snd options))
   |> with_tensor_gc
@@ -7937,11 +8303,47 @@ let avg_pool3d_out
   |> with_tensor_gc
 ;;
 
-let baddbmm self ~batch1 ~batch2 = stubs_baddbmm self batch1 batch2 |> with_tensor_gc
-let baddbmm_ self ~batch1 ~batch2 = stubs_baddbmm_ self batch1 batch2 |> with_tensor_gc
+let baddbmm ?beta ?alpha self ~batch1 ~batch2 =
+  stubs_baddbmm
+    self
+    batch1
+    batch2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
-let baddbmm_out ~out self ~batch1 ~batch2 =
-  stubs_baddbmm_out out self batch1 batch2 |> with_tensor_gc
+let baddbmm_ ?beta ?alpha self ~batch1 ~batch2 =
+  stubs_baddbmm_
+    self
+    batch1
+    batch2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let baddbmm_out ?beta ?alpha ~out self ~batch1 ~batch2 =
+  stubs_baddbmm_out
+    out
+    self
+    batch1
+    batch2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
 let bartlett_window ~window_length ~options =
@@ -8774,9 +9176,34 @@ let cdist ~x1 ~x2 ~p ~compute_mode =
 let ceil self = stubs_ceil self |> with_tensor_gc
 let ceil_ self = stubs_ceil_ self |> with_tensor_gc
 let ceil_out ~out self = stubs_ceil_out out self |> with_tensor_gc
-let celu self = stubs_celu self |> with_tensor_gc
-let celu_ self = stubs_celu_ self |> with_tensor_gc
-let celu_out ~out self = stubs_celu_out out self |> with_tensor_gc
+
+let celu ?alpha self =
+  stubs_celu
+    self
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let celu_ ?alpha self =
+  stubs_celu_
+    self
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let celu_out ?alpha ~out self =
+  stubs_celu_out
+    out
+    self
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let chain_matmul ~matrices =
   let result =
@@ -9080,20 +9507,26 @@ let conj_physical self = stubs_conj_physical self |> with_tensor_gc
 let conj_physical_ self = stubs_conj_physical_ self |> with_tensor_gc
 let conj_physical_out ~out self = stubs_conj_physical_out out self |> with_tensor_gc
 
-let constant_pad_nd self ~pad =
+let constant_pad_nd ?value self ~pad =
   stubs_constant_pad_nd
     self
     (List.map Int64.of_int pad |> CArray.of_list int64_t |> CArray.start)
     (List.length pad)
+    (match value with
+     | Some v -> v
+     | None -> none_scalar)
   |> with_tensor_gc
 ;;
 
-let constant_pad_nd_out ~out self ~pad =
+let constant_pad_nd_out ?value ~out self ~pad =
   stubs_constant_pad_nd_out
     out
     self
     (List.map Int64.of_int pad |> CArray.of_list int64_t |> CArray.start)
     (List.length pad)
+    (match value with
+     | Some v -> v
+     | None -> none_scalar)
   |> with_tensor_gc
 ;;
 
@@ -10144,12 +10577,18 @@ let cumsum_out ~out self ~dim ~dtype =
   |> with_tensor_gc
 ;;
 
-let cumulative_trapezoid ~y ~dim =
-  stubs_cumulative_trapezoid y (Int64.of_int dim) |> with_tensor_gc
+let cumulative_trapezoid ~y ~x ~dim =
+  stubs_cumulative_trapezoid y x (Int64.of_int dim) |> with_tensor_gc
 ;;
 
-let cumulative_trapezoid_x ~y ~x ~dim =
-  stubs_cumulative_trapezoid_x y x (Int64.of_int dim) |> with_tensor_gc
+let cumulative_trapezoid_dx ?dx ~y ~dim () =
+  stubs_cumulative_trapezoid_dx
+    y
+    (match dx with
+     | Some v -> v
+     | None -> none_scalar)
+    (Int64.of_int dim)
+  |> with_tensor_gc
 ;;
 
 let data self = stubs_data self |> with_tensor_gc
@@ -10308,8 +10747,28 @@ let diff_out ~out self ~n ~dim ~prepend ~append =
 let digamma self = stubs_digamma self |> with_tensor_gc
 let digamma_ self = stubs_digamma_ self |> with_tensor_gc
 let digamma_out ~out self = stubs_digamma_out out self |> with_tensor_gc
-let dist self other = stubs_dist self other |> with_tensor_gc
-let dist_out ~out self other = stubs_dist_out out self other |> with_tensor_gc
+
+let dist ?p self other =
+  stubs_dist
+    self
+    other
+    (match p with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let dist_out ?p ~out self other =
+  stubs_dist_out
+    out
+    self
+    other
+    (match p with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
 let div self other = stubs_div self other |> with_tensor_gc
 let div_ self other = stubs_div_ self other |> with_tensor_gc
 let div_out ~out self other = stubs_div_out out self other |> with_tensor_gc
@@ -10510,8 +10969,35 @@ let einsum ~equation tensors ~path =
   result
 ;;
 
-let elu self = stubs_elu self |> with_tensor_gc
-let elu_ self = stubs_elu_ self |> with_tensor_gc
+let elu ?alpha ?scale ?input_scale self =
+  stubs_elu
+    self
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+    (match scale with
+     | Some v -> v
+     | None -> none_scalar)
+    (match input_scale with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let elu_ ?alpha ?scale ?input_scale self =
+  stubs_elu_
+    self
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+    (match scale with
+     | Some v -> v
+     | None -> none_scalar)
+    (match input_scale with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let elu_backward ~grad_output ~alpha ~scale ~input_scale ~is_result ~self_or_result =
   stubs_elu_backward
@@ -10544,7 +11030,21 @@ let elu_backward_grad_input
   |> with_tensor_gc
 ;;
 
-let elu_out ~out self = stubs_elu_out out self |> with_tensor_gc
+let elu_out ?alpha ?scale ?input_scale ~out self =
+  stubs_elu_out
+    out
+    self
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+    (match scale with
+     | Some v -> v
+     | None -> none_scalar)
+    (match input_scale with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let embedding ~weight ~indices ~padding_idx ~scale_grad_by_freq ~sparse =
   stubs_embedding
@@ -12602,7 +13102,14 @@ let hann_window_periodic_out ~out ~window_length ~periodic =
   |> with_tensor_gc
 ;;
 
-let hardshrink self = stubs_hardshrink self |> with_tensor_gc
+let hardshrink ?lambd self =
+  stubs_hardshrink
+    self
+    (match lambd with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let hardshrink_backward ~grad_out self ~lambd =
   stubs_hardshrink_backward grad_out self lambd |> with_tensor_gc
@@ -12612,7 +13119,16 @@ let hardshrink_backward_grad_input ~grad_input ~grad_out self ~lambd =
   stubs_hardshrink_backward_grad_input grad_input grad_out self lambd |> with_tensor_gc
 ;;
 
-let hardshrink_out ~out self = stubs_hardshrink_out out self |> with_tensor_gc
+let hardshrink_out ?lambd ~out self =
+  stubs_hardshrink_out
+    out
+    self
+    (match lambd with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
 let hardsigmoid self = stubs_hardsigmoid self |> with_tensor_gc
 let hardsigmoid_ self = stubs_hardsigmoid_ self |> with_tensor_gc
 
@@ -12637,8 +13153,30 @@ let hardswish_backward_out ~out ~grad_output self =
 ;;
 
 let hardswish_out ~out self = stubs_hardswish_out out self |> with_tensor_gc
-let hardtanh self = stubs_hardtanh self |> with_tensor_gc
-let hardtanh_ self = stubs_hardtanh_ self |> with_tensor_gc
+
+let hardtanh ?min_val ?max_val self =
+  stubs_hardtanh
+    self
+    (match min_val with
+     | Some v -> v
+     | None -> none_scalar)
+    (match max_val with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let hardtanh_ ?min_val ?max_val self =
+  stubs_hardtanh_
+    self
+    (match min_val with
+     | Some v -> v
+     | None -> none_scalar)
+    (match max_val with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let hardtanh_backward ~grad_output self ~min_val ~max_val =
   stubs_hardtanh_backward grad_output self min_val max_val |> with_tensor_gc
@@ -12649,7 +13187,19 @@ let hardtanh_backward_grad_input ~grad_input ~grad_output self ~min_val ~max_val
   |> with_tensor_gc
 ;;
 
-let hardtanh_out ~out self = stubs_hardtanh_out out self |> with_tensor_gc
+let hardtanh_out ?min_val ?max_val ~out self =
+  stubs_hardtanh_out
+    out
+    self
+    (match min_val with
+     | Some v -> v
+     | None -> none_scalar)
+    (match max_val with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
 let heaviside self ~values = stubs_heaviside self values |> with_tensor_gc
 let heaviside_ self ~values = stubs_heaviside_ self values |> with_tensor_gc
 
@@ -12666,10 +13216,31 @@ let hinge_embedding_loss self ~target ~margin ~reduction =
   |> with_tensor_gc
 ;;
 
-let histc self ~bins = stubs_histc self (Int64.of_int bins) |> with_tensor_gc
+let histc ?min ?max self ~bins =
+  stubs_histc
+    self
+    (Int64.of_int bins)
+    (match min with
+     | Some v -> v
+     | None -> none_scalar)
+    (match max with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
-let histc_out ~out self ~bins =
-  stubs_histc_out out self (Int64.of_int bins) |> with_tensor_gc
+let histc_out ?min ?max ~out self ~bins =
+  stubs_histc_out
+    out
+    self
+    (Int64.of_int bins)
+    (match min with
+     | Some v -> v
+     | None -> none_scalar)
+    (match max with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
 let hsplit self ~sections = stubs_hsplit self (Int64.of_int sections) |> to_tensor_list
@@ -12781,16 +13352,41 @@ let im2col_out ~out self ~kernel_size ~dilation ~padding ~stride =
 
 let imag self = stubs_imag self |> with_tensor_gc
 
-let index_add self ~dim ~index ~source =
-  stubs_index_add self (Int64.of_int dim) index source |> with_tensor_gc
+let index_add ?alpha self ~dim ~index ~source =
+  stubs_index_add
+    self
+    (Int64.of_int dim)
+    index
+    source
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let index_add_ self ~dim ~index ~source =
-  stubs_index_add_ self (Int64.of_int dim) index source |> with_tensor_gc
+let index_add_ ?alpha self ~dim ~index ~source =
+  stubs_index_add_
+    self
+    (Int64.of_int dim)
+    index
+    source
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let index_add_out ~out self ~dim ~index ~source =
-  stubs_index_add_out out self (Int64.of_int dim) index source |> with_tensor_gc
+let index_add_out ?alpha ~out self ~dim ~index ~source =
+  stubs_index_add_out
+    out
+    self
+    (Int64.of_int dim)
+    index
+    source
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
 let index_copy self ~dim ~index ~source =
@@ -13181,8 +13777,24 @@ let le_scalar_out ~out self other = stubs_le_scalar_out out self other |> with_t
 let le_tensor self other = stubs_le_tensor self other |> with_tensor_gc
 let le_tensor_ self other = stubs_le_tensor_ self other |> with_tensor_gc
 let le_tensor_out ~out self other = stubs_le_tensor_out out self other |> with_tensor_gc
-let leaky_relu self = stubs_leaky_relu self |> with_tensor_gc
-let leaky_relu_ self = stubs_leaky_relu_ self |> with_tensor_gc
+
+let leaky_relu ?negative_slope self =
+  stubs_leaky_relu
+    self
+    (match negative_slope with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let leaky_relu_ ?negative_slope self =
+  stubs_leaky_relu_
+    self
+    (match negative_slope with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let leaky_relu_backward ~grad_output self ~negative_slope ~self_is_result =
   stubs_leaky_relu_backward
@@ -13209,7 +13821,16 @@ let leaky_relu_backward_grad_input
   |> with_tensor_gc
 ;;
 
-let leaky_relu_out ~out self = stubs_leaky_relu_out out self |> with_tensor_gc
+let leaky_relu_out ?negative_slope ~out self =
+  stubs_leaky_relu_out
+    out
+    self
+    (match negative_slope with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
 let lerp self ~end_ ~weight = stubs_lerp self end_ weight |> with_tensor_gc
 let lerp_ self ~end_ ~weight = stubs_lerp_ self end_ weight |> with_tensor_gc
 
@@ -16795,8 +17416,24 @@ let native_layer_norm_out ~out0 ~out1 ~out2 input ~normalized_shape ~weight ~bia
   t0, t1, t2
 ;;
 
-let native_norm self = stubs_native_norm self |> with_tensor_gc
-let native_norm_out ~out self = stubs_native_norm_out out self |> with_tensor_gc
+let native_norm ?p self =
+  stubs_native_norm
+    self
+    (match p with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let native_norm_out ?p ~out self =
+  stubs_native_norm_out
+    out
+    self
+    (match p with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let native_norm_scalaropt_dim_dtype self ~p ~dim ~keepdim ~dtype =
   stubs_native_norm_scalaropt_dim_dtype
@@ -17120,7 +17757,14 @@ let nonzero_static_out ~out self ~size ~fill_value =
   |> with_tensor_gc
 ;;
 
-let norm self = stubs_norm self |> with_tensor_gc
+let norm ?p self =
+  stubs_norm
+    self
+    (match p with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let norm_dtype_out ~out self ~p ~dim ~keepdim ~dtype =
   stubs_norm_dtype_out
@@ -17149,7 +17793,15 @@ let norm_out ~out self ~p ~dim ~keepdim =
   |> with_tensor_gc
 ;;
 
-let norm_scalar_out ~out self = stubs_norm_scalar_out out self |> with_tensor_gc
+let norm_scalar_out ?p ~out self =
+  stubs_norm_scalar_out
+    out
+    self
+    (match p with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let norm_scalaropt_dim self ~p ~dim ~keepdim =
   stubs_norm_scalaropt_dim
@@ -18099,13 +18751,26 @@ let range ~start ~end_ ~options =
   |> with_tensor_gc
 ;;
 
-let range_out ~out ~start ~end_ = stubs_range_out out start end_ |> with_tensor_gc
+let range_out ?step ~out ~start ~end_ () =
+  stubs_range_out
+    out
+    start
+    end_
+    (match step with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
 let range_out_ ~out ~start ~end_ = stubs_range_out_ out start end_ |> with_tensor_gc
 
-let range_step ~start ~end_ ~options =
+let range_step ?step ~start ~end_ ~options () =
   stubs_range_step
     start
     end_
+    (match step with
+     | Some v -> v
+     | None -> none_scalar)
     (Kind.packed_to_int (fst options))
     (Device.to_int (snd options))
   |> with_tensor_gc
@@ -18762,18 +19427,58 @@ let row_stack_out ~out tensors =
   result
 ;;
 
-let rrelu self ~training = stubs_rrelu self (if training then 1 else 0) |> with_tensor_gc
-
-let rrelu_ self ~training =
-  stubs_rrelu_ self (if training then 1 else 0) |> with_tensor_gc
+let rrelu ?lower ?upper self ~training =
+  stubs_rrelu
+    self
+    (match lower with
+     | Some v -> v
+     | None -> none_scalar)
+    (match upper with
+     | Some v -> v
+     | None -> none_scalar)
+    (if training then 1 else 0)
+  |> with_tensor_gc
 ;;
 
-let rrelu_with_noise self ~noise ~training =
-  stubs_rrelu_with_noise self noise (if training then 1 else 0) |> with_tensor_gc
+let rrelu_ ?lower ?upper self ~training =
+  stubs_rrelu_
+    self
+    (match lower with
+     | Some v -> v
+     | None -> none_scalar)
+    (match upper with
+     | Some v -> v
+     | None -> none_scalar)
+    (if training then 1 else 0)
+  |> with_tensor_gc
 ;;
 
-let rrelu_with_noise_ self ~noise ~training =
-  stubs_rrelu_with_noise_ self noise (if training then 1 else 0) |> with_tensor_gc
+let rrelu_with_noise ?lower ?upper self ~noise ~training =
+  stubs_rrelu_with_noise
+    self
+    noise
+    (match lower with
+     | Some v -> v
+     | None -> none_scalar)
+    (match upper with
+     | Some v -> v
+     | None -> none_scalar)
+    (if training then 1 else 0)
+  |> with_tensor_gc
+;;
+
+let rrelu_with_noise_ ?lower ?upper self ~noise ~training =
+  stubs_rrelu_with_noise_
+    self
+    noise
+    (match lower with
+     | Some v -> v
+     | None -> none_scalar)
+    (match upper with
+     | Some v -> v
+     | None -> none_scalar)
+    (if training then 1 else 0)
+  |> with_tensor_gc
 ;;
 
 let rrelu_with_noise_backward
@@ -18818,34 +19523,83 @@ let rrelu_with_noise_backward_out
   |> with_tensor_gc
 ;;
 
-let rrelu_with_noise_functional self ~noise ~training =
+let rrelu_with_noise_functional ?lower ?upper self ~noise ~training =
   let out__ = CArray.make raw_tensor 2 in
   stubs_rrelu_with_noise_functional
     (CArray.start out__)
     self
     noise
+    (match lower with
+     | Some v -> v
+     | None -> none_scalar)
+    (match upper with
+     | Some v -> v
+     | None -> none_scalar)
     (if training then 1 else 0);
   let t0 = CArray.get out__ 0 |> with_tensor_gc in
   let t1 = CArray.get out__ 1 |> with_tensor_gc in
   t0, t1
 ;;
 
-let rrelu_with_noise_out ~out self ~noise ~training =
-  stubs_rrelu_with_noise_out out self noise (if training then 1 else 0) |> with_tensor_gc
+let rrelu_with_noise_out ?lower ?upper ~out self ~noise ~training =
+  stubs_rrelu_with_noise_out
+    out
+    self
+    noise
+    (match lower with
+     | Some v -> v
+     | None -> none_scalar)
+    (match upper with
+     | Some v -> v
+     | None -> none_scalar)
+    (if training then 1 else 0)
+  |> with_tensor_gc
 ;;
 
 let rsqrt self = stubs_rsqrt self |> with_tensor_gc
 let rsqrt_ self = stubs_rsqrt_ self |> with_tensor_gc
 let rsqrt_out ~out self = stubs_rsqrt_out out self |> with_tensor_gc
-let rsub self other = stubs_rsub self other |> with_tensor_gc
-let rsub_scalar self other = stubs_rsub_scalar self other |> with_tensor_gc
 
-let rsub_scalar_out ~out self other =
-  stubs_rsub_scalar_out out self other |> with_tensor_gc
+let rsub ?alpha self other =
+  stubs_rsub
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let rsub_tensor_out ~out self other =
-  stubs_rsub_tensor_out out self other |> with_tensor_gc
+let rsub_scalar ?alpha self other =
+  stubs_rsub_scalar
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let rsub_scalar_out ?alpha ~out self other =
+  stubs_rsub_scalar_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let rsub_tensor_out ?alpha ~out self other =
+  stubs_rsub_tensor_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
 let scalar_tensor ~s ~options =
@@ -19670,7 +20424,17 @@ let softmax_int_out ~out self ~dim ~dtype =
   |> with_tensor_gc
 ;;
 
-let softplus self = stubs_softplus self |> with_tensor_gc
+let softplus ?beta ?threshold self =
+  stubs_softplus
+    self
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match threshold with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let softplus_backward ~grad_output self ~beta ~threshold =
   stubs_softplus_backward grad_output self beta threshold |> with_tensor_gc
@@ -19681,8 +20445,27 @@ let softplus_backward_grad_input ~grad_input ~grad_output self ~beta ~threshold 
   |> with_tensor_gc
 ;;
 
-let softplus_out ~out self = stubs_softplus_out out self |> with_tensor_gc
-let softshrink self = stubs_softshrink self |> with_tensor_gc
+let softplus_out ?beta ?threshold ~out self =
+  stubs_softplus_out
+    out
+    self
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match threshold with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let softshrink ?lambd self =
+  stubs_softshrink
+    self
+    (match lambd with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let softshrink_backward ~grad_output self ~lambd =
   stubs_softshrink_backward grad_output self lambd |> with_tensor_gc
@@ -19692,7 +20475,15 @@ let softshrink_backward_grad_input ~grad_input ~grad_output self ~lambd =
   stubs_softshrink_backward_grad_input grad_input grad_output self lambd |> with_tensor_gc
 ;;
 
-let softshrink_out ~out self = stubs_softshrink_out out self |> with_tensor_gc
+let softshrink_out ?lambd ~out self =
+  stubs_softshrink_out
+    out
+    self
+    (match lambd with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
 let sort self ~dim ~descending =
   let out__ = CArray.make raw_tensor 2 in
@@ -19992,12 +20783,33 @@ let sparse_resize_out ~out self ~size ~sparse_dim ~dense_dim =
   |> with_tensor_gc
 ;;
 
-let sparse_sampled_addmm self ~mat1 ~mat2 =
-  stubs_sparse_sampled_addmm self mat1 mat2 |> with_tensor_gc
+let sparse_sampled_addmm ?beta ?alpha self ~mat1 ~mat2 =
+  stubs_sparse_sampled_addmm
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
-let sparse_sampled_addmm_out ~out self ~mat1 ~mat2 =
-  stubs_sparse_sampled_addmm_out out self mat1 mat2 |> with_tensor_gc
+let sparse_sampled_addmm_out ?beta ?alpha ~out self ~mat1 ~mat2 =
+  stubs_sparse_sampled_addmm_out
+    out
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
 let special_airy_ai ~x = stubs_special_airy_ai x |> with_tensor_gc
@@ -20683,10 +21495,33 @@ let squeeze_dims_ self ~dim =
   |> with_tensor_gc
 ;;
 
-let sspaddmm self ~mat1 ~mat2 = stubs_sspaddmm self mat1 mat2 |> with_tensor_gc
+let sspaddmm ?beta ?alpha self ~mat1 ~mat2 =
+  stubs_sspaddmm
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
 
-let sspaddmm_out ~out self ~mat1 ~mat2 =
-  stubs_sspaddmm_out out self mat1 mat2 |> with_tensor_gc
+let sspaddmm_out ?beta ?alpha ~out self ~mat1 ~mat2 =
+  stubs_sspaddmm_out
+    out
+    self
+    mat1
+    mat2
+    (match beta with
+     | Some v -> v
+     | None -> none_scalar)
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
 ;;
 
 let stack tensors ~dim =
@@ -20915,17 +21750,120 @@ let stft_center
 ;;
 
 let stride self ~dim = stubs_stride self (Int64.of_int dim)
-let sub self other = stubs_sub self other |> with_tensor_gc
-let sub_ self other = stubs_sub_ self other |> with_tensor_gc
-let sub_out ~out self other = stubs_sub_out out self other |> with_tensor_gc
-let sub_scalar self other = stubs_sub_scalar self other |> with_tensor_gc
-let sub_scalar_ self other = stubs_sub_scalar_ self other |> with_tensor_gc
-let sub_scalar_out ~out self other = stubs_sub_scalar_out out self other |> with_tensor_gc
-let subtract self other = stubs_subtract self other |> with_tensor_gc
-let subtract_ self other = stubs_subtract_ self other |> with_tensor_gc
-let subtract_out ~out self other = stubs_subtract_out out self other |> with_tensor_gc
-let subtract_scalar self other = stubs_subtract_scalar self other |> with_tensor_gc
-let subtract_scalar_ self other = stubs_subtract_scalar_ self other |> with_tensor_gc
+
+let sub ?alpha self other =
+  stubs_sub
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let sub_ ?alpha self other =
+  stubs_sub_
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let sub_out ?alpha ~out self other =
+  stubs_sub_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let sub_scalar ?alpha self other =
+  stubs_sub_scalar
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let sub_scalar_ ?alpha self other =
+  stubs_sub_scalar_
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let sub_scalar_out ?alpha ~out self other =
+  stubs_sub_scalar_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let subtract ?alpha self other =
+  stubs_subtract
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let subtract_ ?alpha self other =
+  stubs_subtract_
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let subtract_out ?alpha ~out self other =
+  stubs_subtract_out
+    out
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let subtract_scalar ?alpha self other =
+  stubs_subtract_scalar
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
+let subtract_scalar_ ?alpha self other =
+  stubs_subtract_scalar_
+    self
+    other
+    (match alpha with
+     | Some v -> v
+     | None -> none_scalar)
+  |> with_tensor_gc
+;;
+
 let sum self ~dtype = stubs_sum self (Kind.packed_to_int dtype) |> with_tensor_gc
 
 let sum_dim_intlist self ~dim ~keepdim ~dtype =
@@ -21282,8 +22220,18 @@ let transpose_copy_int_out ~out self ~dim0 ~dim1 =
   |> with_tensor_gc
 ;;
 
-let trapezoid ~y ~dim = stubs_trapezoid y (Int64.of_int dim) |> with_tensor_gc
-let trapezoid_x ~y ~x ~dim = stubs_trapezoid_x y x (Int64.of_int dim) |> with_tensor_gc
+let trapezoid ~y ~x ~dim = stubs_trapezoid y x (Int64.of_int dim) |> with_tensor_gc
+
+let trapezoid_dx ?dx ~y ~dim () =
+  stubs_trapezoid_dx
+    y
+    (match dx with
+     | Some v -> v
+     | None -> none_scalar)
+    (Int64.of_int dim)
+  |> with_tensor_gc
+;;
+
 let trapz ~y ~x ~dim = stubs_trapz y x (Int64.of_int dim) |> with_tensor_gc
 let trapz_dx ~y ~dx ~dim = stubs_trapz_dx y dx (Int64.of_int dim) |> with_tensor_gc
 
