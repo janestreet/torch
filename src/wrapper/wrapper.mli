@@ -31,6 +31,7 @@ module Tensor : sig
 
   val copy_to_bigarray : t -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> unit
   val shape : t -> int list
+  val ndim : t -> int
   val size : t -> int list
   val shape1_exn : t -> int
   val shape2_exn : t -> int * int

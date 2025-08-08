@@ -96,7 +96,7 @@ module C (F : Cstubs.FOREIGN) = struct
 
     let device = foreign "at_device" (gc_tensor @-> returning int)
     let defined = foreign "at_defined" (gc_tensor @-> returning bool)
-    let num_dims = foreign "at_dim" (gc_tensor @-> returning int)
+    let ndim = foreign "at_dim" (gc_tensor @-> returning int)
     let shape = foreign "at_shape" (gc_tensor @-> ptr int (* dims *) @-> returning void)
     let scalar_type = foreign "at_scalar_type" (gc_tensor @-> returning int)
     let use_count = foreign "at_use_count" (gc_tensor @-> returning int)

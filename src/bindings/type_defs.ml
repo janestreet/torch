@@ -15,6 +15,7 @@ let module_ : module_ typ = ptr void
 let aoti_runner_cuda : aoti_runner_cuda typ = ptr void
 let optimizer : optimizer typ = ptr void
 let scalar : scalar typ = ptr void
+let none_scalar = null
 let none_gc_tensor = null
 let is_none_raw_tensor t = is_null t
 let unsafe_gc_tensor_of_unit_ptr t = t

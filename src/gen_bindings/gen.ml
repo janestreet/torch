@@ -127,6 +127,7 @@ module Func = struct
     | TensorOptions (* Tensor kind and device *)
     | Scalar
     | ScalarType
+    | ScalarWithDefault of string
     | Device
     | DeviceOption
     | String
@@ -153,7 +154,7 @@ module Func = struct
     | TensorList -> "t list"
     | TensorOptList -> "t option list"
     | TensorOptions -> "Kind.packed * Device.t"
-    | Scalar -> "'a scalar"
+    | Scalar | ScalarWithDefault _ -> "'a scalar"
     | ScalarType -> "Kind.packed"
     | Device -> "Device.t"
     | DeviceOption -> "Device.t option"
@@ -161,10 +162,22 @@ module Func = struct
     | StringOption -> "string option"
   ;;
 
-  let named_arg arg =
+  let is_named_arg arg =
     match arg.arg_name with
     | "self" | "other" | "result" | "input" | "tensor" | "tensors" -> false
     | _ -> true
+  ;;
+
+  let is_optional_arg arg =
+    match arg.arg_type with
+    | ScalarWithDefault _ -> true
+    | _ -> false
+  ;;
+
+  let move_optional_args_to_front (args : arg list) =
+    (* To avoid unneeded unit argument appends *)
+    let optional_args, nonoptional_args = List.partition_tf args ~f:is_optional_arg in
+    optional_args @ nonoptional_args
   ;;
 
   type t =
@@ -217,7 +230,7 @@ module Func = struct
           | Tensor | TensorOption -> "gc_tensor"
           | ScalarType -> "int"
           | Device | DeviceOption -> "int"
-          | Scalar -> "scalar"
+          | Scalar | ScalarWithDefault _ -> "scalar"
           | String -> "char *"
           | Int64Option
           | DoubleOption
@@ -237,10 +250,14 @@ module Func = struct
     List.map args ~f:(fun { arg_name; arg_type; is_const; _ } ->
       match arg_type, is_const with
       | Scalar, _ -> "*" ^ arg_name
+      | ScalarWithDefault default_value, _ ->
+        [%string "%{arg_name} ? *%{arg_name} : c10::Scalar{%{default_value}} "]
       | Tensor, true -> [%string "tensor_from_ocaml(%{arg_name})"]
       | Tensor, false | TensorOption, false -> [%string "%{arg_name}_local"]
       | TensorOption, _ ->
-        [%string "%{arg_name} ? tensor_from_ocaml(%{arg_name}) : torch::Tensor()"]
+        [%string
+          "%{arg_name} ? std::make_optional(tensor_from_ocaml(%{arg_name})) : \
+           std::nullopt"]
       | Bool, _ -> "(bool)" ^ arg_name
       | IntList, _ -> [%string "torch::IntArrayRef(%{arg_name}_data, %{arg_name}_len)"]
       | IntListOption, _ ->
@@ -328,7 +345,7 @@ module Func = struct
         | TensorOptList | TensorList -> [ "ptr gc_tensor"; "int" ]
         | String -> [ "string" ]
         | StringOption -> [ "string"; "int" ]
-        | Scalar -> [ "scalar" ])
+        | Scalar | ScalarWithDefault _ -> [ "scalar" ])
       |> String.concat ~sep:" @-> "
     in
     let simple_binding args return_type =
@@ -354,10 +371,24 @@ module Func = struct
     Map.find replace_map name |> Option.value ~default:name |> String.lowercase
   ;;
 
+  let needs_unit_append t =
+    List.for_all t.args ~f:(fun arg -> is_named_arg arg || is_optional_arg arg)
+    && List.exists t.args ~f:is_optional_arg
+  ;;
+
   let caml_args t =
-    List.map t.args ~f:(fun arg ->
-      if named_arg arg then "~" ^ caml_name arg.arg_name else caml_name arg.arg_name)
-    |> String.concat ~sep:" "
+    let arg_strings =
+      List.map (move_optional_args_to_front t.args) ~f:(fun arg ->
+        if is_optional_arg arg
+        then "?" ^ caml_name arg.arg_name
+        else if is_named_arg arg
+        then "~" ^ caml_name arg.arg_name
+        else caml_name arg.arg_name)
+    in
+    let arg_strings =
+      if needs_unit_append t then arg_strings @ [ "()" ] else arg_strings
+    in
+    String.concat arg_strings ~sep:" "
   ;;
 
   let caml_keepalive_args t =
@@ -380,6 +411,7 @@ module Func = struct
         | Double
         | String
         | Scalar
+        | ScalarWithDefault _
         | Tensor -> None
         | TensorList | TensorOptList ->
           Some [%string "keep_values_alive %{caml_name arg.arg_name};"])
@@ -431,6 +463,8 @@ module Func = struct
         else [%string "(Int64.of_int %{name})"]
       | TensorOption ->
         [%string "(match %{name} with | Some v -> v | None -> none_gc_tensor)"]
+      | ScalarWithDefault _ ->
+        [%string "(match %{name} with | Some v -> v | None -> none_scalar)"]
       | Double | String | Scalar | Tensor -> name)
     |> String.concat ~sep:" "
   ;;
@@ -516,13 +550,21 @@ let read_yaml filename =
                 Map.find arg "is_nullable"
                 |> Option.value_map ~default:false ~f:extract_bool
               in
-              let has_default_value = Map.find arg "default" |> Option.is_some in
-              match Func.arg_type_of_string arg_type ~is_nullable with
-              | Some Scalar when has_default_value && not is_nullable -> None
-              | Some TensorOptions
-                when has_default_value && Set.mem no_tensor_options name -> None
-              | Some arg_type -> Some { Func.arg_name; arg_type; is_const }
-              | None -> if has_default_value then None else raise Not_a_simple_arg)
+              let default_value = Map.find arg "default" in
+              match Func.arg_type_of_string arg_type ~is_nullable, default_value with
+              | Some Scalar, Some default_value when not is_nullable ->
+                let default_scalar =
+                  default_value |> Yaml.to_string_exn |> String.strip
+                in
+                Some
+                  { Func.arg_name
+                  ; arg_type = Func.ScalarWithDefault default_scalar
+                  ; is_const
+                  }
+              | Some TensorOptions, Some _ when Set.mem no_tensor_options name -> None
+              | Some arg_type, _ -> Some { Func.arg_name; arg_type; is_const }
+              | None, Some _ -> None
+              | None, None -> raise Not_a_simple_arg)
           in
           Some { Func.name; operator_name; overload_name; args; returns; kind }
         with
@@ -703,10 +745,15 @@ let write_wrapper funcs filename =
              (Func.caml_keepalive_args func));
         pm "";
         let intf_args =
-          List.map func.args ~f:(fun arg ->
-            if Func.named_arg arg
+          List.map (Func.move_optional_args_to_front func.args) ~f:(fun arg ->
+            if Func.is_optional_arg arg
+            then [%string "?%{Func.caml_name arg.arg_name}:%{Func.ml_arg_type arg}"]
+            else if Func.is_named_arg arg
             then [%string "%{Func.caml_name arg.arg_name}:%{Func.ml_arg_type arg}"]
             else Func.ml_arg_type arg)
+        in
+        let intf_args =
+          if Func.needs_unit_append func then intf_args @ [ "unit" ] else intf_args
         in
         let intf_arg_str =
           if List.is_empty intf_args

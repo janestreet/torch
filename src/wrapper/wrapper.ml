@@ -105,12 +105,13 @@ module Tensor = struct
   ;;
 
   let shape t =
-    let num_dims = num_dims t in
+    let num_dims = ndim t in
     let carray = CArray.make int num_dims in
     shape t (CArray.start carray);
     CArray.to_list carray
   ;;
 
+  let ndim = ndim
   let size = shape
 
   let unexpected_shape shape =
