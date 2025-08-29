@@ -1,0 +1,43 @@
+(library
+ (foreign_stubs
+  (language cxx)
+  (names torch_api)
+  (flags
+   -std=c++17
+   -fPIC
+   (:include cxx_flags.sexp)))
+ (name torch_refcounted_core)
+ (public_name torch.refcounted.core)
+ (c_library_flags :standard -lstdc++)
+ (flags
+  :standard
+  (:include flags.sexp))
+ (foreign_stubs
+  (language c)
+  (names torch_stubs torch_refcounted_stubs_generated)
+  (flags :standard -Wno-discarded-qualifiers -Wno-incompatible-pointer-types)
+  (extra_deps torch_refcounted_api_generated.h
+    torch_refcounted_api_generated.cpp))
+ (libraries core ctypes.foreign ctypes torch_local_iterators
+   torch_refcounted_bindings torch_wrapper_types)
+ (preprocess
+  (pps ppx_jane)))
+
+(rule
+ (targets ocaml_runtime_props.h)
+ (deps)
+ (action
+  (bash "echo \"#define OCAML_DEPENDENT_MEM_TRACKING false\" > %{targets}")))
+
+(rule
+ (targets cxx_flags.sexp flags.sexp)
+ (deps ../config/discover.exe)
+ (action
+  (bash %{deps})))
+
+(rule
+ (targets torch_refcounted_stubs_generated.c
+   torch_refcounted_stubs_generated.ml)
+ (deps ../gen_stubs/gen_stubs.exe)
+ (action
+  (bash "./%{deps} -refcounted true")))

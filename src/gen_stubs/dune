@@ -1,6 +1,7 @@
 (executables
  (modes byte exe)
  (names gen_stubs)
- (libraries ctypes.stubs torch_bindings)
+ (libraries core.command core_unix.command_unix ctypes.stubs torch_bindings
+   torch_refcounted_bindings)
  (preprocess
-  (pps ppx_string)))
+  (pps ppx_let ppx_string)))

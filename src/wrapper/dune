@@ -17,7 +17,8 @@
   (names torch_stubs torch_stubs_generated)
   (flags :standard -Wno-discarded-qualifiers -Wno-incompatible-pointer-types)
   (extra_deps torch_api_generated.h torch_api_generated.cpp))
- (libraries ctypes.foreign ctypes torch_bindings)
+ (libraries base_bigstring ctypes.foreign ctypes torch_bindings
+   torch_wrapper_types)
  (preprocess
   (pps ppx_jane)))
 

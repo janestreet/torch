@@ -3,6 +3,7 @@
 open Ctypes
 open Torch_bindings.Type_defs
 open Torch_stubs
+open Torch_wrapper_types
 open Wrapper_utils
 open C.Generated
 

@@ -10,6 +10,14 @@ module C (F : Cstubs.FOREIGN) = struct
   let get_num_threads = foreign "at_get_num_threads" (void @-> returning int)
   let set_num_threads = foreign "at_set_num_threads" (int @-> returning void)
 
+  let record_memory_history =
+    foreign "torch_record_memory_history" (void @-> returning void)
+  ;;
+
+  let save_memory_snapshot_pickled =
+    foreign "torch_save_memory_snapshot_pickled" (string @-> returning void)
+  ;;
+
   module Tensor = struct
     let new_tensor = foreign "at_new_tensor" (void @-> returning raw_tensor)
 
@@ -51,7 +59,19 @@ module C (F : Cstubs.FOREIGN) = struct
          @-> ptr void
          (* data *)
          @-> int64_t
-         (* max_size *)
+         (* data length *)
+         @-> returning void)
+    ;;
+
+    let copy_from_bytes =
+      foreign
+        "at_copy_from_bytes"
+        (gc_tensor
+         (* tensor *)
+         @-> ptr void
+         (* data *)
+         @-> int64_t
+         (* data length *)
          @-> returning void)
     ;;
 

@@ -17,3 +17,4 @@ module Serialize = Serialize
 module Tensor = Tensor
 module Text_helper = Text_helper
 module Var_store = Var_store
+module Profiling = Profiling

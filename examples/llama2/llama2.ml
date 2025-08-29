@@ -340,24 +340,33 @@ let transformer vs ~model_args =
 ;;
 
 let sample ~transformer ~dataset ~device =
+  let sample_start_time = Core.Time_ns.now () in
   let input = Tensor.zeros [ 1; block_size ] ~kind:(T Int64) ~device in
-  List.init sampling_length ~f:Fn.id
-  |> List.fold_map ~init:input ~f:(fun input _idx ->
-    Stdlib.Gc.full_major ();
-    let logits = Layer.forward transformer input |> Tensor.select ~dim:1 ~index:(-1) in
-    let logits = Tensor.(logits / f temperature) in
-    let sampled_y =
-      Tensor.softmax logits ~dim:(-1) ~dtype:(T Float)
-      |> Tensor.multinomial ~num_samples:1 ~replacement:true
-    in
-    let sampled_char = Text_helper.char dataset ~label:(Tensor.int_value sampled_y) in
-    let input =
-      Tensor.cat [ input; Tensor.view sampled_y ~size:[ 1; 1 ] ] ~dim:1
-      |> Tensor.narrow ~dim:1 ~start:1 ~length:block_size
-    in
-    input, sampled_char)
-  |> snd
-  |> String.of_char_list
+  let output =
+    List.init sampling_length ~f:Fn.id
+    |> List.fold_map ~init:input ~f:(fun input _idx ->
+      Stdlib.Gc.full_major ();
+      let logits = Layer.forward transformer input |> Tensor.select ~dim:1 ~index:(-1) in
+      let logits = Tensor.(logits / f temperature) in
+      let sampled_y =
+        Tensor.softmax logits ~dim:(-1) ~dtype:(T Float)
+        |> Tensor.multinomial ~num_samples:1 ~replacement:true
+      in
+      let input =
+        Tensor.cat [ input; Tensor.view sampled_y ~size:[ 1; 1 ] ] ~dim:1
+        |> Tensor.narrow ~dim:1 ~start:1 ~length:block_size
+      in
+      input, sampled_y)
+    |> snd
+    |> List.map ~f:(fun sampled_y ->
+      Text_helper.char dataset ~label:(Tensor.int_value sampled_y))
+    |> String.of_char_list
+  in
+  let sample_elapsed_time_ms =
+    Core.Time_ns.diff (Core.Time_ns.now ()) sample_start_time |> Core.Time_ns.Span.to_ms
+  in
+  Stdio.printf "sampling took %f ms\n" sample_elapsed_time_ms;
+  output
 ;;
 
 let train vs ~transformer ~dataset =

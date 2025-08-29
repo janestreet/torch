@@ -88,13 +88,128 @@ let%expect_test "copy_to_bigstring works" =
     |> Tensor.of_bigarray
   in
   let dst = Bigarray.Array1.create Bigarray.char Bigarray.c_layout n_bytes in
-  Tensor.copy_to_bigstring ~src ~dst ~dst_pos:0;
+  Tensor.copy_to_bigstring ~src ~dst ~dst_pos:0 ~dst_len:n_bytes;
   let dst_array = Array.init n_bytes ~f:(fun _ -> Char.of_int_exn 0) in
   for i = 0 to n_bytes - 1 do
     Array.set dst_array i (Bigarray.Array1.get dst i)
   done;
   Stdio.print_endline (String.of_array dst_array);
-  [%expect {| (^._.^)__/ |}]
+  [%expect {| (^._.^)__/ |}];
+  (* demonstrate that it works with a more complicated tensor and puts the floats in
+     the right order *)
+  let col1 = Tensor.of_float1 [| 1.; 3. |] in
+  let col2 = Tensor.of_float1 [| 2.; 4. |] in
+  let src = Tensor.stack [ col1; col2 ] ~dim:1 in
+  let dst = Bigarray.Array1.create Bigarray.char Bigarray.c_layout 16 in
+  Tensor.copy_to_bigstring ~src ~dst ~dst_pos:0 ~dst_len:16;
+  for i = 0 to Bigarray.Array1.dim dst - 1 do
+    Stdio.printf "%02x" (Char.to_int (Bigarray.Array1.get dst i))
+  done;
+  (* this is what we expect:
+     >>> base64.b16encode(struct.pack("ffff", 1., 2., 3., 4.)).lower().decode("ascii")
+     '0000803f000000400000404000008040'
+  *)
+  [%expect {| 0000803f000000400000404000008040 |}]
+;;
+
+let%expect_test "copy_to_bigstring validates pos/len and fails cleanly" =
+  let tensor = Tensor.of_int1 [| 0x2323232323232323; 0x2424242424242424 |] in
+  let dst = Bigarray.Array1.create Bigarray.char Bigarray.c_layout 16 in
+  (* this works *)
+  Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:0 ~dst_len:16;
+  for i = 0 to Bigarray.Array1.dim dst - 1 do
+    Stdio.printf "%c" (Bigarray.Array1.get dst i)
+  done;
+  [%expect {| ########$$$$$$$$ |}];
+  (* this also works *)
+  let dst = Bigarray.Array1.init Bigarray.char Bigarray.c_layout 20 (fun _ -> '.') in
+  Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:0 ~dst_len:16;
+  for i = 0 to Bigarray.Array1.dim dst - 1 do
+    Stdio.printf "%c" (Bigarray.Array1.get dst i)
+  done;
+  [%expect {| ########$$$$$$$$.... |}];
+  (* these are correctly rejected *)
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:10 ~dst_len:16);
+  [%expect {| (raised (Invalid_argument "pos + len past end: 10 + 16 > 20")) |}];
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:10 ~dst_len:10);
+  [%expect
+    {| (raised (Failure "bytes is not the correct length for this tensor: 16 != 10")) |}];
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:2 ~dst_len:5);
+  [%expect
+    {| (raised (Failure "bytes is not the correct length for this tensor: 16 != 5")) |}];
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:(-1) ~dst_len:16);
+  [%expect {| (raised (Invalid_argument "Negative position: -1")) |}];
+  (* these are completely illegal, and crucially don't segv *)
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:(-1) ~dst_len:16);
+  [%expect {| (raised (Invalid_argument "Negative position: -1")) |}];
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:100 ~dst_len:16);
+  [%expect {| (raised (Invalid_argument "pos + len past end: 100 + 16 > 20")) |}]
+;;
+
+let%expect_test "copy_from_bigstring works" =
+  let bigstring_of_string str =
+    Bigarray.Array1.init
+      Bigarray.char
+      Bigarray.c_layout
+      (String.length str)
+      (String.get str)
+  in
+  let src = bigstring_of_string "\x01\x00\x00\x00\x02\x00\x00\x00" in
+  let dst = Tensor.zeros ~kind:(T Int) [ 2 ] in
+  Tensor.copy_from_bigstring ~src ~src_pos:0 ~src_len:8 ~dst;
+  Stdio.printf !"%{sexp:int array}\n" (Tensor.to_int1_exn dst);
+  [%expect {| (1 2) |}];
+  (* demonstrate that it works with a more complicated tensor (which just gets
+     overwritten) *)
+  let col1 = Tensor.zeros ~kind:(T Int) [ 2 ] in
+  let col2 = Tensor.zeros ~kind:(T Int) [ 2 ] in
+  let src =
+    bigstring_of_string "\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00"
+  in
+  let dst = Tensor.stack [ col1; col2 ] ~dim:1 in
+  Tensor.copy_from_bigstring ~src ~src_pos:0 ~src_len:16 ~dst;
+  Stdio.printf !"%{sexp:int array array}\n" (Tensor.to_int2_exn dst);
+  [%expect {| ((5 6) (7 8)) |}]
+;;
+
+let%expect_test "copy_from_bigstring validates pos/len and fails cleanly" =
+  let bytes = "\xff\xff\x01\x00\x00\x00\x02\x00\x00\x00" in
+  let src =
+    Bigarray.Array1.init
+      Bigarray.char
+      Bigarray.c_layout
+      (String.length bytes)
+      (String.get bytes)
+  in
+  let dst = Tensor.zeros ~kind:(T Int) [ 2 ] in
+  (* this works fine *)
+  Tensor.copy_from_bigstring ~src ~src_pos:2 ~src_len:8 ~dst;
+  Stdio.printf !"%{sexp:int array}\n" (Tensor.to_int1_exn dst);
+  [%expect {| (1 2) |}];
+  (* these are correctly rejected (and crucially don't segv) *)
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_from_bigstring ~src ~src_pos:1 ~src_len:9 ~dst);
+  [%expect
+    {| (raised (Failure "bytes is not the correct length for this tensor: 8 != 9")) |}];
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_from_bigstring ~src ~src_pos:5 ~src_len:5 ~dst);
+  [%expect
+    {| (raised (Failure "bytes is not the correct length for this tensor: 8 != 5")) |}];
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_from_bigstring ~src ~src_pos:5 ~src_len:8 ~dst);
+  [%expect {| (raised (Invalid_argument "pos + len past end: 5 + 8 > 10")) |}];
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_from_bigstring ~src ~src_pos:16 ~src_len:8 ~dst);
+  [%expect {| (raised (Invalid_argument "pos + len past end: 16 + 8 > 10")) |}];
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_from_bigstring ~src ~src_pos:(-1) ~src_len:8 ~dst);
+  [%expect {| (raised (Invalid_argument "Negative position: -1")) |}]
 ;;
 
 let%expect_test _ =

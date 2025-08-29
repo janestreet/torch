@@ -92,7 +92,7 @@ let () =
     let files = Arg.(value & (pos_all file) [] & info [] ~docv:"FILE") in
     let doc = "list tensors in Npz/PyTorch files" in
     let man = [ `S "DESCRIPTION"; `P "List all the tensors in Npz and PyTorch files." ] in
-    Term.(const ls $ files), Cmd.info "ls" ~sdocs:"" ~doc ~man
+    Term.(const ls $$ files), Cmd.info "ls" ~sdocs:"" ~doc ~man
   in
   let npz_to_pytorch_cmd =
     let npz_src =
@@ -107,7 +107,7 @@ let () =
     in
     let doc = "convert a Npz file to PyTorch" in
     let man = [ `S "DESCRIPTION"; `P "Convert a Npz file to a PyTorch file" ] in
-    ( Term.(const npz_to_pytorch $ npz_src $ pytorch_dst)
+    ( Term.(const npz_to_pytorch $$ npz_src $$ pytorch_dst)
     , Cmd.info "npz-to-pytorch" ~sdocs:"" ~doc ~man )
   in
   let image_to_tensor =
@@ -134,7 +134,7 @@ let () =
     in
     let doc = "convert an image file to a PyTorch Tensor" in
     let man = [ `S "DESCRIPTION"; `P doc ] in
-    ( Term.(const image_to_tensor $ image_src $ pytorch_dst $ resize)
+    ( Term.(const image_to_tensor $$ image_src $$ pytorch_dst $$ resize)
     , Cmd.info "image-to-tensor" ~sdocs:"" ~doc ~man )
   in
   let pytorch_to_npz_cmd =
@@ -152,7 +152,7 @@ let () =
     in
     let doc = "convert a PyTorch file to Npz" in
     let man = [ `S "DESCRIPTION"; `P "Convert a PyTorch file to a Npz file" ] in
-    ( Term.(const pytorch_to_npz $ pytorch_src $ npz_dst)
+    ( Term.(const pytorch_to_npz $$ pytorch_src $$ npz_dst)
     , Cmd.info "pytorch-to-npz" ~sdocs:"" ~doc ~man )
   in
   let load_module_command =
@@ -165,7 +165,7 @@ let () =
     let doc =
       "load a dummy.pt (from save_dummy_model.py) module on a specific device and run it"
     in
-    Term.(const load_and_run_dummy_module $ device), Cmd.info "load-module" ~doc
+    Term.(const load_and_run_dummy_module $$ device), Cmd.info "load-module" ~doc
   in
   let default_cmd = Term.(ret (const (`Help (`Pager, None)))) in
   let info =
