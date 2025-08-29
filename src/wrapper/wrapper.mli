@@ -3,6 +3,8 @@ open Base
 val manual_seed : int -> unit
 val set_num_threads : int -> unit
 val get_num_threads : unit -> int
+val record_memory_history : unit -> unit
+val save_memory_snapshot_pickled : output_filename:string -> unit
 
 module Scalar : sig
   type _ t
@@ -23,10 +25,29 @@ module Tensor : sig
   val int_vec : ?kind:[ `int | `int16 | `int64 | `int8 | `uint8 ] -> int list -> t
   val of_bigarray : (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> t
 
+  (** Both of the below copy functions lay out tensor memory contiguously in the
+      bigstring, ignoring the strides of the underlying tensor.
+
+      The copy is performed to/from the window of the bigstring described by the
+      [src_pos]/[dst_pos] and [src_len]/[dst_len] arguments, similar to [Bigstring.blit].
+
+      The length of the window described by [src_len]/[dst_len] is in bytes (matching
+      other bigstring APIs) and must be precisely the number of bytes required to copy the
+      provided tensor. To that extent, the argument is somewhat redundant. However, it
+      exists to make sure mistakes are not silently ignored. *)
+
   val copy_to_bigstring
     :  src:t
     -> dst:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
     -> dst_pos:int
+    -> dst_len:int
+    -> unit
+
+  val copy_from_bigstring
+    :  src:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+    -> src_pos:int
+    -> src_len:int
+    -> dst:t
     -> unit
 
   val copy_to_bigarray : t -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> unit
@@ -37,7 +58,7 @@ module Tensor : sig
   val shape2_exn : t -> int * int
   val shape3_exn : t -> int * int * int
   val shape4_exn : t -> int * int * int * int
-  val kind : t -> Kind.packed
+  val kind : t -> Torch_wrapper_types.Kind.packed
   val requires_grad : t -> bool
   val grad_set_enabled : bool -> bool
 
@@ -65,7 +86,7 @@ module Tensor : sig
   val mean : t -> t
   val argmax : ?dim:int -> ?keepdim:bool -> t -> t
   val defined : t -> bool
-  val device : t -> Device.t
+  val device : t -> Torch_wrapper_types.Device.t
 
   (* Note: copy_ is effectively memcpy, so that src and dst must have same the shape,
      whereas set_data will point the dst data to wherever src.data is. *)
@@ -172,8 +193,8 @@ end
 module Module : sig
   type t
 
-  val load : ?device:Device.t -> string -> t
-  val load_str : ?device:Device.t -> string -> t
+  val load : ?device:Torch_wrapper_types.Device.t -> string -> t
+  val load_str : ?device:Torch_wrapper_types.Device.t -> string -> t
   val forward : t -> Tensor.t list -> Tensor.t
   val forward_ : t -> Ivalue.t list -> Ivalue.t
   val named_buffers : t -> (string, Tensor.t, String.comparator_witness) Base.Map.t
@@ -194,7 +215,7 @@ module Aoti_runner_cuda : sig
         (default: 1) *)
   val load
     :  ?max_concurrent_executions:int
-    -> device:Device.t
+    -> device:Torch_wrapper_types.Device.t
     -> cubin_dir:string
     -> so_path:string
     -> unit

@@ -1,0 +1,4 @@
+open Torch_core
+
+let record_memory_history = Wrapper.record_memory_history
+let save_memory_snapshot_pickled = Wrapper.save_memory_snapshot_pickled

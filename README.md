@@ -5,7 +5,10 @@ differentiation.
 
 These bindings use the [PyTorch C++ API](https://pytorch.org/cppdocs/) and are
 mostly automatically generated.
-The current GitHub tip corresponds to PyTorch **v2.3**.
+The current GitHub tip corresponds to PyTorch **v2.7**.
+
+The library uses a custom refcounting mechanism to get deterministic memory management. It
+is explained in the [refcounting tutorial](./rc_tutorial.md).
 
 ## Installation with Libtorch
 
@@ -95,6 +98,7 @@ not work on macos).
 * [Character-level RNN](./examples/char_rnn/README.md)
 * [Neural Style Transfer](./examples/neural_transfer/README.md)
 * [Reinforcement Learning](./examples/reinforcement-learning/README.md)
+* [Llama 2](./examples/llama2/README.md) (or [with refcounting](./examples/refcounted/llama2/README.md))
 
 Some more advanced applications from external repos:
 

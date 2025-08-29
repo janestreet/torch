@@ -74,3 +74,22 @@ let of_int_exn = function
 ;;
 
 let ( <> ) packed1 packed2 = packed_to_int packed1 <> packed_to_int packed2
+
+let size_in_bytes = function
+  | T Uint8 -> 1
+  | T Int8 -> 1
+  | T Int16 -> 2
+  | T Int -> 4
+  | T Int64 -> 8
+  | T Half -> 2
+  | T Float -> 4
+  | T Double -> 8
+  | T ComplexHalf -> 4
+  | T ComplexFloat -> 8
+  | T ComplexDouble -> 16
+  | T Bool -> 1
+  | T QInt8 -> 1
+  | T QUInt8 -> 1
+  | T QInt32 -> 4
+  | T BFloat16 -> 2
+;;

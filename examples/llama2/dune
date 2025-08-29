@@ -1,6 +1,6 @@
 (executables
  (modes byte exe)
  (names llama2)
- (libraries stdio torch unix)
+ (libraries core stdio torch unix)
  (preprocess
   (pps ppx_jane)))
