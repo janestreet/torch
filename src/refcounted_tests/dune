@@ -1,0 +1,8 @@
+(library
+ (name torch_refcount_tests)
+ (libraries core core_unix ctypes
+   expect_test_helpers_core.expect_test_helpers_base stdio
+   torch_local_iterators torch_refcounted torch_refcounted_bindings
+   torch_refcounted_core)
+ (preprocess
+  (pps ppx_jane)))

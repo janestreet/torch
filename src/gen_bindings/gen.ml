@@ -4,9 +4,17 @@
 open Base
 open Stdio
 
-let cpp_filename = "torch_api_generated"
-let bindings_filename = "torch_bindings_generated.ml"
-let wrapper_filename = "wrapper_generated"
+let cpp_filename ~refcounted =
+  "torch_" ^ (if refcounted then "refcounted_" else "") ^ "api_generated"
+;;
+
+let bindings_filename ~refcounted =
+  "torch_" ^ (if refcounted then "refcounted_" else "") ^ "bindings_generated.ml"
+;;
+
+let wrapper_filename ~refcounted =
+  "wrapper_generated" ^ if refcounted then "_refcounted" else ""
+;;
 
 let excluded_functions =
   Set.of_list
@@ -110,6 +118,26 @@ let extract_string = function
   | yaml -> yaml_error yaml ~msg:"expected string"
 ;;
 
+let append_local_mode_if_refcounted
+  ?(wrap_input_in_parens = false)
+  ?(wrap_output_in_parens = false)
+  text
+  ~refcounted
+  =
+  if refcounted
+  then (
+    let text = if wrap_input_in_parens then "(" ^ text ^ ")" else text in
+    let text = text ^ " @ local" in
+    if wrap_output_in_parens then "(" ^ text ^ ")" else text)
+  else text
+;;
+
+let list_length_function ~refcounted =
+  (* [Base.List.length] accepts local lists, which we have in the refcounted
+    implementation *)
+  if refcounted then "Base.List.length" else "List.length"
+;;
+
 module Func = struct
   type arg_type =
     | Bool
@@ -127,6 +155,7 @@ module Func = struct
     | TensorOptions (* Tensor kind and device *)
     | Scalar
     | ScalarType
+    | ScalarWithDefault of string
     | Device
     | DeviceOption
     | String
@@ -138,22 +167,22 @@ module Func = struct
     ; is_const : bool
     }
 
-  let ml_arg_type arg =
+  let ml_arg_type arg ~refcounted =
     match arg.arg_type with
     | Bool -> "bool"
     | Int64 -> if String.( = ) arg.arg_name "reduction" then "Reduction.t" else "int"
     | Int64Option -> "int option"
     | Double -> "float"
     | DoubleOption -> "float option"
-    | Tensor -> "t"
-    | TensorOption -> "t option"
+    | Tensor -> "t" |> append_local_mode_if_refcounted ~refcounted
+    | TensorOption -> "t option" |> append_local_mode_if_refcounted ~refcounted
     | IntList -> "int list"
     | IntListOption -> "int list option"
     | DoubleList -> "float list"
-    | TensorList -> "t list"
-    | TensorOptList -> "t option list"
+    | TensorList -> "t list" |> append_local_mode_if_refcounted ~refcounted
+    | TensorOptList -> "t option list" |> append_local_mode_if_refcounted ~refcounted
     | TensorOptions -> "Kind.packed * Device.t"
-    | Scalar -> "'a scalar"
+    | Scalar | ScalarWithDefault _ -> "'a scalar"
     | ScalarType -> "Kind.packed"
     | Device -> "Device.t"
     | DeviceOption -> "Device.t option"
@@ -161,10 +190,22 @@ module Func = struct
     | StringOption -> "string option"
   ;;
 
-  let named_arg arg =
+  let is_named_arg arg =
     match arg.arg_name with
     | "self" | "other" | "result" | "input" | "tensor" | "tensors" -> false
     | _ -> true
+  ;;
+
+  let is_optional_arg arg =
+    match arg.arg_type with
+    | ScalarWithDefault _ -> true
+    | _ -> false
+  ;;
+
+  let move_optional_args_to_front (args : arg list) =
+    (* To avoid unneeded unit argument appends *)
+    let optional_args, nonoptional_args = List.partition_tf args ~f:is_optional_arg in
+    optional_args @ nonoptional_args
   ;;
 
   type t =
@@ -217,7 +258,7 @@ module Func = struct
           | Tensor | TensorOption -> "gc_tensor"
           | ScalarType -> "int"
           | Device | DeviceOption -> "int"
-          | Scalar -> "scalar"
+          | Scalar | ScalarWithDefault _ -> "scalar"
           | String -> "char *"
           | Int64Option
           | DoubleOption
@@ -237,10 +278,14 @@ module Func = struct
     List.map args ~f:(fun { arg_name; arg_type; is_const; _ } ->
       match arg_type, is_const with
       | Scalar, _ -> "*" ^ arg_name
+      | ScalarWithDefault default_value, _ ->
+        [%string "%{arg_name} ? *%{arg_name} : c10::Scalar{%{default_value}} "]
       | Tensor, true -> [%string "tensor_from_ocaml(%{arg_name})"]
       | Tensor, false | TensorOption, false -> [%string "%{arg_name}_local"]
       | TensorOption, _ ->
-        [%string "%{arg_name} ? tensor_from_ocaml(%{arg_name}) : torch::Tensor()"]
+        [%string
+          "%{arg_name} ? std::make_optional(tensor_from_ocaml(%{arg_name})) : \
+           std::nullopt"]
       | Bool, _ -> "(bool)" ^ arg_name
       | IntList, _ -> [%string "torch::IntArrayRef(%{arg_name}_data, %{arg_name}_len)"]
       | IntListOption, _ ->
@@ -328,7 +373,7 @@ module Func = struct
         | TensorOptList | TensorList -> [ "ptr gc_tensor"; "int" ]
         | String -> [ "string" ]
         | StringOption -> [ "string"; "int" ]
-        | Scalar -> [ "scalar" ])
+        | Scalar | ScalarWithDefault _ -> [ "scalar" ])
       |> String.concat ~sep:" @-> "
     in
     let simple_binding args return_type =
@@ -354,42 +399,67 @@ module Func = struct
     Map.find replace_map name |> Option.value ~default:name |> String.lowercase
   ;;
 
-  let caml_args t =
-    List.map t.args ~f:(fun arg ->
-      if named_arg arg then "~" ^ caml_name arg.arg_name else caml_name arg.arg_name)
-    |> String.concat ~sep:" "
+  let needs_unit_append t =
+    List.for_all t.args ~f:(fun arg -> is_named_arg arg || is_optional_arg arg)
+    && List.exists t.args ~f:is_optional_arg
   ;;
 
-  let caml_keepalive_args t =
-    let filtered =
-      List.filter_map t.args ~f:(fun arg ->
-        match arg.arg_type with
-        | IntList
-        | IntListOption
-        | Int64Option
-        | DoubleOption
-        | StringOption
-        | DoubleList
-        | Bool
-        | ScalarType
-        | TensorOptions
-        | Device
-        | DeviceOption
-        | Int64
-        | TensorOption
-        | Double
-        | String
-        | Scalar
-        | Tensor -> None
-        | TensorList | TensorOptList ->
-          Some [%string "keep_values_alive %{caml_name arg.arg_name};"])
+  let caml_args t ~refcounted =
+    let arg_strings =
+      List.map (move_optional_args_to_front t.args) ~f:(fun arg ->
+        let annotated_name =
+          match arg.arg_type with
+          | Tensor | TensorOption | TensorOptList | TensorList ->
+            caml_name arg.arg_name
+            |> append_local_mode_if_refcounted ~refcounted ~wrap_output_in_parens:true
+          | _ -> caml_name arg.arg_name
+        in
+        if is_optional_arg arg
+        then "?" ^ annotated_name
+        else if is_named_arg arg
+        then "~" ^ annotated_name
+        else caml_name annotated_name)
     in
-    match filtered with
-    | [] -> None
-    | l -> Some (String.concat l ~sep:" ")
+    let arg_strings =
+      if needs_unit_append t then arg_strings @ [ "()" ] else arg_strings
+    in
+    String.concat arg_strings ~sep:" "
   ;;
 
-  let caml_binding_args t =
+  let caml_keepalive_args t ~refcounted =
+    if refcounted
+    then None
+    else (
+      let filtered =
+        List.filter_map t.args ~f:(fun arg ->
+          match arg.arg_type with
+          | IntList
+          | IntListOption
+          | Int64Option
+          | DoubleOption
+          | StringOption
+          | DoubleList
+          | Bool
+          | ScalarType
+          | TensorOptions
+          | Device
+          | DeviceOption
+          | Int64
+          | TensorOption
+          | Double
+          | String
+          | Scalar
+          | ScalarWithDefault _
+          | Tensor -> None
+          | TensorList | TensorOptList ->
+            Some [%string "keep_values_alive %{caml_name arg.arg_name};"])
+      in
+      match filtered with
+      | [] -> None
+      | l -> Some (String.concat l ~sep:" "))
+  ;;
+
+  let caml_binding_args t ~refcounted =
     List.map t.args ~f:(fun arg ->
       let name = caml_name arg.arg_name in
       match arg.arg_type with
@@ -413,12 +483,20 @@ module Func = struct
         [%string
           {|(%{name} |> CArray.of_list double |> CArray.start) (List.length %{name})|}]
       | TensorList ->
+        let converted_list_arg =
+          if refcounted then [%string "(globalize_gc_tensor_list %{name})"] else name
+        in
         [%string
-          "(CArray.of_list gc_tensor %{name} |> CArray.start) (List.length %{name})"]
+          "(CArray.of_list gc_tensor %{converted_list_arg} |> CArray.start) \
+           (%{list_length_function ~refcounted} %{name})"]
       | TensorOptList ->
+        let converted_list_arg =
+          if refcounted then [%string "(globalize_gc_tensor_opt_list %{name})"] else name
+        in
         [%string
-          "(List.map (function Some x -> x | None -> none_gc_tensor) %{name} |> \
-           CArray.of_list gc_tensor |> CArray.start) (List.length %{name})"]
+          "(List.map (function Some x -> x | None -> none_gc_tensor) \
+           %{converted_list_arg} |> CArray.of_list gc_tensor |> CArray.start) \
+           (%{list_length_function ~refcounted} %{name})"]
       | Bool -> [%string "(if %{name} then 1 else 0)"]
       | ScalarType -> [%string "(Kind.packed_to_int %{name})"]
       | TensorOptions ->
@@ -430,8 +508,16 @@ module Func = struct
         then "(Reduction.to_int reduction |> Int64.of_int)"
         else [%string "(Int64.of_int %{name})"]
       | TensorOption ->
-        [%string "(match %{name} with | Some v -> v | None -> none_gc_tensor)"]
-      | Double | String | Scalar | Tensor -> name)
+        if refcounted
+        then
+          [%string
+            "(match (Base.Option.globalize globalize_gc_tensor %{name}) with | Some v -> \
+             v | None -> none_gc_tensor)"]
+        else [%string "(match %{name} with | Some v -> v | None -> none_gc_tensor)"]
+      | ScalarWithDefault _ ->
+        [%string "(match %{name} with | Some v -> v | None -> none_scalar)"]
+      | Tensor -> if refcounted then [%string "(globalize_gc_tensor %{name})"] else name
+      | Double | String | Scalar -> name)
     |> String.concat ~sep:" "
   ;;
 end
@@ -516,13 +602,21 @@ let read_yaml filename =
                 Map.find arg "is_nullable"
                 |> Option.value_map ~default:false ~f:extract_bool
               in
-              let has_default_value = Map.find arg "default" |> Option.is_some in
-              match Func.arg_type_of_string arg_type ~is_nullable with
-              | Some Scalar when has_default_value && not is_nullable -> None
-              | Some TensorOptions
-                when has_default_value && Set.mem no_tensor_options name -> None
-              | Some arg_type -> Some { Func.arg_name; arg_type; is_const }
-              | None -> if has_default_value then None else raise Not_a_simple_arg)
+              let default_value = Map.find arg "default" in
+              match Func.arg_type_of_string arg_type ~is_nullable, default_value with
+              | Some Scalar, Some default_value when not is_nullable ->
+                let default_scalar =
+                  default_value |> Yaml.to_string_exn |> String.strip
+                in
+                Some
+                  { Func.arg_name
+                  ; arg_type = Func.ScalarWithDefault default_scalar
+                  ; is_const
+                  }
+              | Some TensorOptions, Some _ when Set.mem no_tensor_options name -> None
+              | Some arg_type, _ -> Some { Func.arg_name; arg_type; is_const }
+              | None, Some _ -> None
+              | None, None -> raise Not_a_simple_arg)
           in
           Some { Func.name; operator_name; overload_name; args; returns; kind }
         with
@@ -642,7 +736,7 @@ let write_bindings funcs filename =
     p "end")
 ;;
 
-let write_wrapper funcs filename =
+let write_wrapper funcs filename ~refcounted =
   Out_channel.with_file (filename ^ ".ml") ~f:(fun out_ml ->
     Out_channel.with_file (filename ^ "_intf.ml") ~f:(fun out_intf ->
       let pm s = p out_ml s in
@@ -657,12 +751,16 @@ let write_wrapper funcs filename =
       pm "(* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND! *)";
       pm "";
       pm "open Ctypes";
-      pm "open Torch_bindings.Type_defs";
+      pm
+        "open %s.Type_defs"
+        (if refcounted then "Torch_refcounted_bindings" else "Torch_bindings");
       pm "open Torch_stubs";
+      pm "open Torch_wrapper_types";
       pm "open Wrapper_utils";
       pm "open C.Generated";
       pm "";
       pi "(* THIS FILE IS AUTOMATICALLY GENERATED, DO NOT EDIT BY HAND! *)";
+      pi "open Torch_wrapper_types";
       pi "";
       pi "module type S = sig";
       pi "  type t";
@@ -670,28 +768,30 @@ let write_wrapper funcs filename =
       pi "";
       Map.iteri funcs ~f:(fun ~key:exported_name ~data:func ->
         let caml_name = Func.caml_name exported_name in
-        pm "let %s %s =" caml_name (Func.caml_args func);
+        pm "let %s %s =" caml_name (Func.caml_args func ~refcounted);
         (match func.returns with
          | `nothing | `bool | `int64_t | `double ->
            keep_alive_for_call
-             ~call:[%string "stubs_%{caml_name} %{Func.caml_binding_args func}"]
-             (Func.caml_keepalive_args func)
+             ~call:
+               [%string "stubs_%{caml_name} %{Func.caml_binding_args func ~refcounted}"]
+             (Func.caml_keepalive_args func ~refcounted)
          | `fixed 1 ->
            keep_alive_for_call
              ~call:
                [%string
-                 "stubs_%{caml_name} %{Func.caml_binding_args func} |> with_tensor_gc"]
-             (Func.caml_keepalive_args func)
+                 "stubs_%{caml_name} %{Func.caml_binding_args func ~refcounted} |> \
+                  with_tensor_gc"]
+             (Func.caml_keepalive_args func ~refcounted)
          | `fixed ntensors ->
            pm "  let out__ = CArray.make raw_tensor %d in" ntensors;
            pm
              "  stubs_%s (CArray.start out__) %s;"
              caml_name
-             (Func.caml_binding_args func);
+             (Func.caml_binding_args func ~refcounted);
            for i = 0 to ntensors - 1 do
              pm "  let t%d = CArray.get out__ %d |> with_tensor_gc in" i i
            done;
-           Func.caml_keepalive_args func |> Option.iter ~f:(pm "  %s");
+           Func.caml_keepalive_args func ~refcounted |> Option.iter ~f:(pm "  %s");
            pm
              "  %s"
              (List.init ntensors ~f:(Printf.sprintf "t%d") |> String.concat ~sep:", ")
@@ -699,14 +799,24 @@ let write_wrapper funcs filename =
            keep_alive_for_call
              ~call:
                [%string
-                 "stubs_%{caml_name} %{Func.caml_binding_args func} |> to_tensor_list"]
-             (Func.caml_keepalive_args func));
+                 "stubs_%{caml_name} %{Func.caml_binding_args func ~refcounted} |> \
+                  to_tensor_list"]
+             (Func.caml_keepalive_args func ~refcounted));
         pm "";
         let intf_args =
-          List.map func.args ~f:(fun arg ->
-            if Func.named_arg arg
-            then [%string "%{Func.caml_name arg.arg_name}:%{Func.ml_arg_type arg}"]
-            else Func.ml_arg_type arg)
+          List.map (Func.move_optional_args_to_front func.args) ~f:(fun arg ->
+            if Func.is_optional_arg arg
+            then
+              [%string
+                "?%{Func.caml_name arg.arg_name}:%{Func.ml_arg_type arg ~refcounted}"]
+            else if Func.is_named_arg arg
+            then
+              [%string
+                "%{Func.caml_name arg.arg_name}:%{Func.ml_arg_type arg ~refcounted }"]
+            else Func.ml_arg_type arg ~refcounted)
+        in
+        let intf_args =
+          if Func.needs_unit_append func then intf_args @ [ "unit" ] else intf_args
         in
         let intf_arg_str =
           if List.is_empty intf_args
@@ -717,10 +827,12 @@ let write_wrapper funcs filename =
         let returns =
           match func.returns with
           | `nothing -> "unit"
-          | `fixed 1 -> "t"
+          | `fixed 1 -> "t" |> append_local_mode_if_refcounted ~refcounted
           | `fixed ntensors ->
-            List.init ntensors ~f:(fun _ -> "t") |> String.concat ~sep:" * "
-          | `dynamic -> "t list"
+            List.init ntensors ~f:(fun _ -> "t")
+            |> String.concat ~sep:" * "
+            |> append_local_mode_if_refcounted ~refcounted ~wrap_input_in_parens:true
+          | `dynamic -> "t list" |> append_local_mode_if_refcounted ~refcounted
           | `bool -> "bool"
           | `int64_t -> "int64"
           | `double -> "float"
@@ -748,7 +860,7 @@ let methods =
   ]
 ;;
 
-let run ~declarations_filename ~gen_bindings ~gen_wrappers =
+let run ~declarations_filename ~gen_bindings ~gen_wrappers ~refcounted =
   let funcs = read_yaml declarations_filename in
   let funcs = methods @ funcs in
   printf "Generating code for %d functions.\n%!" (List.length funcs);
@@ -782,11 +894,11 @@ let run ~declarations_filename ~gen_bindings ~gen_wrappers =
           name, func))
     |> Map.of_alist_exn (module String)
   in
-  if gen_bindings then write_bindings funcs bindings_filename;
+  if gen_bindings then write_bindings funcs (bindings_filename ~refcounted);
   if gen_wrappers
   then (
-    write_cpp funcs cpp_filename;
-    write_wrapper funcs wrapper_filename)
+    write_cpp funcs (cpp_filename ~refcounted);
+    write_wrapper funcs (wrapper_filename ~refcounted) ~refcounted)
 ;;
 
 let command =
@@ -798,8 +910,16 @@ let command =
        flag "bindings" no_arg ~doc:"if passed in, generate ctypes bindings OCaml code"
      and gen_wrappers =
        flag "wrappers" no_arg ~doc:"if passed in, generate wrapper C++ and OCaml code"
+     and refcounted =
+       flag
+         "refcounted"
+         (optional_with_default false bool)
+         ~doc:
+           "BOOL if set, generated code will use \"@ local\" for refcounted tensors and \
+            generated files will be named to indicate they are for the refcounted \
+            implementation"
      in
-     fun () -> run ~declarations_filename ~gen_bindings ~gen_wrappers)
+     fun () -> run ~declarations_filename ~gen_bindings ~gen_wrappers ~refcounted)
 ;;
 
 let () = Command_unix.run command

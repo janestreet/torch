@@ -342,9 +342,9 @@ val minimum : t -> t
 (** [maximum t] returns the maximum element of tensor [t]. *)
 val maximum : t -> t
 
-(** [flatten t] returns a flattened version of t, i.e. a single dimension version of the
-    tensor. This is equivalent to [Tensor.view t ~size:[-1]]. *)
-val flatten : t -> t
+(** [flatten t] returns a flattened version of t, flattening the dimensions in
+    [start_dim, end_dim] *)
+val flatten : ?end_dim:int -> t -> start_dim:int -> t
 
 (** [squeeze_last t] squeezes the last dimension of t, i.e. if this dimension has a size
     of 1 it is removed. *)

@@ -1,0 +1,6 @@
+(library
+ (name torch_refcounted)
+ (public_name torch.refcounted)
+ (libraries base core stdio torch_local_iterators torch_refcounted_core unix)
+ (preprocess
+  (pps ppx_jane)))

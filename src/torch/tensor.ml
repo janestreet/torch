@@ -85,10 +85,10 @@ let rand = gen ~f:rand
 let randn = gen ~f:randn
 let f v = float_vec [ v ] |> reshape ~shape:[]
 let mm = matmul
-let ( + ) = add
-let ( - ) = sub
-let ( * ) = mul
-let ( / ) = div
+let ( + ) t t' = add t t'
+let ( - ) t t' = sub t t'
+let ( * ) t t' = mul t t'
+let ( / ) t t' = div t t'
 let ( ~- ) = neg
 let ( -= ) t other = ignore (sub_ t other : t)
 let ( += ) t other = ignore (add_ t other : t)
@@ -422,12 +422,7 @@ let min_values = amin
 let max_values = amax
 let minimum t = reshape t ~shape:[ -1 ] |> min_values ~dim:[ 0 ] ~keepdim:false
 let maximum t = reshape t ~shape:[ -1 ] |> max_values ~dim:[ 0 ] ~keepdim:false
-
-let flatten t =
-  let batch_size = shape t |> List.hd_exn in
-  view t ~size:[ batch_size; -1 ]
-;;
-
+let flatten ?(end_dim = -1) t ~start_dim = flatten t ~start_dim ~end_dim
 let squeeze_last t = squeeze_dim t ~dim:(-1)
 let scale t f = mul_scalar t (Scalar.float f)
 let eq_scalar = eq

@@ -8,9 +8,7 @@
    (:include cxx_flags.sexp)))
  (name torch_core)
  (public_name torch.core)
- (c_library_flags :standard
-   -L/usr/local/home/garnish/gcc-toolset/10.3.1-1/root/usr/lib/gcc/x86_64-redhat-linux/10/
-   -lstdc++)
+ (c_library_flags :standard -lstdc++)
  (flags
   :standard
   (:include flags.sexp))
@@ -19,7 +17,8 @@
   (names torch_stubs torch_stubs_generated)
   (flags :standard -Wno-discarded-qualifiers -Wno-incompatible-pointer-types)
   (extra_deps torch_api_generated.h torch_api_generated.cpp))
- (libraries ctypes.foreign ctypes torch_bindings)
+ (libraries base_bigstring ctypes.foreign ctypes torch_bindings
+   torch_wrapper_types)
  (preprocess
   (pps ppx_jane)))
 

@@ -35,3 +35,4 @@ val to_int : _ t -> int
 val packed_to_int : packed -> int
 val of_int_exn : int -> packed
 val ( <> ) : packed -> packed -> bool
+val size_in_bytes : packed -> int
