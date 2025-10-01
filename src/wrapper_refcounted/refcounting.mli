@@ -1,6 +1,6 @@
 open Torch_refcounted_bindings.Type_defs
 
-val add_to_current_scope_exn : gc_tensor -> unit
+val add_to_current_scope : gc_tensor -> gc_tensor
 val increment_refcount : gc_tensor -> unit
 val decrement_refcount : gc_tensor -> unit
 val get_refcount : gc_tensor -> int
@@ -47,6 +47,13 @@ module For_users : sig
     :  shape:(gc_tensor -> int list)
     -> kind:(gc_tensor -> Torch_wrapper_types.Kind.packed)
     -> unit
+
+  (** By default, if you create a tensor outside of a [with_rc_scope], it will silently be
+      converted to a garbage-collected tensor using [convert_rc_tensor_to_gc]. Set this to
+      true to log the next time when this happens. The log message will print once and
+      then this will be set to false. You'll have to keep on setting it back to [true] if
+      you want to log repeatedly. *)
+  val warn_on_empty_rc_scope_stack : bool ref
 end
 
 module For_testing : sig

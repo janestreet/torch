@@ -40,7 +40,8 @@ raw_tensor at_new_tensor();
 raw_tensor at_tensor_of_data(void *vs, int64_t *dims, int ndims,
                              int element_size_in_bytes, int type);
 void at_copy_to_elements(gc_tensor t, void *vs, int64_t numel, int element_size_in_bytes);
-void at_copy_to_bytes(gc_tensor t, void *vs, int64_t max_size);
+void at_copy_to_bytes(gc_tensor t, void *bytes, int64_t bytes_len);
+void at_copy_from_bytes(gc_tensor t, void *bytes, int64_t bytes_len);
 
 raw_tensor at_float_vec(double *values, int value_len, int type);
 raw_tensor at_int_vec(int64_t *values, int value_len, int type);

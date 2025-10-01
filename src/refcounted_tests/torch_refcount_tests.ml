@@ -142,7 +142,7 @@ let%expect_test "copy_to_bigstring works" =
       |> Tensor.of_bigarray
     in
     let dst = Bigarray.Array1.create Bigarray.char Bigarray.c_layout n_bytes in
-    Tensor.copy_to_bigstring ~src ~dst ~dst_pos:0;
+    Tensor.copy_to_bigstring ~src ~dst ~dst_pos:0 ~dst_len:n_bytes;
     let dst_array = Array.init n_bytes ~f:(fun _ -> Char.of_int_exn 0) in
     for i = 0 to n_bytes - 1 do
       Array.set dst_array i (Bigarray.Array1.get dst i)

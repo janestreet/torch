@@ -13,11 +13,7 @@ end = struct
 
   let with_tensor_gc (raw : raw_tensor) : gc_tensor =
     let addr = unsafe_raw_address_of_raw_tensor raw in
-    let tensor = C_ffi.wrap_managed_tensor (make_managed_tensor addr) in
-    (* The tensor is created with refcount 1. We decrement when the scope is cleaned up so
-       the tensor is freed then. *)
-    Refcounting.add_to_current_scope_exn tensor;
-    tensor
+    C_ffi.wrap_managed_tensor (make_managed_tensor addr)
   ;;
 
   let to_tensor_list (ptr : raw_tensor ptr) =

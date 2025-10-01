@@ -75,11 +75,34 @@ module Tensor = struct
     ~src:t
     ~dst:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t)
     ~dst_pos
+    ~dst_len
     =
+    let dst_total_len = Bigarray.Array1.dim b in
+    Base.Ordered_collection_common.check_pos_len_exn
+      ~pos:dst_pos
+      ~len:dst_len
+      ~total_length:dst_total_len;
     copy_to_bytes
       (globalize_gc_tensor t)
       (bigarray_start array1 b +@ dst_pos |> to_voidp)
-      (Bigarray.Array1.dim b - dst_pos |> Int64.of_int)
+      (Int64.of_int dst_len)
+  ;;
+
+  let copy_from_bigstring
+    ~src:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t)
+    ~src_pos
+    ~src_len
+    ~dst:t
+    =
+    let src_total_len = Bigarray.Array1.dim b in
+    Base.Ordered_collection_common.check_pos_len_exn
+      ~pos:src_pos
+      ~len:src_len
+      ~total_length:src_total_len;
+    copy_from_bytes
+      (globalize_gc_tensor t)
+      (bigarray_start array1 b +@ src_pos |> to_voidp)
+      (Int64.of_int src_len)
   ;;
 
   let copy_to_bigarray (type a b) t (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
@@ -393,6 +416,25 @@ module Cuda = struct
   let is_available () = is_available () <> 0
   let cudnn_is_available () = cudnn_is_available () <> 0
   let set_benchmark_cudnn b = set_benchmark_cudnn (if b then 1 else 0)
+end
+
+module Aoti_runner_cuda = struct
+  include C.Aoti_runner_cuda
+
+  type t = aoti_runner_cuda
+
+  let load ?(max_concurrent_executions = 1) ~device ~cubin_dir ~so_path () : t =
+    let m = load so_path max_concurrent_executions (Device.to_int device) cubin_dir in
+    Gc.finalise free m;
+    m
+  ;;
+
+  let run_unit t tensors =
+    let globalized = [%globalize: gc_tensor Base.List.t] tensors in
+    let array = CArray.of_list gc_tensor globalized in
+    run_unit t (CArray.start array) (CArray.length array);
+    keep_values_alive globalized
+  ;;
 end
 
 let manual_seed seed = C.manual_seed (Int64.of_int seed)

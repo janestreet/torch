@@ -10,5 +10,8 @@ let wrap_managed_tensor (managed : unwrapped_managed_tensor) : gc_tensor =
       ~reftyp:void
       (Obj.magic managed : nativeint)
   in
-  unsafe_gc_tensor_of_unit_ptr (CPointer fatptr)
+  let tensor = unsafe_gc_tensor_of_unit_ptr (CPointer fatptr) in
+  (* The tensor is created with refcount 1. We decrement when the scope is cleaned up so
+     the tensor is freed then. *)
+  Refcounting.add_to_current_scope tensor
 ;;

@@ -28,10 +28,29 @@ module Tensor : sig
   val int_vec : ?kind:[ `int | `int16 | `int64 | `int8 | `uint8 ] -> int list -> t
   val of_bigarray : (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> t
 
+  (** Both of the below copy functions lay out tensor memory contiguously in the
+      bigstring, ignoring the strides of the underlying tensor.
+
+      The copy is performed to/from the window of the bigstring described by the
+      [src_pos]/[dst_pos] and [src_len]/[dst_len] arguments, similar to [Bigstring.blit].
+
+      The length of the window described by [src_len]/[dst_len] is in bytes (matching
+      other bigstring APIs) and must be precisely the number of bytes required to copy the
+      provided tensor. To that extent, the argument is somewhat redundant. However, it
+      exists to make sure mistakes are not silently ignored. *)
+
   val copy_to_bigstring
     :  src:t
     -> dst:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
     -> dst_pos:int
+    -> dst_len:int
+    -> unit
+
+  val copy_from_bigstring
+    :  src:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+    -> src_pos:int
+    -> src_len:int
+    -> dst:t
     -> unit
 
   val copy_to_bigarray : t -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> unit
@@ -139,4 +158,28 @@ module Cuda : sig
   val is_available : unit -> bool
   val cudnn_is_available : unit -> bool
   val set_benchmark_cudnn : bool -> unit
+end
+
+module Aoti_runner_cuda : sig
+  type t
+
+  (** Load an AOT inductor-compiled model from a shared object [file].
+
+      @param so_path the shared object file containing the AOT compiled model
+      @param cubin_dir
+        load the cubin files from this directory instead of the directory hardcoded in
+        [file]
+      @param device load the model onto this device
+      @param max_concurrent_executions
+        maximum number of concurrent invocations of the model that are possible
+        (default: 1) *)
+  val load
+    :  ?max_concurrent_executions:int
+    -> device:Torch_wrapper_types.Device.t
+    -> cubin_dir:string
+    -> so_path:string
+    -> unit
+    -> t
+
+  val run_unit : t -> Tensor.t list -> unit
 end
