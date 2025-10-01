@@ -59,7 +59,19 @@ module C (F : Cstubs.FOREIGN) = struct
          @-> ptr void
          (* data *)
          @-> int64_t
-         (* max_size *)
+         (* data length *)
+         @-> returning void)
+    ;;
+
+    let copy_from_bytes =
+      foreign
+        "at_copy_from_bytes"
+        (gc_tensor
+         (* tensor *)
+         @-> ptr void
+         (* data *)
+         @-> int64_t
+         (* data length *)
          @-> returning void)
     ;;
 

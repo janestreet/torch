@@ -1,0 +1,56 @@
+(alias
+ (name default)
+ (deps torch_bindings.ml.diff-for-review torch_api.cpp.diff-for-review
+   torch_api.h.diff-for-review aoti_runner.ml.diff-for-review
+   aoti_runner.mli.diff-for-review wrapper.ml.diff-for-review
+   wrapper.mli.diff-for-review))
+
+(rule
+ (targets torch_bindings.ml.diff-for-review)
+ (deps ../bindings/torch_bindings.ml
+   ../bindings_refcounted/torch_refcounted_bindings.ml)
+ (action
+  (bash
+    "%{bin:patdiff-for-review} %{bin:patdiff} %{deps} -context 2 > %{targets}")))
+
+(rule
+ (targets torch_api.cpp.diff-for-review)
+ (deps ../wrapper/torch_api.cpp ../wrapper_refcounted/torch_api.cpp)
+ (action
+  (bash
+    "%{bin:patdiff-for-review} %{bin:patdiff} %{deps} -context 2 > %{targets}")))
+
+(rule
+ (targets torch_api.h.diff-for-review)
+ (deps ../wrapper/torch_api.h ../wrapper_refcounted/torch_api.h)
+ (action
+  (bash
+    "%{bin:patdiff-for-review} %{bin:patdiff} %{deps} -context 2 > %{targets}")))
+
+(rule
+ (targets wrapper.ml.diff-for-review)
+ (deps ../wrapper/wrapper.ml ../wrapper_refcounted/wrapper.ml)
+ (action
+  (bash
+    "%{bin:patdiff-for-review} %{bin:patdiff} %{deps} -context 2 > %{targets}")))
+
+(rule
+ (targets wrapper.mli.diff-for-review)
+ (deps ../wrapper/wrapper.mli ../wrapper_refcounted/wrapper.mli)
+ (action
+  (bash
+    "%{bin:patdiff-for-review} %{bin:patdiff} %{deps} -context 2 > %{targets}")))
+
+(rule
+ (targets aoti_runner.ml.diff-for-review)
+ (deps ../torch/aoti_runner.ml ../torch_refcounted/aoti_runner.ml)
+ (action
+  (bash
+    "%{bin:patdiff-for-review} %{bin:patdiff} %{deps} -context 2 > %{targets}")))
+
+(rule
+ (targets aoti_runner.mli.diff-for-review)
+ (deps ../torch/aoti_runner.mli ../torch_refcounted/aoti_runner.mli)
+ (action
+  (bash
+    "%{bin:patdiff-for-review} %{bin:patdiff} %{deps} -context 2 > %{targets}")))

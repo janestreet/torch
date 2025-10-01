@@ -22,6 +22,13 @@ let get_refcount (t : gc_tensor) =
   get_refcount_c raw_addr
 ;;
 
+(* Calling [convert_rc_tensor_to_gc] on an already gc managed tensor is fine. This works
+   correctly not because there are multiple finalizers (though that would work). Instead,
+   [globalize_gc_tensor] creates a new object every time so the GC doesn't know these are
+   the same thing.
+
+   Remember we also attach finalizer in [add_to_current_scope]. Consider if it makes sense
+   to update that function too when changing this one. *)
 let convert_rc_tensor_to_gc (t : gc_tensor) =
   increment_refcount t;
   let t = globalize_gc_tensor t in
@@ -42,40 +49,60 @@ module Tensor_scope = struct
 end
 
 let scope_stack : Tensor_scope.t Stack.t = Stack.create ()
+let warn_on_empty_rc_scope_stack = ref false
 
-let get_current_scope_exn () =
+let get_current_scope () =
   match Stack.top scope_stack with
-  | Some scope -> scope
+  | Some _ as some -> some
   | None ->
-    raise_s
-      [%message
-        "ocaml-torch: Tried to access the current scope but the scope stack is empty, \
-         add a [Tensor.with_rc_scope] around the tensor-related code"]
+    if !warn_on_empty_rc_scope_stack
+    then (
+      print_s
+        [%message
+          "ocaml-torch: Tried to access the current scope but the scope stack is empty, \
+           add a [Tensor.with_rc_scope] around the tensor-related code"];
+      warn_on_empty_rc_scope_stack := false);
+    None
 ;;
 
-let add_to_current_scope_exn tensor = Tensor_scope.add (get_current_scope_exn ()) tensor
+let add_to_current_scope tensor =
+  match get_current_scope () with
+  | Some scope ->
+    Tensor_scope.add scope tensor;
+    tensor
+  | None ->
+    (* Similar to [convert_rc_tensor_to_gc], but don't increment the ref count. New
+       tensors need an owner and if it's not the [Tensor_scope] (from the above branch of
+       the match-statement) then the GC has to decrement the ref count from 1 to 0. *)
+    Gc.Expert.add_finalizer_exn tensor decrement_refcount;
+    tensor
+;;
 
 let set_up_new_scope () =
   let inner_scope = Tensor_scope.create () in
   Stack.push scope_stack inner_scope
 ;;
 
-let list_iter_local ~f list = List.fold__local__local list ~init:() ~f:(fun () x -> f x)
+let pop_current_scope () = Stack.pop_exn scope_stack |> Tensor_scope.clean_up
 
-let clean_up_current_scope ~tensors_to_shift_out =
-  let current_scope = get_current_scope_exn () in
-  ignore (Stack.pop_exn scope_stack : Tensor_scope.t);
-  if List.length tensors_to_shift_out > 0
-  then (
-    let outer_scope = get_current_scope_exn () in
-    list_iter_local tensors_to_shift_out ~f:(fun tensor ->
-      increment_refcount tensor;
-      Tensor_scope.add outer_scope (globalize_gc_tensor tensor);
-      ()));
-  Tensor_scope.clean_up current_scope
+(** Same as [pop_current_scope] but transfers the given tensors to the parent scope *)
+let pop_current_scope_and_transfer ~tensors_to_shift_out =
+  let current_scope = Stack.pop_exn scope_stack in
+  let tensors =
+    match get_current_scope () with
+    | Some outer_scope ->
+      List.globalize
+        (fun tensor ->
+          increment_refcount tensor;
+          let tensor = globalize_gc_tensor tensor in
+          Tensor_scope.add outer_scope tensor;
+          tensor)
+        tensors_to_shift_out
+    | None -> List.globalize convert_rc_tensor_to_gc tensors_to_shift_out
+  in
+  Tensor_scope.clean_up current_scope;
+  tensors
 ;;
-
-let assert_outer_scope_exists () = ignore (get_current_scope_exn () : Tensor_scope.t)
 
 let with_rc_scope_tensor (f : unit -> gc_tensor) : gc_tensor =
   (* We have different [with_scope] functions because when users want to return
@@ -84,39 +111,32 @@ let with_rc_scope_tensor (f : unit -> gc_tensor) : gc_tensor =
       Tensors cannot be returned from regular [with_scope] because it returns ['a] which
       is not local. They must go through this function or the list version which will add
       them to the outer scope. *)
-  assert_outer_scope_exists ();
   set_up_new_scope ();
   let returned_tensor =
     (* We don't use [exclave_] on this call because the variables inside the callback will
        be allocated on the caller's stack, which could get expensive for nested calls. *)
     try f () with
     | exn ->
-      clean_up_current_scope ~tensors_to_shift_out:[];
+      pop_current_scope ();
       raise exn
   in
-  clean_up_current_scope ~tensors_to_shift_out:[ returned_tensor ];
-  let globalized_tensor = globalize_gc_tensor returned_tensor in
-  globalized_tensor
+  pop_current_scope_and_transfer ~tensors_to_shift_out:[ returned_tensor ] |> List.hd_exn
 ;;
 
 let with_rc_scope_tensors (f : unit -> gc_tensor list) : gc_tensor list =
-  assert_outer_scope_exists ();
   set_up_new_scope ();
   let returned_tensors =
     try f () with
     | exn ->
-      clean_up_current_scope ~tensors_to_shift_out:[];
+      pop_current_scope ();
       raise exn
   in
-  clean_up_current_scope ~tensors_to_shift_out:returned_tensors;
-  let globalized_tensors = List.globalize globalize_gc_tensor returned_tensors in
-  globalized_tensors
+  pop_current_scope_and_transfer ~tensors_to_shift_out:returned_tensors [@nontail]
 ;;
 
 let with_rc_scope (f : unit -> 'a) : 'a =
   set_up_new_scope ();
-  Exn.protect ~f ~finally:(fun () -> clean_up_current_scope ~tensors_to_shift_out:[])
-  [@nontail]
+  Exn.protect ~f ~finally:pop_current_scope [@nontail]
 ;;
 
 let size_to_print size_in_bytes =
@@ -155,6 +175,7 @@ module For_users = struct
   let with_rc_scope_tensors = with_rc_scope_tensors
   let convert_rc_tensor_to_gc = convert_rc_tensor_to_gc
   let print_rc_scopes_tensors_and_refcounts = print_rc_scopes_tensors_and_refcounts
+  let warn_on_empty_rc_scope_stack = warn_on_empty_rc_scope_stack
 end
 
 module For_testing = struct

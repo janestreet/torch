@@ -112,33 +112,82 @@ let%expect_test "Multiple tensors returned from inner scope to outer" =
       |}])
 ;;
 
-let%expect_test "Trying to use with_scope_tensor at the top level fails" =
-  (try
-     let t =
-       Tensor.with_rc_scope_tensor (fun () ->
-         (* We should not even create the tensor *)
-         [%expect.unreachable];
-         Tensor.zeros [ 1 ])
-     in
-     Tensor.print t
-   with
-   | exn -> print_endline (Exn.to_string exn));
-  [%expect
-    {| "ocaml-torch: Tried to access the current scope but the scope stack is empty, add a [Tensor.with_rc_scope] around the tensor-related code" |}]
+let%expect_test "Using tensor function without scope stack warns once" =
+  Ref.set_temporarily Tensor.warn_on_empty_rc_scope_stack true ~f:(fun () ->
+    let t = Tensor.zeros [ 1 ] in
+    Tensor.print t;
+    [%expect
+      {|
+      "ocaml-torch: Tried to access the current scope but the scope stack is empty, add a [Tensor.with_rc_scope] around the tensor-related code"
+       0
+      [ CPUFloatType{1} ]
+      |}];
+    let t = Tensor.zeros [ 1 ] in
+    Tensor.print t;
+    [%expect
+      {|
+       0
+      [ CPUFloatType{1} ]
+      |}])
 ;;
 
-let%expect_test "Trying to use with_scope_tensors at the top level fails" =
-  (try
-     let ts =
-       Tensor.with_rc_scope_tensors (fun () ->
-         [%expect.unreachable];
-         [ Tensor.zeros [ 1 ]; Tensor.ones [ 1 ] ])
-     in
-     Torch_local_iterators.List.iter_local ts ~f:Tensor.print [@nontail]
-   with
-   | exn -> print_endline (Exn.to_string exn));
-  [%expect
-    {| "ocaml-torch: Tried to access the current scope but the scope stack is empty, add a [Tensor.with_rc_scope] around the tensor-related code" |}]
+let%expect_test "Trying to use with_scope_tensor at the top level warns" =
+  Ref.set_temporarily Tensor.warn_on_empty_rc_scope_stack true ~f:(fun () ->
+    (try
+       let t =
+         Tensor.with_rc_scope_tensor (fun () ->
+           (* We should not even create the tensor *)
+           [%expect {| |}];
+           Tensor.zeros [ 1 ])
+       in
+       Tensor.print t
+     with
+     | exn -> print_endline (Exn.to_string exn));
+    [%expect
+      {|
+      "ocaml-torch: Tried to access the current scope but the scope stack is empty, add a [Tensor.with_rc_scope] around the tensor-related code"
+       0
+      [ CPUFloatType{1} ]
+      |}])
+;;
+
+let%expect_test "Trying to use with_scope_tensors at the top level warns" =
+  Ref.set_temporarily Tensor.warn_on_empty_rc_scope_stack true ~f:(fun () ->
+    (try
+       let ts =
+         Tensor.with_rc_scope_tensors (fun () ->
+           [%expect {| |}];
+           [ Tensor.zeros [ 1 ]; Tensor.ones [ 1 ] ])
+       in
+       Torch_local_iterators.List.iter_local ts ~f:Tensor.print [@nontail]
+     with
+     | exn -> print_endline (Exn.to_string exn));
+    [%expect
+      {|
+      "ocaml-torch: Tried to access the current scope but the scope stack is empty, add a [Tensor.with_rc_scope] around the tensor-related code"
+       0
+      [ CPUFloatType{1} ]
+       1
+      [ CPUFloatType{1} ]
+      |}])
+;;
+
+let%expect_test "gc multiple times" =
+  let t = Tensor.zeros [ 1 ] in
+  print_s [%message (Tensor.For_testing.get_refcount t : int)];
+  [%expect {| ("Tensor.For_testing.get_refcount t" 1) |}];
+  let t2 = Tensor.convert_rc_tensor_to_gc t in
+  let t3 = Tensor.convert_rc_tensor_to_gc t2 in
+  print_s [%message (Tensor.For_testing.get_refcount t : int)];
+  Gc.keep_alive t2;
+  [%expect {| ("Tensor.For_testing.get_refcount t" 3) |}];
+  Gc.full_major ();
+  Gc.keep_alive t3;
+  print_s [%message (Tensor.For_testing.get_refcount t : int)];
+  [%expect {| ("Tensor.For_testing.get_refcount t" 2) |}];
+  Gc.full_major ();
+  print_s [%message (Tensor.For_testing.get_refcount t : int)];
+  [%expect {| ("Tensor.For_testing.get_refcount t" 1) |}]
 ;;
 
 let%expect_test "with_scope handles exceptions correctly" =
