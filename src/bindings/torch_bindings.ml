@@ -10,6 +10,14 @@ module C (F : Cstubs.FOREIGN) = struct
   let get_num_threads = foreign "at_get_num_threads" (void @-> returning int)
   let set_num_threads = foreign "at_set_num_threads" (int @-> returning void)
 
+  let record_memory_history =
+    foreign "torch_record_memory_history" (void @-> returning void)
+  ;;
+
+  let save_memory_snapshot_pickled =
+    foreign "torch_save_memory_snapshot_pickled" (string @-> returning void)
+  ;;
+
   module Tensor = struct
     let new_tensor = foreign "at_new_tensor" (void @-> returning raw_tensor)
 
@@ -51,7 +59,19 @@ module C (F : Cstubs.FOREIGN) = struct
          @-> ptr void
          (* data *)
          @-> int64_t
-         (* max_size *)
+         (* data length *)
+         @-> returning void)
+    ;;
+
+    let copy_from_bytes =
+      foreign
+        "at_copy_from_bytes"
+        (gc_tensor
+         (* tensor *)
+         @-> ptr void
+         (* data *)
+         @-> int64_t
+         (* data length *)
          @-> returning void)
     ;;
 
@@ -96,7 +116,7 @@ module C (F : Cstubs.FOREIGN) = struct
 
     let device = foreign "at_device" (gc_tensor @-> returning int)
     let defined = foreign "at_defined" (gc_tensor @-> returning bool)
-    let num_dims = foreign "at_dim" (gc_tensor @-> returning int)
+    let ndim = foreign "at_dim" (gc_tensor @-> returning int)
     let shape = foreign "at_shape" (gc_tensor @-> ptr int (* dims *) @-> returning void)
     let scalar_type = foreign "at_scalar_type" (gc_tensor @-> returning int)
     let use_count = foreign "at_use_count" (gc_tensor @-> returning int)

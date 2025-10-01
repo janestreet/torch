@@ -2,6 +2,7 @@ open Ctypes
 open Torch_stubs
 open Wrapper_utils
 open Torch_bindings.Type_defs
+open Torch_wrapper_types
 
 let ptr_of_string str =
   let len = String.length str in
@@ -88,11 +89,34 @@ module Tensor = struct
     ~src:t
     ~dst:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t)
     ~dst_pos
+    ~dst_len
     =
+    let dst_total_len = Bigarray.Array1.dim b in
+    Base.Ordered_collection_common.check_pos_len_exn
+      ~pos:dst_pos
+      ~len:dst_len
+      ~total_length:dst_total_len;
     copy_to_bytes
       t
       (bigarray_start array1 b +@ dst_pos |> to_voidp)
-      (Bigarray.Array1.dim b - dst_pos |> Int64.of_int)
+      (Int64.of_int dst_len)
+  ;;
+
+  let copy_from_bigstring
+    ~src:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t)
+    ~src_pos
+    ~src_len
+    ~dst:t
+    =
+    let src_total_len = Bigarray.Array1.dim b in
+    Base.Ordered_collection_common.check_pos_len_exn
+      ~pos:src_pos
+      ~len:src_len
+      ~total_length:src_total_len;
+    copy_from_bytes
+      t
+      (bigarray_start array1 b +@ src_pos |> to_voidp)
+      (Int64.of_int src_len)
   ;;
 
   let copy_to_bigarray (type a b) t (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
@@ -105,13 +129,15 @@ module Tensor = struct
   ;;
 
   let shape t =
-    let num_dims = num_dims t in
+    let num_dims = ndim t in
     let carray = CArray.make int num_dims in
     shape t (CArray.start carray);
     CArray.to_list carray
   ;;
 
+  let ndim = ndim
   let size = shape
+  let get = get
 
   let unexpected_shape shape =
     let shape = String.concat ", " (List.map string_of_int shape) in
@@ -531,3 +557,8 @@ end
 let manual_seed seed = C.manual_seed (Int64.of_int seed)
 let set_num_threads = C.set_num_threads
 let get_num_threads = C.get_num_threads
+let record_memory_history = C.record_memory_history
+
+let save_memory_snapshot_pickled ~output_filename =
+  C.save_memory_snapshot_pickled output_filename
+;;

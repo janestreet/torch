@@ -15,6 +15,7 @@ val module_ : module_ typ
 val aoti_runner_cuda : aoti_runner_cuda typ
 val optimizer : optimizer typ
 val scalar : scalar typ
+val none_scalar : scalar
 val none_gc_tensor : gc_tensor
 val is_none_raw_tensor : raw_tensor -> bool
 val unsafe_gc_tensor_of_unit_ptr : unit ptr -> gc_tensor

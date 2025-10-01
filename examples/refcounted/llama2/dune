@@ -1,0 +1,6 @@
+(executables
+ (modes byte exe)
+ (names llama2)
+ (libraries core stdio torch_local_iterators torch_refcounted unix)
+ (preprocess
+  (pps ppx_jane)))

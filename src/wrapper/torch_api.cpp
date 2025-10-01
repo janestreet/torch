@@ -3,6 +3,7 @@
 #include <ATen/autocast_mode.h>
 #include <torch/script.h>
 #include <torch/csrc/inductor/aoti_runner/model_container_runner_cuda.h>
+#include <torch/csrc/cuda/memory_snapshot.h>
 #include <stdexcept>
 #include <vector>
 #include <caml/fail.h>
@@ -183,12 +184,24 @@ void at_copy_to_elements(gc_tensor t, void *vs, int64_t numel, int elt_size_in_b
           copy_to(tensor, vs, elt_size_in_bytes * numel);)
 }
 
-void at_copy_to_bytes(gc_tensor t, void *vs, int64_t max_size) {
-  PROTECT(if (max_size < 0) throw std::invalid_argument("cannot copy a negative size");
-          torch::Tensor tensor = tensor_from_ocaml(t);
+void at_copy_to_bytes(gc_tensor t, void *bytes, int64_t bytes_len) {
+  PROTECT(torch::Tensor tensor = tensor_from_ocaml(t);
           size_t tensor_total_size = tensor.numel() * tensor.element_size();
-          size_t copy_size = std::min((size_t)max_size, tensor_total_size);
-          copy_to(tensor, vs, copy_size);)
+          if (bytes_len != tensor_total_size) throw std::invalid_argument(
+              sstr("bytes is not the correct length for this tensor: ", tensor_total_size,
+                   " != ", bytes_len));
+          copy_to(tensor, bytes, tensor_total_size);)
+}
+
+void at_copy_from_bytes(gc_tensor t, void *bytes, int64_t bytes_len) {
+  PROTECT(torch::Tensor tensor = tensor_from_ocaml(t); auto dtype = tensor.dtype();
+          int64_t need_bytes = tensor.numel() * tensor.element_size();
+          if (need_bytes != bytes_len) throw std::invalid_argument(
+              sstr("bytes is not the correct length for this tensor: ", need_bytes,
+                   " != ", bytes_len));
+          torch::Tensor tmp_tensor = torch::from_blob(
+              bytes, tensor.sizes(), torch::TensorOptions().dtype(dtype));
+          tensor.copy_(tmp_tensor, 0);)
 }
 
 raw_tensor at_float_vec(double *vs, int len, int type) {
@@ -992,5 +1005,14 @@ ivalue ati_clone(ivalue i) {
 void ati_free(ivalue i) { delete (i); }
 
 void at_set_graph_executor_optimize(bool o) { torch::jit::setGraphExecutorOptimize(o); }
+
+void torch_record_memory_history() { torch::cuda::_record_memory_history(); }
+
+void torch_save_memory_snapshot_pickled(char *output_filepath) {
+  auto snapshot_data = torch::cuda::_memory_snapshot_pickled();
+  PROTECT(std::ofstream snapshot_file(output_filepath, std::ios_base::binary);
+          snapshot_file.write(snapshot_data.data(), snapshot_data.size()); return;)
+  return;
+}
 
 #include "torch_api_generated.cpp"

@@ -12,11 +12,13 @@ build: [
 depends: [
   "ocaml" {>= "5.1.0"}
   "base"
+  "base_bigstring"
   "core"
   "core_unix"
   "ppx_bench"
   "ppx_inline_test"
   "ppx_jane"
+  "ppx_let"
   "ppx_string"
   "stdio"
   "ctypes"              {>= "0.18.0"}
