@@ -22,6 +22,15 @@ let get_refcount (t : gc_tensor) =
   get_refcount_c raw_addr
 ;;
 
+module Expert = struct
+  let add_unmanaged_reference (t : gc_tensor) =
+    increment_refcount t;
+    globalize_gc_tensor t
+  ;;
+
+  let remove_unmanaged_reference (t : gc_tensor) = decrement_refcount t
+end
+
 (* Calling [convert_rc_tensor_to_gc] on an already gc managed tensor is fine. This works
    correctly not because there are multiple finalizers (though that would work). Instead,
    [globalize_gc_tensor] creates a new object every time so the GC doesn't know these are
@@ -30,9 +39,8 @@ let get_refcount (t : gc_tensor) =
    Remember we also attach finalizer in [add_to_current_scope]. Consider if it makes sense
    to update that function too when changing this one. *)
 let convert_rc_tensor_to_gc (t : gc_tensor) =
-  increment_refcount t;
-  let t = globalize_gc_tensor t in
-  Gc.Expert.add_finalizer_exn t decrement_refcount;
+  let t = Expert.add_unmanaged_reference t in
+  Gc.Expert.add_finalizer_exn t Expert.remove_unmanaged_reference;
   t
 ;;
 
@@ -176,6 +184,8 @@ module For_users = struct
   let convert_rc_tensor_to_gc = convert_rc_tensor_to_gc
   let print_rc_scopes_tensors_and_refcounts = print_rc_scopes_tensors_and_refcounts
   let warn_on_empty_rc_scope_stack = warn_on_empty_rc_scope_stack
+
+  module Expert = Expert
 end
 
 module For_testing = struct

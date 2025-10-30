@@ -41,6 +41,23 @@ module For_users : sig
       finalizer runs. This is useful for long-lived tensors. *)
   val convert_rc_tensor_to_gc : gc_tensor -> gc_tensor
 
+  module Expert : sig
+    (** Get a global unmanaged reference to the local refcounted tensor. The unmanaged
+        reference will keep the tensor memory buffer alive.
+
+        Using this function means opting into manual memory management. Failure to call
+        [remove_unmanaged_reference] can lead to memory leaks. Calling
+        [remove_unmanaged_reference] too early or more than once for each
+        [add_unmanaged_reference] can lead to use-after-frees or other undefined behavior.
+        Use with caution!
+
+        Consider using [convert_rc_tensor_to_gc] instead if the cost of a GC finalizer and
+        a non-deterministic freeing time is acceptable. *)
+    val add_unmanaged_reference : gc_tensor -> gc_tensor
+
+    val remove_unmanaged_reference : gc_tensor -> unit
+  end
+
   (** Debugging function for understanding memory consumption. Iterates the current stack
       of scopes and prints all tensors that are currently allocated. *)
   val print_rc_scopes_tensors_and_refcounts
