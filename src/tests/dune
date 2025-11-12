@@ -1,6 +1,6 @@
 (library
  (name torch_tests)
- (libraries expect_test_helpers_core.expect_test_helpers_base unix sexplib
-   stdio ctypes torch_bindings torch torch_core torch_vision)
+ (libraries ctypes expect_test_helpers_core.expect_test_helpers_base sexplib
+   stdio torch torch_bindings torch_core torch_vision unix)
  (preprocess
   (pps ppx_jane)))

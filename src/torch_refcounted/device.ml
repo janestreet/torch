@@ -32,6 +32,36 @@ let is_cuda = function
 let get_num_threads = Torch_refcounted_core.Wrapper.get_num_threads
 let set_num_threads = Torch_refcounted_core.Wrapper.set_num_threads
 
+let with_num_threads num_threads ~f =
+  let previous_num_threads = get_num_threads () in
+  set_num_threads num_threads;
+  Exn.protect ~f ~finally:(fun () -> set_num_threads previous_num_threads)
+;;
+
+let%expect_test "with_num_threads" =
+  let assert_ n = assert (Int.( = ) n (get_num_threads ())) in
+  let original_num = get_num_threads () in
+  set_num_threads 1;
+  assert_ 1;
+  with_num_threads 2 ~f:(fun () ->
+    assert_ 2;
+    set_num_threads 3;
+    with_num_threads 4 ~f:(fun () ->
+      assert_ 4;
+      set_num_threads 5;
+      assert_ 5);
+    assert_ 3);
+  assert_ 1;
+  (try
+     with_num_threads 2 ~f:(fun () -> with_num_threads 3 ~f:(fun () -> failwith "fail"))
+   with
+   | _ ->
+     assert_ 1;
+     set_num_threads 2);
+  assert_ 2;
+  set_num_threads original_num
+;;
+
 let%expect_test _ =
   let devices_to_int =
     [ Cpu, 1

@@ -11,3 +11,7 @@ val cuda_if_available : unit -> t
 val is_cuda : t -> bool
 val get_num_threads : unit -> int
 val set_num_threads : int -> unit
+
+(** Sets num_threads before calling [f], and sets it back to the previous value after [f]
+    returns. *)
+val with_num_threads : int -> f:(unit -> 'a) -> 'a

@@ -1,5 +1,5 @@
 (library
  (name torch_wrapper_types)
- (libraries core)
+ (libraries ppx_bench.runtime-lib ppx_expect.runtime ppx_module_timer.runtime)
  (preprocess
   (pps ppx_jane)))

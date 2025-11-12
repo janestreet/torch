@@ -6,6 +6,6 @@
     -Wno-type-limits -Wno-maybe-uninitialized))
  (name torch_vision)
  (public_name torch.vision)
- (libraries base stdio torch_core torch)
+ (libraries base stdio torch torch_core)
  (preprocess
   (pps ppx_jane)))
