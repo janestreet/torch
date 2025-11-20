@@ -46,8 +46,8 @@ let colors =
   |]
 ;;
 
-(* [image] is the original image. [width] and [height] are the model [width] on
-   [height] relative to which bounding boxes have been computed.
+(* [image] is the original image. [width] and [height] are the model [width] on [height]
+   relative to which bounding boxes have been computed.
 *)
 let report predictions ~image ~width ~height =
   Tensor.print_shape ~name:"predictions" predictions;

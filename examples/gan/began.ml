@@ -1,5 +1,4 @@
-(* Boundary Equilibrium GAN.
-   https://arxiv.org/abs/1703.10717
+(* Boundary Equilibrium GAN. https://arxiv.org/abs/1703.10717
 *)
 open Base
 open Torch

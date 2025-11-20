@@ -1,5 +1,4 @@
-(* GAN stability
-   adapted from https://github.com/LMescheder/GAN_stability/
+(* GAN stability adapted from https://github.com/LMescheder/GAN_stability/
 *)
 open Base
 open Torch

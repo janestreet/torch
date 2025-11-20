@@ -1,18 +1,14 @@
-(* Proximal Policy Optimization.
-   https://arxiv.org/abs/1707.06347
+(* Proximal Policy Optimization. https://arxiv.org/abs/1707.06347
 
-   This algorithm is close to A2C and involves both an actor and
-   a critic model that share some layers. Multiple rollouts are
-   performed in parallel in the [Rollout] module.
-   Then the actor and the critic are trained on this data. The
-   main differences with A2C are that:
-   - The action loss penalises getting far from the policy
-     values used during rollout.
+   This algorithm is close to A2C and involves both an actor and a critic model that share
+   some layers. Multiple rollouts are performed in parallel in the [Rollout] module. Then
+   the actor and the critic are trained on this data. The main differences with A2C are
+   that:
+   - The action loss penalises getting far from the policy values used during rollout.
    - The advantage uses the Generalized Advantage Estimation.
      https://arxiv.org/abs/1506.02438
-   - Rollouts are longer and return more data so the training
-     part uses mini-batches from this data rather than all the
-     data at once.
+   - Rollouts are longer and return more data so the training part uses mini-batches from
+     this data rather than all the data at once.
 
    https://spinningup.openai.com/en/latest/algorithms/ppo.html
 *)

@@ -13,10 +13,9 @@ end = struct
 
   let with_tensor_gc (raw : raw_tensor) : gc_tensor =
     let addr = unsafe_raw_address_of_raw_tensor raw in
-    (* When managed is collected, it will reduce the refcount of the corresponding
-     Torch tensor. Storing the ~managed reference in the gc_tensor
-     fatptr assures that managed will not be collected until the gc_tensor is
-     dropped. *)
+    (* When managed is collected, it will reduce the refcount of the corresponding Torch
+       tensor. Storing the ~managed reference in the gc_tensor fatptr assures that managed
+       will not be collected until the gc_tensor is dropped. *)
     C_ffi.wrap_managed_tensor (make_managed_tensor addr)
   ;;
 

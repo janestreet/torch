@@ -1,9 +1,8 @@
-(* Advantage Actor Critic (A2C) model.
-   A2C is a synchronous variant of Asynchronous the Advantage Actor Critic (A3C)
-   model introduced by DeepMind in https://arxiv.org/abs/1602.01783
+(* Advantage Actor Critic (A2C) model. A2C is a synchronous variant of Asynchronous the
+   Advantage Actor Critic (A3C) model introduced by DeepMind in
+   https://arxiv.org/abs/1602.01783
 
-   See https://blog.openai.com/baselines-acktr-a2c/ for a reference
-   python implementation.
+   See https://blog.openai.com/baselines-acktr-a2c/ for a reference python implementation.
 *)
 open Base
 open Torch

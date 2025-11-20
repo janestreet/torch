@@ -1,13 +1,14 @@
 (* Variational Auto-Encoder on MNIST.
+
    The implementation is based on:
    https://github.com/pytorch/examples/blob/master/vae/main.py
 
    The 4 following dataset files can be downloaded from http://yann.lecun.com/exdb/mnist/
    These files should be extracted in the 'data' directory.
-   train-images-idx3-ubyte.gz
-   train-labels-idx1-ubyte.gz
-   t10k-images-idx3-ubyte.gz
-   t10k-labels-idx1-ubyte.gz
+   - train-images-idx3-ubyte.gz
+   - train-labels-idx1-ubyte.gz
+   - t10k-images-idx3-ubyte.gz
+   - t10k-labels-idx1-ubyte.gz
 *)
 
 open Base

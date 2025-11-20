@@ -1,5 +1,4 @@
-(* Relativistic average LSGAN,
-   see https://ajolicoeur.wordpress.com/RelativisticGAN/ *)
+(* Relativistic average LSGAN, see https://ajolicoeur.wordpress.com/RelativisticGAN/ *)
 open Base
 open Torch
 

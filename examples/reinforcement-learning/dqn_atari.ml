@@ -13,8 +13,8 @@ let double_dqn = true
 type state = Tensor.t
 
 module Transition = struct
-  (* This way of storing transition is very inefficient as the data is duplicated
-     between [state] and [num_state], as well as because of stacking. *)
+  (* This way of storing transition is very inefficient as the data is duplicated between
+     [state] and [num_state], as well as because of stacking. *)
   type t =
     { state : state
     ; action : int
@@ -198,8 +198,8 @@ end = struct
   let transition_feedback t transition = Replay_memory.push t.memory transition
 end
 
-(* Initial shape is (210, 160, 3), convert to num_stack grayscale images of size (105, 80).
-   Use Uint8 for the final result to reduce memory consumption.
+(* Initial shape is (210, 160, 3), convert to num_stack grayscale images of size (105,
+   80). Use Uint8 for the final result to reduce memory consumption.
 *)
 let preprocess () =
   let stacked_frames = Tensor.zeros [ num_stack; 105; 80 ] ~kind:(T Uint8) in
@@ -233,9 +233,8 @@ let maybe_load_weights agent =
   | _ -> Printf.failwithf "usage: %s [weights]" Stdlib.Sys.argv.(0) ()
 ;;
 
-(* This environment wrapper uses episodic life: [is_done] is set to true as
-   soon as a life is lost. The [should_reset] field is used to remember
-   whether a real reset is needed. *)
+(* This environment wrapper uses episodic life: [is_done] is set to true as soon as a life
+   is lost. The [should_reset] field is used to remember whether a real reset is needed. *)
 module E = struct
   type t =
     { fire_action : int option

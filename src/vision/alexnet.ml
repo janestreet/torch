@@ -1,5 +1,4 @@
-(* AlexNet model.
-   https://arxiv.org/abs/1404.5997
+(* AlexNet model. https://arxiv.org/abs/1404.5997
 *)
 open Base
 open Torch

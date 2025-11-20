@@ -1,13 +1,13 @@
 (* Translation with a Sequence to Sequence Model and Attention.
 
    This follows the line of the PyTorch tutorial:
-   https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html
-   And trains a Sequence to Sequence (seq2seq) model using attention to
-   perform translation between French and English.
+   https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html And trains
+   a Sequence to Sequence (seq2seq) model using attention to perform translation between
+   French and English.
 
    The dataset can be downloaded from the following link:
-   https://download.pytorch.org/tutorial/data.zip
-   The eng-fra.txt file should be moved in the data directory.
+   https://download.pytorch.org/tutorial/data.zip The eng-fra.txt file should be moved in
+   the data directory.
 *)
 open Base
 open Torch
@@ -15,10 +15,9 @@ open Torch
 (* Texts with more than this number of words will be discarded. *)
 let max_length = 10
 
-(* The seq2seq model that we build uses an encoder based on a GRU to
-   produce a vector representing the whole input text.
-   This vector is the final hidden state of the GRU and is passed as
-   initial state to the decoder which is also based on a GRU.
+(* The seq2seq model that we build uses an encoder based on a GRU to produce a vector
+   representing the whole input text. This vector is the final hidden state of the GRU and
+   is passed as initial state to the decoder which is also based on a GRU.
 *)
 module Enc : sig
   type t
@@ -189,9 +188,8 @@ let train_loss ~input_ ~target ~enc ~dec ~dec_start ~dec_eos ~device =
       Enc.forward enc input_tensor ~hidden:state)
   in
   let enc_outputs = Tensor.stack enc_outputs ~dim:1 in
-  (* When [use_teacher_forcing] is [true], use the target words as input
-     for each step of the decoder rather than the decoder output for the
-     previous step. *)
+  (* When [use_teacher_forcing] is [true], use the target words as input for each step of
+     the decoder rather than the decoder output for the previous step. *)
   let use_teacher_forcing = Float.( < ) (Random.float 1.) 0.5 in
   let dec_state = Enc.to_tensor enc_final |> D.of_tensor in
   (* Loop until the target sequence ends or the model returns EOS. *)

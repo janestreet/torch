@@ -1,7 +1,6 @@
-(* This module uses the binary version of the CIFAR-10 dataset.
-   The dataset can be downloaded from https://www.cs.toronto.edu/~kriz/cifar.html.
-   Images have shape [ samples; 32; 32; 3 ]. Labels are one-hot encoded with
-   shape [ samples; 10 ].
+(* This module uses the binary version of the CIFAR-10 dataset. The dataset can be
+   downloaded from https://www.cs.toronto.edu/~kriz/cifar.html. Images have shape
+   [ samples; 32; 32; 3 ]. Labels are one-hot encoded with shape [ samples; 10 ].
 *)
 val read_files : ?dirname:string -> ?with_caching:bool -> unit -> Dataset_helper.t
 val image_c : int
