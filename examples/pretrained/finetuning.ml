@@ -1,6 +1,5 @@
-(* Finetuning an ImageNet trained model.
-   This is based on the PyTorch tutorial "Finetuning Torchvision Models".
-   The final accuracy is ~94%.
+(* Finetuning an ImageNet trained model. This is based on the PyTorch tutorial "Finetuning
+   Torchvision Models". The final accuracy is ~94%.
    https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
 
    The ants and bees dataset can be found at the following link.

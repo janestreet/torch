@@ -467,7 +467,8 @@ let%expect_test "non-nullable scalar arguments with default values" =
 
 let%expect_test "non-nullable scalar arguments with multiple default values" =
   Tensor.with_rc_scope (fun () ->
-    (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in the right order *)
+    (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in the
+       right order *)
     let t =
       Tensor.arange_start_step
         ~start:(Scalar.float (-0.5))

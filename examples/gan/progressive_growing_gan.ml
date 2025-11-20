@@ -1,9 +1,8 @@
 (* Inference code from Progressive Growing of GANs.
 
    This is based on the PyTorch implementation:
-   https://github.com/ptrblck/prog_gans_pytorch_inference
-   Which itself is based on the Theano/Lasagne implementation of
-   Progressive Growing of GANs paper from tkarras:
+   https://github.com/ptrblck/prog_gans_pytorch_inference Which itself is based on the
+   Theano/Lasagne implementation of Progressive Growing of GANs paper from tkarras:
    https://github.com/tkarras/progressive_growing_of_gans
 *)
 open Base

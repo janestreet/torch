@@ -2,9 +2,9 @@ open Base
 open Torch
 
 (* Replicating:
-    https://github.com/pytorch/examples/blob/42068585f7da9a2f8656f793d21c30ee6806c6b9/distributed/tensor_parallelism/llama2_model.py
+   https://github.com/pytorch/examples/blob/42068585f7da9a2f8656f793d21c30ee6806c6b9/distributed/tensor_parallelism/llama2_model.py
 
-  Uses the tinyshakespeare dataset which can be downloaded at: *)
+   Uses the tinyshakespeare dataset which can be downloaded at: *)
 let dataset_url =
   "https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt"
 ;;
@@ -29,8 +29,8 @@ type config =
   ; norm_eps : float
   ; max_batch_size : int
   ; max_seq_len : int
-  ; (* If `True`, then each transformer block init uses its layer ID, and if
- `False`, each uses the total number of transformer blocks*)
+  ; (* If `True`, then each transformer block init uses its layer ID, and if `False`, each
+       uses the total number of transformer blocks *)
     depth_init : bool
   }
 

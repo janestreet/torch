@@ -1,5 +1,4 @@
-(* DenseNet model for the CIFAR-10 dataset.
-   https://arxiv.org/pdf/1608.06993.pdf
+(* DenseNet model for the CIFAR-10 dataset. https://arxiv.org/pdf/1608.06993.pdf
 
    The dataset can be downloaded from https://www.cs.toronto.edu/~kriz/cifar.html, files
    should be placed in the data/ directory.

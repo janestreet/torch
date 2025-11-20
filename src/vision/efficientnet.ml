@@ -1,6 +1,5 @@
-(* EfficientNet models, https://arxiv.org/abs/1905.11946
-   The implementation is very similar to:
-   https://github.com/lukemelas/EfficientNet-PyTorch
+(* EfficientNet models, https://arxiv.org/abs/1905.11946 The implementation is very
+   similar to: https://github.com/lukemelas/EfficientNet-PyTorch
 *)
 open Base
 open Torch

@@ -120,8 +120,8 @@ let vgg16_layers ?(max_layer = Int.max_value) vs ~batch_norm =
       (make_layers (Var_store.sub vs "features") `D ~batch_norm ~in_place_relu:false)
       max_layer
   in
-  (* [Staged.stage] just indicates that the [vs] and [~indexes] parameters should
-     only be applied on the first call to this function. *)
+  (* [Staged.stage] just indicates that the [vs] and [~indexes] parameters should only be
+     applied on the first call to this function. *)
   Staged.stage (fun xs ->
     List.fold_mapi layers ~init:xs ~f:(fun i xs layer ->
       let xs = Layer.forward_ layer xs ~is_training:false in

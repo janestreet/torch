@@ -31,15 +31,16 @@ let%expect_test _ =
   [%expect {| 120 |}]
 ;;
 
-(*
-   test module generated with these Python code:
+(* test module generated with these Python code:
 
+   {v
    import torch
    @torch.jit.script
    def would_raise(x):
    raise RuntimeError("Raising expcetion on purpose")
    return x
    torch.jit.save(would_raise, '/tmp/raise.pt')
+   v}
 *)
 let%expect_test "test exception raise in torch script can be properly caught in OCaml" =
   let model = Module.load "raise.pt" in
