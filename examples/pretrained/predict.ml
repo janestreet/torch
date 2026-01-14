@@ -1,5 +1,5 @@
-(* Evaluation using a pre-trained ResNet model.
-   The pre-trained weight file can be found at:
+(* Evaluation using a pre-trained ResNet model. The pre-trained weight file can be found
+   at:
    https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet18.ot
    https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/resnet34.ot
    https://github.com/LaurentMazare/ocaml-torch/releases/download/v0.1-unstable/densenet121.ot

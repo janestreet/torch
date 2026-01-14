@@ -4,9 +4,11 @@
    should be placed in the data/ directory.
 
    This model uses the pre-activation variant of ResNet18 as introduced in:
+   {v
    Identity Mappings in Deep Residual Networks
    Kaiming He et al., 2016
    https://arxiv.org/abs/1603.05027
+   v}
 
    This reaches ~94.6% accuracy.
 *)
@@ -63,8 +65,7 @@ let resnet vs =
   let stack1 = block_stack vs ~stride:1 ~depth:2 ~input_dim:64 64 in
   let stack2 = block_stack vs ~stride:2 ~depth:2 ~input_dim:64 128 in
   let stack3 = block_stack vs ~stride:2 ~depth:2 ~input_dim:128 256 in
-  (* The output there should be of size 512 but this requires more than
-     2GB of memory.
+  (* The output there should be of size 512 but this requires more than 2GB of memory.
   *)
   let stack4 = block_stack vs ~stride:2 ~depth:2 ~input_dim:256 256 in
   let linear = Layer.linear vs ~input_dim:256 Cifar_helper.label_count in

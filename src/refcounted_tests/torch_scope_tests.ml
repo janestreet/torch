@@ -207,7 +207,7 @@ let%expect_test "with_scope handles exceptions correctly" =
   [%expect {| Supposed to fail |}];
   let t = Option.value_exn !tref in
   printf "%d\n" (Tensor.For_testing.get_refcount t);
-  (* Refcount should have been decremented to 1*)
+  (* Refcount should have been decremented to 1 *)
   [%expect {| 1 |}];
   Tensor.For_testing.decrement_refcount t
 ;;
@@ -236,7 +236,7 @@ let%expect_test "with_scope_tensor handles exceptions correctly" =
   let t = Option.value_exn !tref in
   printf "%d\n" (Tensor.For_testing.get_refcount t);
   [%expect {| 1 |}];
-  (* Refcount should have been decremented to 1*)
+  (* Refcount should have been decremented to 1 *)
   Tensor.For_testing.decrement_refcount t
 ;;
 
@@ -273,7 +273,7 @@ let%expect_test "with_scope_tensors handles exceptions correctly" =
   let tensors = !tref in
   Torch_local_iterators.List.iter_local tensors ~f:(fun t ->
     printf "%d " (Tensor.For_testing.get_refcount t));
-  (* Refcount should have been decremented to 1*)
+  (* Refcount should have been decremented to 1 *)
   [%expect {| 1 1 1 |}];
   Torch_local_iterators.List.iter_local tensors ~f:Tensor.For_testing.decrement_refcount
 ;;

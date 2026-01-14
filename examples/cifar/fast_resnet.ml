@@ -1,5 +1,4 @@
-(* Fast Resnet variant
-   Adapted from https://github.com/davidcpage/cifar10-fast/
+(* Fast Resnet variant Adapted from https://github.com/davidcpage/cifar10-fast/
 *)
 open Base
 open Torch

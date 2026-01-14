@@ -95,8 +95,8 @@ let%expect_test "copy_to_bigstring works" =
   done;
   Stdio.print_endline (String.of_array dst_array);
   [%expect {| (^._.^)__/ |}];
-  (* demonstrate that it works with a more complicated tensor and puts the floats in
-     the right order *)
+  (* demonstrate that it works with a more complicated tensor and puts the floats in the
+     right order *)
   let col1 = Tensor.of_float1 [| 1.; 3. |] in
   let col2 = Tensor.of_float1 [| 2.; 4. |] in
   let src = Tensor.stack [ col1; col2 ] ~dim:1 in
@@ -106,8 +106,10 @@ let%expect_test "copy_to_bigstring works" =
     Stdio.printf "%02x" (Char.to_int (Bigarray.Array1.get dst i))
   done;
   (* this is what we expect:
+     {v
      >>> base64.b16encode(struct.pack("ffff", 1., 2., 3., 4.)).lower().decode("ascii")
      '0000803f000000400000404000008040'
+     v}
   *)
   [%expect {| 0000803f000000400000404000008040 |}]
 ;;
@@ -486,8 +488,8 @@ let%expect_test "gc_test" =
   Stdlib.Gc.finalise (fun _ -> Stdio.print_endline "freed b") b;
   let tensors = [ a; b ] in
   let array =
-    (* This is copied from [CArray.of_list] except that there is a custom finaliser so
-       we can see when the array goes away. *)
+    (* This is copied from [CArray.of_list] except that there is a custom finaliser so we
+       can see when the array goes away. *)
     let arr =
       CArray.make
         ~finalise:(fun _ -> Stdio.print_endline "freed array")
@@ -506,10 +508,10 @@ let%expect_test "gc_test" =
   (* Pretend that we called into a C++ function (not necessary for the test) and now
      receive back the results. We'd expect the tensor to still be alive. *)
   let result = CArray.to_list array in
-  (* Note: this test is actually still broken. [CArray.to_list] does not increment the
-     ref count. Ideally we can put [keep_values_alive] right here, but since the above
-     doesn't increment the ref count and there is no good way to do it given the API, we
-     have to put [keep_values_alive] at the end. *)
+  (* Note: this test is actually still broken. [CArray.to_list] does not increment the ref
+     count. Ideally we can put [keep_values_alive] right here, but since the above doesn't
+     increment the ref count and there is no good way to do it given the API, we have to
+     put [keep_values_alive] at the end. *)
   Stdlib.Gc.full_major ();
   Stdio.print_endline "after second gc";
   List.map result ~f:(Tensor.to_string ~line_size:90)
@@ -521,19 +523,19 @@ let%expect_test "gc_test" =
     freed array
     after second gc
     (1,.,.) =
-      0  0  0
+     0  0  0
       0  0  0
     [ CPUFloatType{1,2,3} ]
     (1,.,.) =
-      0
+     0
       0
 
     (2,.,.) =
-      0
+     0
       0
 
     (3,.,.) =
-      0
+     0
       0
     [ CPUFloatType{3,2,1} ]
     |}];
@@ -568,7 +570,8 @@ let%expect_test "non-nullable scalar arguments with default values" =
 ;;
 
 let%expect_test "non-nullable scalar arguments with multiple default values" =
-  (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in the right order *)
+  (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in the
+     right order *)
   let t =
     Tensor.arange_start_step
       ~start:(Scalar.float (-0.5))

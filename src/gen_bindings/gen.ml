@@ -1,6 +1,5 @@
-(* Automatically generate the C++ -> C -> ocaml bindings.
-   This takes as input the Descriptions.yaml file that gets generated when
-   building PyTorch from source. *)
+(* Automatically generate the C++ -> C -> ocaml bindings. This takes as input the
+   Descriptions.yaml file that gets generated when building PyTorch from source. *)
 open Base
 open Stdio
 
@@ -50,8 +49,8 @@ let excluded_functions =
     ; "linalg_matrix_norm_out"
     ; "histogram"
     ; "histogram_out"
-      (* Deactivate normal_out, bernoulli_out as these result in some
-       ambiguous function calls. *)
+      (* Deactivate normal_out, bernoulli_out as these result in some ambiguous function
+         calls. *)
     ; "normal_out"
     ; "bernoulli_out"
     ; "nested_tensor"
@@ -134,7 +133,7 @@ let append_local_mode_if_refcounted
 
 let list_length_function ~refcounted =
   (* [Base.List.length] accepts local lists, which we have in the refcounted
-    implementation *)
+     implementation *)
   if refcounted then "Base.List.length" else "List.length"
 ;;
 
@@ -347,8 +346,8 @@ module Func = struct
   let operator_name t =
     match String.lowercase t.operator_name with
     | "scatter_reduce" ->
-      (* scatter_reduce is both an operator name and also obtained from the
-         scatter operator when using the reduce overload. *)
+      (* scatter_reduce is both an operator name and also obtained from the scatter
+         operator when using the reduce overload. *)
       "_scatter_reduce"
     | "scatter_reduce_" -> "_scatter_reduce_"
     | other -> other

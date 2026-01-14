@@ -11,8 +11,7 @@ let latent_dim = 100
 
 type loss =
   | StandardGAN
-  (* Relativistic average LSGAN,
-     see https://ajolicoeur.wordpress.com/RelativisticGAN/ *)
+  (* Relativistic average LSGAN, see https://ajolicoeur.wordpress.com/RelativisticGAN/ *)
   | RaLSGAN
 
 let _loss = RaLSGAN

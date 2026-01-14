@@ -19,9 +19,8 @@ let normalize str =
       | _ -> " "))
 ;;
 
-(* We only consider a subset of the dataset that starts with the
-   following prefixes as this makes the dataset smaller and the translation
-   task easier to learn
+(* We only consider a subset of the dataset that starts with the following prefixes as
+   this makes the dataset smaller and the translation task easier to learn
 *)
 let filter_prefix =
   let prefixes =

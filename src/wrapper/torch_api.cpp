@@ -756,19 +756,28 @@ void atm_to(module m, int device, int dtype, bool non_blocking) {
   PROTECT(m->to(device_of_int(device), at::ScalarType(dtype), non_blocking);)
 }
 
-aoti_runner_cuda aoti_runner_cuda_load(char *filename, int num_concurrent_executions,
-                                       int device, char *cubin_dir) {
-  PROTECT(at::Device torch_device = device_of_int(device);
-          return new torch::inductor::AOTIModelContainerRunnerCuda(
-              filename, num_concurrent_executions, torch_device.str(), cubin_dir);)
-  return nullptr;
-}
-
 class no_runtime_system {
 public:
   no_runtime_system() { caml_release_runtime_system(); }
   ~no_runtime_system() { caml_acquire_runtime_system(); }
 };
+
+aoti_runner_cuda aoti_runner_cuda_load(char *filename, int num_concurrent_executions,
+                                       int device, char *cubin_dir) {
+  PROTECT({
+    // Release the runtime lock because loading the weights can be slow. Ctypes
+    // copies the strings off of the OCaml heap before passing them here, so
+    // it's safe to use them without the lock.
+    no_runtime_system nosys;
+
+    at::Device torch_device = device_of_int(device);
+
+    return new torch::inductor::AOTIModelContainerRunnerCuda(
+        filename, num_concurrent_executions, torch_device.str(), cubin_dir,
+        true /* run_single_threaded */);
+  })
+  return nullptr;
+}
 
 void aoti_runner_cuda_run_unit(aoti_runner_cuda r, gc_tensor *inputs_ptr, int ninputs) {
   PROTECT(

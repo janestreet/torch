@@ -113,12 +113,11 @@ let pop_current_scope_and_transfer ~tensors_to_shift_out =
 ;;
 
 let with_rc_scope_tensor (f : unit -> gc_tensor) : gc_tensor =
-  (* We have different [with_scope] functions because when users want to return
-      tensor(s) from the callback, we need to ensure they are handed off to the outer
-      scope.
-      Tensors cannot be returned from regular [with_scope] because it returns ['a] which
-      is not local. They must go through this function or the list version which will add
-      them to the outer scope. *)
+  (* We have different [with_scope] functions because when users want to return tensor(s)
+     from the callback, we need to ensure they are handed off to the outer scope. Tensors
+     cannot be returned from regular [with_scope] because it returns ['a] which is not
+     local. They must go through this function or the list version which will add them to
+     the outer scope. *)
   set_up_new_scope ();
   let returned_tensor =
     (* We don't use [exclave_] on this call because the variables inside the callback will
