@@ -799,8 +799,10 @@ aoti_runner_cuda aoti_runner_cuda_load(char *filename, int num_concurrent_execut
     no_runtime_system nosys;
 
     at::Device torch_device = device_of_int(device);
+
     return new torch::inductor::AOTIModelContainerRunnerCuda(
-        filename, num_concurrent_executions, torch_device.str(), cubin_dir);
+        filename, num_concurrent_executions, torch_device.str(), cubin_dir,
+        true /* run_single_threaded */);
   })
   return nullptr;
 }
