@@ -77,7 +77,8 @@ let%expect_test "test exception raise in torch script can be properly caught in 
 ;;
 
 let%expect_test _ =
-  (* test that we can list all the buffers in a module, modify them, and get different results *)
+  (* test that we can list all the buffers in a module, modify them, and get different
+     results *)
   (* This model just adds all the buffers and parameters together. *)
   let open Base in
   let model = Module.load "w_buffers.pt" in

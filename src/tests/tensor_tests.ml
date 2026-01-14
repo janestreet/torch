@@ -523,19 +523,19 @@ let%expect_test "gc_test" =
     freed array
     after second gc
     (1,.,.) =
-      0  0  0
+     0  0  0
       0  0  0
     [ CPUFloatType{1,2,3} ]
     (1,.,.) =
-      0
+     0
       0
 
     (2,.,.) =
-      0
+     0
       0
 
     (3,.,.) =
-      0
+     0
       0
     [ CPUFloatType{3,2,1} ]
     |}];
