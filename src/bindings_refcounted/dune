@@ -1,6 +1,6 @@
 (library
  (name torch_refcounted_bindings)
  (public_name torch.refcounted.bindings)
- (libraries ctypes ctypes.stubs)
+ (libraries)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

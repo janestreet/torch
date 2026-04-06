@@ -3,4 +3,4 @@
  (public_name torch.bindings)
  (libraries ctypes ctypes.stubs)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

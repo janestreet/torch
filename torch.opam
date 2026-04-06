@@ -6,6 +6,7 @@ bug-reports: "https://github.com/janestreet/torch/issues"
 dev-repo: "git+https://github.com/janestreet/torch.git"
 doc: "https://ocaml.janestreet.com/ocaml-core/latest/doc/torch/index.html"
 license: "MIT"
+x-maintenance-intent: ["(latest)"]
 build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
@@ -15,6 +16,7 @@ depends: [
   "core"
   "core_unix"
   "ppx_bench"
+  "ppx_c_bindings"
   "ppx_expect"
   "ppx_inline_test"
   "ppx_jane"
@@ -22,6 +24,7 @@ depends: [
   "ppx_module_timer"
   "ppx_string"
   "stdio"
+  "vec"
   "ctypes"              {= "0.23.0+ox"}
   "ctypes-foreign"      {= "0.23.0+ox"}
   "dune"                {>= "3.17.0"}

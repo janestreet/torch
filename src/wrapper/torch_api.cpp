@@ -40,6 +40,24 @@ raw_tensor tensor_to_ocaml(const torch::Tensor &cpp_tensor) {
   return ptr.release();
 }
 
+// The interface for caml_alloc_dependent_memory has changed. I could probably figure out
+// the right ifdef to determine which version to call, or I could let this template decide
+// on the right one automatically.
+struct CamlAllocDependentMemory {
+
+  template <typename F, typename... Args> static void call_f(F f, Args &&...args) {
+    f(std::forward<Args>(args)...);
+  }
+
+  template <typename F> static void call(F f, value v, mlsize_t size) {
+    if constexpr (std::is_same_v<F, void (*)(mlsize_t)>) {
+      return call_f(f, size);
+    } else {
+      return call_f(f, v, size);
+    }
+  }
+};
+
 void finalize_managed_tensor_internal(value managed) {
   raw_tensor t = *(raw_tensor *)Data_custom_val(managed);
 
@@ -49,7 +67,8 @@ void finalize_managed_tensor_internal(value managed) {
   unsigned long int off_heap_cpu_memory_bytes = 0;
   if (tensor.defined() && tensor.device() == at::kCPU) {
     off_heap_cpu_memory_bytes = tensor.numel() * tensor.element_size();
-    caml_free_dependent_memory(managed, off_heap_cpu_memory_bytes);
+    CamlAllocDependentMemory::call(caml_free_dependent_memory, managed,
+                                   off_heap_cpu_memory_bytes);
   }
 #endif
 
@@ -78,7 +97,8 @@ value prepare_ocaml_tensor(const torch::Tensor &tensor) {
   managed = caml_alloc_custom_mem(&ops, sizeof(raw_tensor), off_heap_cpu_memory_bytes);
 #if OCAML_DEPENDENT_MEM_TRACKING
   if (off_heap_cpu_memory_bytes) {
-    caml_alloc_dependent_memory(managed, off_heap_cpu_memory_bytes);
+    CamlAllocDependentMemory::call(caml_alloc_dependent_memory, managed,
+                                   off_heap_cpu_memory_bytes);
   }
 #endif
   *(raw_tensor *)Data_custom_val(managed) = tensor_to_ocaml(tensor);
@@ -109,15 +129,6 @@ vector<torch::Tensor> of_carray_tensor(gc_tensor *vs, int len) {
   for (int i = 0; i < len; ++i)
     result.push_back(tensor_from_ocaml(vs[i]));
   return result;
-}
-
-c10::List<c10::optional<torch::Tensor>> of_carray_tensor_opt(gc_tensor *vs, int len) {
-  vector<c10::optional<torch::Tensor>> result;
-  for (int i = 0; i < len; ++i) {
-    result.push_back(vs[i] ? c10::optional<torch::Tensor>(tensor_from_ocaml(vs[i]))
-                           : c10::nullopt);
-  }
-  return c10::List<c10::optional<torch::Tensor>>(result);
 }
 
 c10::optional<at::Device> optional_device_of_int(int d) {
@@ -1024,4 +1035,12 @@ void torch_save_memory_snapshot_pickled(char *output_filepath) {
   return;
 }
 
-#include "torch_api_generated.cpp"
+
+#include "torch_api_generated0.cpp"
+#include "torch_api_generated1.cpp"
+#include "torch_api_generated2.cpp"
+#include "torch_api_generated3.cpp"
+#include "torch_api_generated4.cpp"
+#include "torch_api_generated5.cpp"
+#include "torch_api_generated6.cpp"
+#include "torch_api_generated7.cpp"

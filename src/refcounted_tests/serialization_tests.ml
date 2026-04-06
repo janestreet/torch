@@ -1,4 +1,4 @@
-open Base
+open Core
 open Torch_refcounted
 
 let write_and_read (tensor @ local) ~print_tensor =
@@ -65,4 +65,86 @@ let%expect_test _ =
     another 0
     and yet another 0
     |}]
+;;
+
+let%expect_test "load_all" =
+  Tensor.with_rc_scope (fun () ->
+    let filename = Stdlib.Filename.temp_file "torchtest" ".ot" in
+    let named_tensors =
+      [ "tensor-1", Tensor.of_float1 [| 3.; 14.; 15.; 9265.35 |]
+      ; "another", Tensor.of_int0 42
+      ; "and yet another", Tensor.of_int2 [| [| 3; -1; -51234 |]; [| 2718; 2818; 28 |] |]
+      ]
+    in
+    Serialize.save_multi ~named_tensors ~filename;
+    let ys = Serialize.load_all ~filename in
+    Torch_local_iterators.List.iter_local ys ~f:(fun (name, t) ->
+      print_endline (String.globalize name);
+      Tensor.print t;
+      print_endline "");
+    Core_unix.unlink filename);
+  [%expect
+    {|
+    tensor-1
+        3.0000
+       14.0000
+       15.0000
+     9265.3496
+    [ CPUFloatType{4} ]
+
+    another
+    42
+    [ CPULongType{} ]
+
+    and yet another
+         3     -1 -51234
+      2718   2818     28
+    [ CPULongType{2,3} ]
+    |}]
+;;
+
+let%expect_test "bigarray" =
+  Tensor.with_rc_scope (fun () ->
+    let bigarray =
+      Bigarray.Array1.of_array Int C_layout [| 5; 6; 7 |] |> Bigarray.genarray_of_array1
+    in
+    let tensor = Tensor.of_bigarray bigarray in
+    Tensor.print tensor;
+    [%expect
+      {|
+       5
+       6
+       7
+      [ CPULongType{3} ]
+      |}];
+    let t2 = Tensor.of_int1 [| 1; 2; 3 |] in
+    Tensor.copy_to_bigarray t2 bigarray;
+    let as_list = List.init 3 ~f:(fun i -> Bigarray.Genarray.get bigarray [| i |]) in
+    print_s [%sexp (as_list : int list)];
+    [%expect {| (1 2 3) |}])
+;;
+
+let%expect_test "bigstring" =
+  Tensor.with_rc_scope (fun () ->
+    let tensor =
+      Tensor.of_int2 [| [| 1; 2 |]; [| 3; 4 |] |]
+      |> Tensor.to_dtype ~dtype:(T Int8) ~non_blocking:true ~copy:true
+    in
+    let bigstring = Bigarray.Array1.create Char C_layout 4 in
+    Tensor.copy_to_bigstring ~src:tensor ~dst:bigstring ~dst_pos:0 ~dst_len:4;
+    let array = Array.init 4 ~f:(Bigarray.Array1.get bigstring) in
+    print_s [%sexp (array : char array)];
+    [%expect {| ("\001" "\002" "\003" "\004") |}];
+    let t2 =
+      Tensor.of_int2 [| [| 0; 0 |]; [| 0; 0 |] |]
+      |> Tensor.to_dtype ~dtype:(T Int8) ~non_blocking:true ~copy:true
+    in
+    Tensor.copy_from_bigstring ~src:bigstring ~src_pos:0 ~src_len:4 ~dst:t2;
+    Tensor.print t2;
+    [%expect
+      {|
+       1  2
+       3  4
+      [ CPUCharType{2,2} ]
+      |}])
 ;;

@@ -1,7 +1,9 @@
 open Base
 
 module Tensor_id : sig
-  include Hashable.Key
+  type t
+
+  include Hashable.Key with type t := t
 end
 
 (** A VarStore is used to store all the variables used by a given model. The model creates

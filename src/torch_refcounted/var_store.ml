@@ -1,7 +1,9 @@
 open Base
 
 module Tensor_id : sig
-  include Hashable.Key
+  type t
+
+  include Hashable.Key with type t := t
 
   val create : unit -> t
 end = struct

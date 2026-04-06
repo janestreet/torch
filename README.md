@@ -5,7 +5,7 @@ differentiation.
 
 These bindings use the [PyTorch C++ API](https://pytorch.org/cppdocs/) and are
 mostly automatically generated.
-The current GitHub tip corresponds to PyTorch **v2.7**.
+The current GitHub tip corresponds to PyTorch **v2.9**.
 
 The library uses a custom refcounting mechanism to get deterministic memory management. It
 is explained in the [refcounting tutorial](./rc_tutorial.md).
@@ -21,11 +21,22 @@ To install with any of these methods, after configuring your environment, you ma
 
 * `opam install torch`, or
 * build from source:
+For OCaml:
 ```bash
 git clone https://github.com/janestreet/torch.git
 cd torch
-make all
+opam install . --deps-only --with-test --with-doc
+opam exec -- dune build examples/llama2/
 ```
+
+For OxCaml:
+```bash
+git clone https://github.com/janestreet/torch.git
+cd torch
+opam install . --deps-only --with-test --with-doc
+opam exec -- dune build examples/refcounted/llama2/
+```
+
 
 ### Option 1: OPAM switch (CPU only)
 
@@ -49,6 +60,20 @@ before installing.
 ### Option 4: Custom Libtorch Location
 If you have [downloaded libtorch](https://pytorch.org) somewhere, set
 `LIBTORCH=/path/to/libtorch/` before installing.
+
+### Option 5: Set all the environment variables
+This is the most manual approach. Setting these environment variables should allow you to
+get past any dependency errors:
+```
+export LIBTORCH_DIR=...
+export CUDA_DIR=...
+export LIBTORCH="$LIBTORCH_DIR/lib"
+export CPLUS_INCLUDE_PATH="$LIBTORCH_DIR/include/:$LIBTORCH_DIR/include/torch/csrc/api/include:$CUDA_DIR/targets/x86_64-linux/include"
+export LIBRARY_PATH="$LIBTORCH_DIR/lib:$CUDA_DIR/targets/x86_64-linux/lib/"
+```
+Then run the commands above.
+
+
 
 ## Examples
 

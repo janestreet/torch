@@ -338,5 +338,14 @@ module C (F : Cstubs.FOREIGN) = struct
     let free = foreign "aoti_runner_cuda_free" (aoti_runner_cuda @-> returning void)
   end
 
-  module Generated = Torch_bindings_generated.C (F)
+  module Generated = struct
+    include Torch_bindings_generated0.C (F)
+    include Torch_bindings_generated1.C (F)
+    include Torch_bindings_generated2.C (F)
+    include Torch_bindings_generated3.C (F)
+    include Torch_bindings_generated4.C (F)
+    include Torch_bindings_generated5.C (F)
+    include Torch_bindings_generated6.C (F)
+    include Torch_bindings_generated7.C (F)
+  end
 end

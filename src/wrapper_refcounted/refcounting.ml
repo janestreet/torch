@@ -1,61 +1,92 @@
 open Core
 open Torch_refcounted_bindings.Type_defs
 
-external increment_refcount_c : nativeint -> unit = "increment_refcount"
-external decrement_refcount_c : nativeint -> unit = "decrement_refcount"
-external get_refcount_c : nativeint -> int = "get_refcount"
+external increment_refcount_c : tensor -> unit = "increment_refcount"
+external decrement_refcount_c : tensor -> unit = "decrement_refcount"
+external get_refcount_c : tensor -> int = "get_refcount"
 
-let globalize_gc_tensor = Wrapper_utils.globalize_gc_tensor
-
-let increment_refcount (t : gc_tensor @ local) =
-  let raw_addr = Ctypes.raw_address_of_ptr (globalize_gc_tensor t) in
+let increment_refcount (t : tensor @ local) =
+  let raw_addr = globalize_tensor t in
   increment_refcount_c raw_addr
 ;;
 
-let decrement_refcount (t : gc_tensor @ local) =
-  let raw_addr = Ctypes.raw_address_of_ptr (globalize_gc_tensor t) in
+let decrement_refcount (t : tensor @ local) =
+  let raw_addr = globalize_tensor t in
   decrement_refcount_c raw_addr
 ;;
 
-let get_refcount (t : gc_tensor @ local) =
-  let raw_addr = Ctypes.raw_address_of_ptr (globalize_gc_tensor t) in
+let get_refcount (t : tensor @ local) =
+  let raw_addr = globalize_tensor t in
   get_refcount_c raw_addr
 ;;
 
 module Expert = struct
-  let add_unmanaged_reference (t : gc_tensor @ local) =
+  let add_unmanaged_reference (t : tensor @ local) =
     increment_refcount t;
-    globalize_gc_tensor t
+    globalize_tensor t
   ;;
 
-  let remove_unmanaged_reference (t : gc_tensor) = decrement_refcount t
+  let remove_unmanaged_reference (t : tensor) = decrement_refcount t
 end
 
-(* Calling [convert_rc_tensor_to_gc] on an already gc managed tensor is fine. This works
-   correctly not because there are multiple finalizers (though that would work). Instead,
-   [globalize_gc_tensor] creates a new object every time so the GC doesn't know these are
-   the same thing.
+(* Calling [convert_rc_tensor_to_gc] on an already gc managed tensor is fine.
+   [globalize_tensor] creates a new object even if its input is already global, but even
+   if it didn't the number of increments and finalizers would match.
 
    Remember we also attach finalizer in [add_to_current_scope]. Consider if it makes sense
    to update that function too when changing this one. *)
-let convert_rc_tensor_to_gc (t : gc_tensor @ local) =
+let convert_rc_tensor_to_gc (t : tensor @ local) =
   let t = Expert.add_unmanaged_reference t in
   Gc.Expert.add_finalizer_exn t Expert.remove_unmanaged_reference;
   t
 ;;
 
-module Tensor_scope = struct
-  type t = { mutable items : gc_tensor list }
+module Tensor_scope : sig
+  type t
+  type tensor_scope := t
 
-  let create () = { items = [] }
-  let add t item = t.items <- item :: t.items
+  val add : t -> tensor -> unit
 
-  let clean_up t =
-    List.iter t.items ~f:decrement_refcount;
-    t.items <- []
-  ;;
+  module Debug : sig
+    val items : t -> tensor Vec.t
+  end
+
+  module Pool : sig
+    type t
+
+    val create : unit -> t
+    val alloc : t -> tensor_scope
+    val clean_up : t -> tensor_scope -> unit
+  end
+end = struct
+  type t = tensor Vec.t
+
+  let add = Vec.push_back
+
+  module Debug = struct
+    let items = Fn.id
+  end
+
+  module Pool = struct
+    type nonrec t = t Vec.t
+
+    let create () = Vec.create ()
+
+    let alloc (t : t) =
+      match Vec.pop_back t with
+      | This scope -> scope
+      | Null -> Vec.create ()
+    ;;
+
+    let clean_up (t : t) scope =
+      Vec.iter scope ~f:decrement_refcount;
+      Vec.clear scope;
+      Vec.push_back t scope
+    ;;
+  end
 end
 
+let global_scope_pool = Tensor_scope.Pool.create ()
 let scope_stack : Tensor_scope.t Stack.t = Stack.create ()
 let warn_on_empty_rc_scope_stack = ref false
 
@@ -87,11 +118,14 @@ let add_to_current_scope tensor =
 ;;
 
 let set_up_new_scope () =
-  let inner_scope = Tensor_scope.create () in
+  let inner_scope = Tensor_scope.Pool.alloc global_scope_pool in
   Stack.push scope_stack inner_scope
 ;;
 
-let pop_current_scope () = Stack.pop_exn scope_stack |> Tensor_scope.clean_up
+let pop_current_scope () =
+  let scope = Stack.pop_exn scope_stack in
+  Tensor_scope.Pool.clean_up global_scope_pool scope
+;;
 
 (** Same as [pop_current_scope] but transfers the given tensors to the parent scope *)
 let pop_current_scope_and_transfer ~tensors_to_shift_out =
@@ -99,20 +133,20 @@ let pop_current_scope_and_transfer ~tensors_to_shift_out =
   let tensors =
     match get_current_scope () with
     | Some outer_scope ->
-      List.globalize
-        (fun tensor ->
+      (List.map [@mode local])
+        ~f:(fun tensor ->
           increment_refcount tensor;
-          let tensor = globalize_gc_tensor tensor in
+          let tensor = globalize_tensor tensor in
           Tensor_scope.add outer_scope tensor;
           tensor)
         tensors_to_shift_out
-    | None -> List.globalize convert_rc_tensor_to_gc tensors_to_shift_out
+    | None -> (List.map [@mode local]) ~f:convert_rc_tensor_to_gc tensors_to_shift_out
   in
-  Tensor_scope.clean_up current_scope;
+  Tensor_scope.Pool.clean_up global_scope_pool current_scope;
   tensors
 ;;
 
-let with_rc_scope_tensor (f : (unit -> gc_tensor @ local) @ local) : gc_tensor @ local =
+let with_rc_scope_tensor (f : (unit -> tensor @ local) @ local) : tensor @ local =
   (* We have different [with_scope] functions because when users want to return tensor(s)
      from the callback, we need to ensure they are handed off to the outer scope. Tensors
      cannot be returned from regular [with_scope] because it returns ['a] which is not
@@ -130,8 +164,8 @@ let with_rc_scope_tensor (f : (unit -> gc_tensor @ local) @ local) : gc_tensor @
   pop_current_scope_and_transfer ~tensors_to_shift_out:[ returned_tensor ] |> List.hd_exn
 ;;
 
-let with_rc_scope_tensors (f : (unit -> gc_tensor list @ local) @ local)
-  : gc_tensor list @ local
+let with_rc_scope_tensors (f : (unit -> tensor list @ local) @ local)
+  : tensor list @ local
   =
   set_up_new_scope ();
   let returned_tensors =
@@ -160,12 +194,12 @@ let size_to_print size_in_bytes =
 
 let print_rc_scopes_tensors_and_refcounts ~shape ~kind =
   let stack_depth = ref 0 in
-  Stack.iter scope_stack ~f:(fun { Tensor_scope.items } ->
+  Stack.iter scope_stack ~f:(fun scope ->
+    let items = Tensor_scope.Debug.items scope in
     if !stack_depth > 0 then print_endline "\n";
     print_endline
-      [%string
-        "Scope at depth %{!stack_depth#Int} with %{List.length items#Int} tensors:"];
-    List.iter items ~f:(fun tensor ->
+      [%string "Scope at depth %{!stack_depth#Int} with %{Vec.length items#Int} tensors:"];
+    Vec.iter items ~f:(fun tensor ->
       let refcount = get_refcount tensor in
       let shape = shape tensor in
       let size = List.fold shape ~init:1 ~f:( * ) in
@@ -193,5 +227,4 @@ module For_testing = struct
   let increment_refcount = increment_refcount
   let decrement_refcount = decrement_refcount
   let get_refcount = get_refcount
-  let globalize_gc_tensor = globalize_gc_tensor
 end
