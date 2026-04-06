@@ -27,7 +27,6 @@ type config =
   ; multiple_of : int
   ; ffn_dim_multiplier : float option
   ; norm_eps : float
-  ; max_batch_size : int
   ; max_seq_len : int
   ; (* If `True`, then each transformer block init uses its layer ID, and if `False`, each
        uses the total number of transformer blocks *)
@@ -469,7 +468,6 @@ let () =
       ; multiple_of = 256
       ; ffn_dim_multiplier = None
       ; norm_eps = 1e-5
-      ; max_batch_size = 32
       ; max_seq_len = 4096
       ; depth_init = true
       }

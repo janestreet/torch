@@ -173,21 +173,40 @@ let%expect_test "Trying to use with_scope_tensors at the top level warns" =
 ;;
 
 let%expect_test "gc multiple times" =
-  let t = Tensor.zeros [ 1 ] in
-  print_s [%message (Tensor.For_testing.get_refcount t : int)];
-  [%expect {| ("Tensor.For_testing.get_refcount t" 1) |}];
-  let t2 = Tensor.convert_rc_tensor_to_gc t in
-  let t3 = Tensor.convert_rc_tensor_to_gc t2 in
-  print_s [%message (Tensor.For_testing.get_refcount t : int)];
-  Gc.keep_alive t2;
-  [%expect {| ("Tensor.For_testing.get_refcount t" 3) |}];
+  let globalized =
+    Tensor.with_rc_scope (fun () ->
+      let t = Tensor.zeros [ 1 ] in
+      print_s [%message (Tensor.For_testing.get_refcount t : int)];
+      [%expect {| ("Tensor.For_testing.get_refcount t" 1) |}];
+      let t2 = Tensor.convert_rc_tensor_to_gc t in
+      Gc.Expert.add_finalizer_exn
+        (Torch_refcounted_bindings.Type_defs.globalize_tensor t2)
+        (fun t2 ->
+           print_s
+             [%message
+               "In second-to-last finalizer" (Tensor.For_testing.get_refcount t2 : int)]);
+      print_s [%message (Tensor.For_testing.get_refcount t : int)];
+      [%expect {| ("Tensor.For_testing.get_refcount t" 2) |}];
+      let t3 = Tensor.convert_rc_tensor_to_gc t2 in
+      print_s [%message (Tensor.For_testing.get_refcount t : int)];
+      Gc.keep_alive t2;
+      (* One in scope, two from conversion to gc *)
+      [%expect {| ("Tensor.For_testing.get_refcount t" 3) |}];
+      Gc.full_major ();
+      print_s [%message (Tensor.For_testing.get_refcount t : int)];
+      (* It's valid for this to decrease to two, or to stay at 3. Previous implementations
+         decreased to 2 here because t2 was collected. *)
+      [%expect {| ("Tensor.For_testing.get_refcount t" 3) |}];
+      t3)
+  in
+  print_s [%message (Tensor.For_testing.get_refcount globalized : int)];
+  (* The scope gave up its reference, but the gc finalizers still haven't run. *)
+  [%expect {| ("Tensor.For_testing.get_refcount globalized" 2) |}];
   Gc.full_major ();
-  Gc.keep_alive t3;
-  print_s [%message (Tensor.For_testing.get_refcount t : int)];
-  [%expect {| ("Tensor.For_testing.get_refcount t" 2) |}];
-  Gc.full_major ();
-  print_s [%message (Tensor.For_testing.get_refcount t : int)];
-  [%expect {| ("Tensor.For_testing.get_refcount t" 1) |}]
+  (* The finalizers have run. The printing one is second-to-last because it was inserted
+     between the two calls to [convert_rc_tensor_to_gc], so it still gets to see a
+     refcount of 1. *)
+  [%expect {| ("In second-to-last finalizer" ("Tensor.For_testing.get_refcount t2" 1)) |}]
 ;;
 
 let%expect_test "with_scope handles exceptions correctly" =
@@ -196,7 +215,7 @@ let%expect_test "with_scope handles exceptions correctly" =
   (try
      Tensor.with_rc_scope (fun () ->
        let t = Tensor.zeros [ 1 ] in
-       tref := Some (Tensor.For_testing.globalize_gc_tensor t);
+       tref := Some (Tensor.globalize t);
        (* Increment refcount to 2 *)
        Tensor.For_testing.increment_refcount t;
        printf "%d\n" (Tensor.For_testing.get_refcount (Option.value_exn !tref));
@@ -224,7 +243,7 @@ let%expect_test "with_scope_tensor handles exceptions correctly" =
            Tensor.For_testing.increment_refcount t;
            printf "%d\n" (Tensor.For_testing.get_refcount t);
            [%expect {| 2 |}];
-           tref := Some (Tensor.For_testing.globalize_gc_tensor t);
+           tref := Some (Tensor.globalize t);
            ignore (failwith "Supposed to fail" : unit);
            t)
        in
@@ -256,10 +275,7 @@ let%expect_test "with_scope_tensors handles exceptions correctly" =
            Torch_local_iterators.List.iter_local tensors ~f:(fun t ->
              printf "%d " (Tensor.For_testing.get_refcount t));
            [%expect {| 2 2 2 |}];
-           tref
-           := Torch_local_iterators.List.map_local_input
-                tensors
-                ~f:Tensor.For_testing.globalize_gc_tensor;
+           tref := [%globalize: Tensor.t list] tensors;
            ignore (failwith "Supposed to fail" : unit);
            tensors)
        in
@@ -276,35 +292,4 @@ let%expect_test "with_scope_tensors handles exceptions correctly" =
   (* Refcount should have been decremented to 1 *)
   [%expect {| 1 1 1 |}];
   Torch_local_iterators.List.iter_local tensors ~f:Tensor.For_testing.decrement_refcount
-;;
-
-module Ctypes = struct
-  include Ctypes_flat.Ctypes [@@alert "-deprecated"]
-end
-
-let%expect_test "Stack allocated gc tensor is globalized properly" =
-  let f x =
-    let managed = x in
-    let fatptr =
-      Ctypes_ptr.Fat.make
-        ~managed:(Some (Obj.repr managed))
-        ~reftyp:Ctypes.void
-        (managed : nativeint)
-    in
-    let t = stack_ (CPointer fatptr : Tensor.t) in
-    (* If we make this [Obj.magic Obj.magic] then the test fails *)
-    let t_escape = Tensor.For_testing.globalize_gc_tensor t in
-    Stdio.printf "inside call %nd\n" (Ctypes.raw_address_of_ptr t_escape);
-    t_escape
-  in
-  let t1 = f 100n in
-  [%expect {| inside call 100 |}];
-  Stdio.printf "returned t1 %nd\n" (Ctypes.raw_address_of_ptr t1);
-  [%expect {| returned t1 100 |}];
-  let t = f 999n in
-  [%expect {| inside call 999 |}];
-  Stdio.printf "t1 %nd\n" (Ctypes.raw_address_of_ptr t1);
-  [%expect {| t1 100 |}];
-  Stdio.printf "t2 %nd\n" (Ctypes.raw_address_of_ptr t);
-  [%expect {| t2 999 |}]
 ;;

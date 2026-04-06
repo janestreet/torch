@@ -1,9 +1,9 @@
 open Torch_refcounted_bindings.Type_defs
 
-val add_to_current_scope : gc_tensor -> gc_tensor
-val increment_refcount : gc_tensor @ local -> unit
-val decrement_refcount : gc_tensor @ local -> unit
-val get_refcount : gc_tensor @ local -> int
+val add_to_current_scope : tensor -> tensor
+val increment_refcount : tensor @ local -> unit
+val decrement_refcount : tensor @ local -> unit
+val get_refcount : tensor @ local -> int
 
 (** The rules for refcounted (RC) tensors are this:
     1. Tensors can only be created inside one of the [with_rc_scope] functions. If no
@@ -31,17 +31,15 @@ module For_users : sig
 
   (** Same as [with_rc_scope], but the callback should return a tensor, and that tensor
       will be safely added to the scope of the caller of this function. *)
-  val with_rc_scope_tensor : (unit -> gc_tensor @ local) @ local -> gc_tensor @ local
+  val with_rc_scope_tensor : (unit -> tensor @ local) @ local -> tensor @ local
 
   (** Same as [with_rc_scope_tensor], but for a list of tensors. *)
-  val with_rc_scope_tensors
-    :  (unit -> gc_tensor list @ local) @ local
-    -> gc_tensor list @ local
+  val with_rc_scope_tensors : (unit -> tensor list @ local) @ local -> tensor list @ local
 
   (** Turn a refcounted tensor into a garbage collected tensor. After this function, the
       tensor can be passed around freely, but it will only be cleaned up when the
       finalizer runs. This is useful for long-lived tensors. *)
-  val convert_rc_tensor_to_gc : gc_tensor @ local -> gc_tensor
+  val convert_rc_tensor_to_gc : tensor @ local -> tensor
 
   module Expert : sig
     (** Get a global unmanaged reference to the local refcounted tensor. The unmanaged
@@ -55,16 +53,16 @@ module For_users : sig
 
         Consider using [convert_rc_tensor_to_gc] instead if the cost of a GC finalizer and
         a non-deterministic freeing time is acceptable. *)
-    val add_unmanaged_reference : gc_tensor @ local -> gc_tensor
+    val add_unmanaged_reference : tensor @ local -> tensor
 
-    val remove_unmanaged_reference : gc_tensor -> unit
+    val remove_unmanaged_reference : tensor -> unit
   end
 
   (** Debugging function for understanding memory consumption. Iterates the current stack
       of scopes and prints all tensors that are currently allocated. *)
   val print_rc_scopes_tensors_and_refcounts
-    :  shape:(gc_tensor -> int list)
-    -> kind:(gc_tensor -> Torch_wrapper_types.Kind.packed)
+    :  shape:(tensor -> int list)
+    -> kind:(tensor -> Torch_wrapper_types.Kind.packed)
     -> unit
 
   (** By default, if you create a tensor outside of a [with_rc_scope], it will silently be
@@ -76,8 +74,7 @@ module For_users : sig
 end
 
 module For_testing : sig
-  val increment_refcount : gc_tensor @ local -> unit
-  val decrement_refcount : gc_tensor @ local -> unit
-  val get_refcount : gc_tensor @ local -> int
-  val globalize_gc_tensor : gc_tensor @ local -> gc_tensor
+  val increment_refcount : tensor @ local -> unit
+  val decrement_refcount : tensor @ local -> unit
+  val get_refcount : tensor @ local -> int
 end

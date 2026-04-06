@@ -16,10 +16,14 @@
   (language c)
   (names torch_stubs torch_stubs_generated)
   (flags :standard -Wno-discarded-qualifiers -Wno-incompatible-pointer-types)
-  (extra_deps torch_api_generated.h torch_api_generated.cpp))
+  (extra_deps torch_api_generated.h torch_api_generated0.cpp
+    torch_api_generated1.cpp torch_api_generated2.cpp
+    torch_api_generated3.cpp torch_api_generated4.cpp
+    torch_api_generated5.cpp torch_api_generated6.cpp
+    torch_api_generated7.cpp))
  (libraries ctypes.foreign ctypes torch_bindings torch_wrapper_types)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))
 
 (rule
  (targets ocaml_runtime_props.h)

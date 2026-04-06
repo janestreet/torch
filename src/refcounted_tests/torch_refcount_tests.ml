@@ -1,5 +1,5 @@
-open Core
-open Torch_refcounted
+open! Core
+open! Torch_refcounted
 
 let%expect_test "Increment and decrement moves values correctly" =
   Tensor.with_rc_scope (fun () ->
@@ -18,7 +18,8 @@ let%expect_test "Increment and decrement moves values correctly" =
     Tensor.For_testing.decrement_refcount t;
     printf "%d\n" (Tensor.For_testing.get_refcount t);
     [%expect {| 1 |}];
-    Tensor.For_testing.decrement_refcount t;
+    (* We cannot decrement the refcount further otherwise we double-free the tensor (the
+       rc-scope owns one of the references). *)
     ())
 ;;
 
@@ -45,6 +46,16 @@ let%expect_test "Basic tensor usage" =
        1
       [ CPUFloatType{1} ]
       |}])
+;;
+
+let%expect_test "dimensions and strides" =
+  Tensor.with_rc_scope (fun () ->
+    let a = Tensor.zeros [ 2; 3; 4 ] in
+    print_s [%message "" ~ndim:(Tensor.ndim a : int) ~shape:(Tensor.shape a : int list)];
+    [%expect {| ((ndim 3) (shape (2 3 4))) |}];
+    let strides = List.init (Tensor.ndim a) ~f:(fun dim -> Tensor.stride ~dim a) in
+    print_s [%sexp (strides : int64 list)];
+    [%expect {| (12 4 1) |}])
 ;;
 
 let%expect_test "addition" =
@@ -365,6 +376,52 @@ let%expect_test "flatten" =
     [%expect {| flatten (0, 1): ((1 2) (3 4) (5 6) (7 8)) |}])
 ;;
 
+let%expect_test "split_copy_tensor_out" =
+  Tensor.with_rc_scope (fun () ->
+    let ts =
+      [ Tensor.of_float1 [| 0.0 |]
+      ; Tensor.of_float1 [| 0.0 |]
+      ; Tensor.of_float1 [| 0.0 |]
+      ]
+    in
+    let t = Tensor.of_float1 [| 1.0; 2.0; 3.0 |] in
+    Core.print_endline "original tensor:";
+    Tensor.print t;
+    [%expect
+      {|
+      original tensor:
+       1
+       2
+       3
+      [ CPUFloatType{3} ]
+      |}];
+    Core.print_endline "output tensors before split:";
+    Torch_local_iterators.List.iter_local ts ~f:Tensor.print;
+    [%expect
+      {|
+      output tensors before split:
+       0
+      [ CPUFloatType{1} ]
+       0
+      [ CPUFloatType{1} ]
+       0
+      [ CPUFloatType{1} ]
+      |}];
+    Tensor.split_copy_tensor_out ~out:ts t ~split_size:1 ~dim:(-1);
+    Core.print_endline "output tensors after split:";
+    Torch_local_iterators.List.iter_local ts ~f:Tensor.print;
+    [%expect
+      {|
+      output tensors after split:
+       1
+      [ CPUFloatType{1} ]
+       2
+      [ CPUFloatType{1} ]
+       3
+      [ CPUFloatType{1} ]
+      |}])
+;;
+
 let%expect_test "Ensuring optional tensors are passed properly" =
   Tensor.with_rc_scope (fun () ->
     let query =
@@ -497,8 +554,8 @@ let%expect_test "print scopes" =
       {|
       Scope at depth 0 with 4 tensors:
       shape: (5 2), refcount: 2, size: 40 bytes
-      shape: (), refcount: 1, size: 4 bytes
       shape: (1), refcount: 2, size: 4 bytes
+      shape: (), refcount: 1, size: 4 bytes
       shape: (5 2), refcount: 2, size: 40 bytes
       |}];
     let t2 =
@@ -513,8 +570,8 @@ let%expect_test "print scopes" =
 
           Scope at depth 1 with 4 tensors:
           shape: (5 2), refcount: 2, size: 40 bytes
-          shape: (), refcount: 1, size: 4 bytes
           shape: (1), refcount: 2, size: 4 bytes
+          shape: (), refcount: 1, size: 4 bytes
           shape: (5 2), refcount: 2, size: 40 bytes
           |}];
         t)
@@ -526,13 +583,170 @@ let%expect_test "print scopes" =
       {|
       Scope at depth 0 with 7 tensors:
       shape: (5 2), refcount: 2, size: 40 bytes
+      shape: (1), refcount: 2, size: 4 bytes
+      shape: (), refcount: 1, size: 4 bytes
       shape: (5 2), refcount: 2, size: 40 bytes
       shape: (5 2), refcount: 1, size: 40 bytes
       shape: (5 2), refcount: 2, size: 40 bytes
-      shape: (), refcount: 1, size: 4 bytes
-      shape: (1), refcount: 2, size: 4 bytes
       shape: (5 2), refcount: 2, size: 40 bytes
       |}]);
   Tensor.print_rc_scopes_tensors_and_refcounts ();
   [%expect {| |}]
+;;
+
+let%expect_test "float list" =
+  Tensor.with_rc_scope (fun () ->
+    let t = Tensor.of_float1 [| 1.; 2.; 3. |] in
+    let t2 = Tensor._test_optional_floatlist ~values:t ~addends:[ 4.; 5.; 6. ] in
+    Tensor.print t2;
+    [%expect
+      {|
+       5
+       7
+       9
+      [ CPUFloatType{3} ]
+      |}])
+;;
+
+let%expect_test "__and__tensor_" =
+  Tensor.with_rc_scope (fun () ->
+    let tensor = Tensor.of_int1 [| 1; 2; 3; 4; 5 |] in
+    let and1 = Tensor.__and__tensor_ tensor (Tensor.of_int0 1) in
+    Tensor.print and1;
+    [%expect
+      {|
+       1
+       0
+       1
+       0
+       1
+      [ CPULongType{5} ]
+      |}];
+    let and3 = Tensor.__and__tensor_ tensor (Tensor.of_int0 3) in
+    Tensor.print and3;
+    [%expect
+      {|
+       1
+       2
+       3
+       0
+       1
+      [ CPULongType{5} ]
+      |}])
+;;
+
+let%expect_test "__and__" =
+  Tensor.with_rc_scope (fun () ->
+    let tensor = Tensor.of_int1 [| 1; 2; 3; 4; 5 |] in
+    let and1 = Tensor.__and__ tensor (Scalar.int 1) in
+    Tensor.print and1;
+    [%expect
+      {|
+       1
+       0
+       1
+       0
+       1
+      [ CPULongType{5} ]
+      |}];
+    let and3 = Tensor.__and__ tensor (Scalar.int 3) in
+    Tensor.print and3;
+    [%expect
+      {|
+       1
+       2
+       3
+       0
+       1
+      [ CPULongType{5} ]
+      |}])
+;;
+
+let%expect_test "concat and split" =
+  Tensor.with_rc_scope (fun () ->
+    let a = Tensor.of_int2 [| [| 1; 2 |]; [| 3; 4 |] |] in
+    let b = Tensor.of_int2 [| [| 5; 6 |]; [| 7; 8 |] |] in
+    let concat0 = Tensor.concat [ a; b ] ~dim:0 in
+    Tensor.print concat0;
+    [%expect
+      {|
+       1  2
+       3  4
+       5  6
+       7  8
+      [ CPULongType{4,2} ]
+      |}];
+    let concat1 = Tensor.concat [ a; b ] ~dim:1 in
+    Tensor.print concat1;
+    [%expect
+      {|
+       1  2  5  6
+       3  4  7  8
+      [ CPULongType{2,4} ]
+      |}];
+    let split00 = Tensor.split concat0 ~split_size:2 ~dim:0 in
+    Torch_local_iterators.List.iter_local split00 ~f:Tensor.print;
+    (* Splitting concat0 on dim 0 should restore the original *)
+    [%expect
+      {|
+       1  2
+       3  4
+      [ CPULongType{2,2} ]
+       5  6
+       7  8
+      [ CPULongType{2,2} ]
+      |}];
+    let split01 = Tensor.split concat0 ~split_size:1 ~dim:1 in
+    Torch_local_iterators.List.iter_local split01 ~f:Tensor.print;
+    [%expect
+      {|
+       1
+       3
+       5
+       7
+      [ CPULongType{4,1} ]
+       2
+       4
+       6
+       8
+      [ CPULongType{4,1} ]
+      |}];
+    let split10 = Tensor.split concat1 ~split_size:1 ~dim:0 in
+    Torch_local_iterators.List.iter_local split10 ~f:Tensor.print;
+    [%expect
+      {|
+       1  2  5  6
+      [ CPULongType{1,4} ]
+       3  4  7  8
+      [ CPULongType{1,4} ]
+      |}];
+    let split11 = Tensor.split concat1 ~split_size:2 ~dim:1 in
+    Torch_local_iterators.List.iter_local split11 ~f:Tensor.print;
+    (* Splitting concat1 on dim 1 should restore the original *)
+    [%expect
+      {|
+       1  2
+       3  4
+      [ CPULongType{2,2} ]
+       5  6
+       7  8
+      [ CPULongType{2,2} ]
+      |}])
+;;
+
+(** This test checks that we are pacing the OCaml GC correctly when using CPU tensors. The
+    numbers right now are very high (this test will consume ~470GB of memory before
+    stabilizing) so change the tensor size to numbers that make sense on your box before
+    running it.
+
+    The goal is not for the test to ever finish, the goal is that you can observe that
+    memory usage is stable in htop while the test runs. *)
+let%expect_test ("lots of memory" [@tags "disabled"]) =
+  let a = Int.Table.create () in
+  for i = 0 to 1000000 do
+    Tensor.with_rc_scope (fun () ->
+      let tensor = Tensor.zeros [ 1024; 1024; 1024 ] |> Tensor.convert_rc_tensor_to_gc in
+      Hashtbl.add_exn a ~key:i ~data:tensor;
+      if i >= 100 then Hashtbl.remove a (i - 100))
+  done
 ;;

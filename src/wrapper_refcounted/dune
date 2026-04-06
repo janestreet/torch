@@ -1,7 +1,11 @@
 (library
  (foreign_stubs
   (language cxx)
-  (names torch_api)
+  (names torch_api ocaml_to_cpp torch_refcounted_api_generated0
+    torch_refcounted_api_generated1 torch_refcounted_api_generated2
+    torch_refcounted_api_generated3 torch_refcounted_api_generated4
+    torch_refcounted_api_generated5 torch_refcounted_api_generated6
+    torch_refcounted_api_generated7)
   (flags
    -std=c++17
    -fPIC
@@ -14,14 +18,71 @@
   (:include flags.sexp))
  (foreign_stubs
   (language c)
-  (names torch_stubs torch_refcounted_stubs_generated)
+  (names torch_stubs wrapper_stubs wrapper_generated_refcounted_stubs0
+    wrapper_generated_refcounted_stubs1 wrapper_generated_refcounted_stubs2
+    wrapper_generated_refcounted_stubs3 wrapper_generated_refcounted_stubs4
+    wrapper_generated_refcounted_stubs5 wrapper_generated_refcounted_stubs6
+    wrapper_generated_refcounted_stubs7)
   (flags :standard -Wno-discarded-qualifiers -Wno-incompatible-pointer-types)
-  (extra_deps torch_refcounted_api_generated.h
-    torch_refcounted_api_generated.cpp))
- (libraries core ctypes.foreign ctypes torch_local_iterators
-   torch_refcounted_bindings torch_wrapper_types)
+  (extra_deps torch_refcounted_api_generated.h torch_api_for_generated.hpp))
+ (libraries core torch_local_iterators torch_refcounted_bindings
+   torch_wrapper_types vec)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane ppx_c_bindings)))
+
+(rule
+ (deps wrapper.ml)
+ (targets wrapper_stubs.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
+
+(rule
+ (deps wrapper_generated_refcounted0.ml)
+ (targets wrapper_generated_refcounted_stubs0.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
+
+(rule
+ (deps wrapper_generated_refcounted1.ml)
+ (targets wrapper_generated_refcounted_stubs1.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
+
+(rule
+ (deps wrapper_generated_refcounted2.ml)
+ (targets wrapper_generated_refcounted_stubs2.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
+
+(rule
+ (deps wrapper_generated_refcounted3.ml)
+ (targets wrapper_generated_refcounted_stubs3.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
+
+(rule
+ (deps wrapper_generated_refcounted4.ml)
+ (targets wrapper_generated_refcounted_stubs4.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
+
+(rule
+ (deps wrapper_generated_refcounted5.ml)
+ (targets wrapper_generated_refcounted_stubs5.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
+
+(rule
+ (deps wrapper_generated_refcounted6.ml)
+ (targets wrapper_generated_refcounted_stubs6.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
+
+(rule
+ (deps wrapper_generated_refcounted7.ml)
+ (targets wrapper_generated_refcounted_stubs7.c)
+ (action
+  (bash "%{bin:ppx-c-bindings} %{deps}>%{targets}")))
 
 (rule
  (targets ocaml_runtime_props.h)
@@ -34,10 +95,3 @@
  (deps ../config/discover.exe)
  (action
   (bash %{deps})))
-
-(rule
- (targets torch_refcounted_stubs_generated.c
-   torch_refcounted_stubs_generated.ml)
- (deps ../gen_stubs/gen_stubs.exe)
- (action
-  (bash "./%{deps} -refcounted true")))

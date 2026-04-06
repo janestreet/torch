@@ -20,7 +20,14 @@ let ptr_of_strings strings =
 ;;
 
 module Tensor = struct
-  include Wrapper_generated
+  include Wrapper_generated0
+  include Wrapper_generated1
+  include Wrapper_generated2
+  include Wrapper_generated3
+  include Wrapper_generated4
+  include Wrapper_generated5
+  include Wrapper_generated6
+  include Wrapper_generated7
   open! C.Tensor
 
   type t = gc_tensor

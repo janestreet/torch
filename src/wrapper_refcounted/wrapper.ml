@@ -1,34 +1,43 @@
-open Ctypes
-open Torch_stubs
-open Wrapper_utils
+open Core
+open C_ffi
 open Torch_refcounted_bindings.Type_defs
 open Torch_wrapper_types
 
+[%%c {| #include "torch_api.h" |}]
+
 module Tensor = struct
-  include Wrapper_generated_refcounted
+  include Wrapper_generated_refcounted0
+  include Wrapper_generated_refcounted1
+  include Wrapper_generated_refcounted2
+  include Wrapper_generated_refcounted3
+  include Wrapper_generated_refcounted4
+  include Wrapper_generated_refcounted5
+  include Wrapper_generated_refcounted6
+  include Wrapper_generated_refcounted7
   include Refcounting.For_users
-  open! C.Tensor
 
-  type t = gc_tensor
+  type t = tensor [@@deriving globalize]
 
-  let new_tensor () = new_tensor () |> with_tensor_gc
+  let new_tensor () =
+    [%c.alloc ({| CAMLreturn(at_new_tensor());|} : raw_tensor value)]
+    |> wrap_managed_tensor
+  ;;
 
   let float_vec ?(kind = `float) values =
-    let values_len = List.length values in
-    let values = CArray.of_list double values |> CArray.start in
     let kind =
       match kind with
       | `float -> Kind.T Float
       | `double -> Kind.T Double
       | `half -> Kind.T Half
     in
-    let t = float_vec values values_len (Kind.packed_to_int kind) in
-    with_tensor_gc t
+    let kind = Kind.packed_to_int kind in
+    [%c.alloc
+      ({|CAMLreturn(at_float_vec(%{values:float list value}, %{kind:int}));|}
+       : raw_tensor value)]
+    |> wrap_managed_tensor
   ;;
 
   let int_vec ?(kind = `int) values =
-    let values_len = List.length values in
-    let values = List.map Int64.of_int values |> CArray.of_list int64_t |> CArray.start in
     let kind =
       match kind with
       | `uint8 -> Kind.T Uint8
@@ -37,12 +46,15 @@ module Tensor = struct
       | `int -> Kind.T Int
       | `int64 -> Kind.T Int64
     in
-    let t = int_vec values values_len (Kind.packed_to_int kind) in
-    with_tensor_gc t
+    let kind = Kind.packed_to_int kind in
+    [%c.alloc
+      ({|CAMLreturn(at_int_vec(%{values:int list value}, %{kind:int}));|}
+       : raw_tensor value)]
+    |> wrap_managed_tensor
   ;;
 
   let of_bigarray (type a b) (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
-    let dims = Bigarray.Genarray.dims ga in
+    let dims = Bigarray.Genarray.dims ga |> Array.to_list in
     let kind = Bigarray.Genarray.kind ga in
     let tensor_kind =
       match kind with
@@ -57,18 +69,14 @@ module Tensor = struct
       | Bigarray.Int64 -> Kind.T Int64
       | _ -> failwith "unsupported bigarray kind"
     in
-    let t =
-      tensor_of_data
-        (bigarray_start genarray ga |> to_voidp)
-        (Array.to_list dims
-         |> List.map Int64.of_int
-         |> CArray.of_list int64_t
-         |> CArray.start)
-        (Array.length dims)
-        (Bigarray.kind_size_in_bytes kind)
-        (Kind.packed_to_int tensor_kind)
-    in
-    with_tensor_gc t
+    let element_size = Bigarray.kind_size_in_bytes kind in
+    let kind = Kind.packed_to_int tensor_kind in
+    [%c.alloc
+      ({|CAMLreturn(at_tensor_of_data(%{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t value},
+                                      %{dims: int list value}, %{element_size:int},
+                                      %{kind:int}));|}
+       : raw_tensor value)]
+    |> wrap_managed_tensor
   ;;
 
   let copy_to_bigstring
@@ -77,15 +85,18 @@ module Tensor = struct
     ~dst_pos
     ~dst_len
     =
+    let t = globalize_tensor t in
     let dst_total_len = Bigarray.Array1.dim b in
     Base.Ordered_collection_common.check_pos_len_exn
       ~pos:dst_pos
       ~len:dst_len
       ~total_length:dst_total_len;
-    copy_to_bytes
-      (globalize_gc_tensor t)
-      (bigarray_start array1 b +@ dst_pos |> to_voidp)
-      (Int64.of_int dst_len)
+    let dst_pos = Int64.of_int dst_pos in
+    let dst_len = Int64.of_int dst_len in
+    [%c.alloc
+      {|at_copy_to_bytes(%{t:t value},
+                         %{b:(char, _, Bigarray.c_layout) Bigarray.Array1.t value},
+                         %{dst_pos:Int64.t}, %{dst_len:Int64.t});|}]
   ;;
 
   let copy_from_bigstring
@@ -94,39 +105,47 @@ module Tensor = struct
     ~src_len
     ~dst:t
     =
+    let t = globalize_tensor t in
     let src_total_len = Bigarray.Array1.dim b in
     Base.Ordered_collection_common.check_pos_len_exn
       ~pos:src_pos
       ~len:src_len
       ~total_length:src_total_len;
-    copy_from_bytes
-      (globalize_gc_tensor t)
-      (bigarray_start array1 b +@ src_pos |> to_voidp)
-      (Int64.of_int src_len)
+    let src_pos = Int64.of_int src_pos in
+    let src_len = Int64.of_int src_len in
+    [%c.alloc
+      {|at_copy_from_bytes(%{t:t value},
+                           %{b:(char, _, Bigarray.c_layout) Bigarray.Array1.t value},
+                           %{src_pos:Int64.t}, %{src_len:Int64.t});|}]
   ;;
 
   let copy_to_bigarray (type a b) t (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
+    let t = globalize_tensor t in
     let kind = Bigarray.Genarray.kind ga in
-    copy_to_elements
-      (globalize_gc_tensor t)
-      (bigarray_start genarray ga |> to_voidp)
-      (Bigarray.Genarray.dims ga |> Array.fold_left ( * ) 1 |> Int64.of_int)
-      (Bigarray.kind_size_in_bytes kind)
+    let bigarray_size =
+      Bigarray.Genarray.dims ga |> Array.fold ~f:( * ) ~init:1 |> Int64.of_int
+    in
+    let kind_size = Bigarray.kind_size_in_bytes kind in
+    [%c.alloc
+      {| at_copy_to_elements(%{t:t value},
+                             %{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t value},
+                             %{bigarray_size:Int64.t}, %{kind_size:int});|}]
+  ;;
+
+  let ndim t =
+    let t = globalize_tensor t in
+    [%c.alloc ({|CAMLreturnT(int, at_dim(%{t:t value}));|} : int)]
   ;;
 
   let shape t =
-    let t = globalize_gc_tensor t in
-    let num_dims = ndim t in
-    let carray = CArray.make int num_dims in
-    shape t (CArray.start carray);
-    CArray.to_list carray
+    let t = globalize_tensor t in
+    [%c.alloc ({|CAMLreturn(at_shape(%{t:t value}));|} : int list value)]
   ;;
 
   let size = shape
-  let ndim t = ndim (globalize_gc_tensor t)
 
   let unexpected_shape shape =
-    let shape = String.concat ", " (List.map string_of_int shape) in
+    let shape = String.concat ~sep:", " (List.map ~f:string_of_int shape) in
     Printf.sprintf "unexpected shape <%s>" shape |> failwith
   ;;
 
@@ -154,118 +173,162 @@ module Tensor = struct
     | shape -> unexpected_shape shape
   ;;
 
-  let kind t = scalar_type (globalize_gc_tensor t) |> Kind.of_int_exn
+  let kind t =
+    let t = globalize_tensor t in
+    [%c.alloc ({|CAMLreturnT(int, at_scalar_type(%{t:t value}));|} : int)]
+    |> Kind.of_int_exn
+  ;;
 
   let print_rc_scopes_tensors_and_refcounts () =
     print_rc_scopes_tensors_and_refcounts ~shape ~kind
   ;;
 
-  let requires_grad t = if requires_grad (globalize_gc_tensor t) <> 0 then true else false
-  let grad_set_enabled b = grad_set_enabled (if b then 1 else 0) <> 0
-
-  let get t index =
-    let t = globalize_gc_tensor t in
-    let t = get t index in
-    with_tensor_gc t
+  let requires_grad t =
+    let t = globalize_tensor t in
+    [%c.alloc ({|CAMLreturnT(int, at_requires_grad(%{t:t value}));|} : int)] <> 0
   ;;
 
-  let float_value t = double_value (globalize_gc_tensor t) (from_voidp int null) 0
+  let grad_set_enabled b =
+    let b = Bool.to_int b in
+    [%c.alloc ({|CAMLreturnT(int, at_grad_set_enabled(%{b:int}));|} : int)] <> 0
+  ;;
+
+  let get t index =
+    let t = globalize_tensor t in
+    [%c.alloc ({|CAMLreturn(at_get(%{t:t value}, %{index:int}));|} : raw_tensor value)]
+    |> wrap_managed_tensor
+  ;;
+
+  let float_value t =
+    let t = globalize_tensor t in
+    [%c.alloc
+      ({| CAMLreturnT(double, at_double_value_at_indexes(%{t:t value}, Val_emptylist));|}
+       : float)]
+  ;;
 
   let int_value t =
-    int64_value (globalize_gc_tensor t) (from_voidp int null) 0 |> Int64.to_int
+    let t = globalize_tensor t in
+    [%c.alloc
+      ({| CAMLreturnT(int64_t, at_int64_value_at_indexes(%{t:t value}, Val_emptylist));|}
+       : Int64.t)]
+    |> Int64.to_int_exn
   ;;
 
   let float_get t indexes =
-    let t = globalize_gc_tensor t in
-    double_value t (CArray.of_list int indexes |> CArray.start) (List.length indexes)
+    let t = globalize_tensor t in
+    [%c.alloc
+      ({| CAMLreturnT(double, at_double_value_at_indexes(%{t:t value},
+                      %{indexes:int list value}));|}
+       : float)]
   ;;
 
   let int_get t indexes =
-    let t = globalize_gc_tensor t in
-    int64_value t (CArray.of_list int indexes |> CArray.start) (List.length indexes)
-    |> Int64.to_int
+    let t = globalize_tensor t in
+    [%c.alloc
+      ({| CAMLreturnT(int64_t, at_int64_value_at_indexes(%{t:t value},
+                      %{indexes:int list value}));|}
+       : Int64.t)]
+    |> Int64.to_int_exn
   ;;
 
   let float_set t indexes v =
-    let t = globalize_gc_tensor t in
-    double_value_set
-      t
-      (CArray.of_list int indexes |> CArray.start)
-      (List.length indexes)
-      v
+    let t = globalize_tensor t in
+    [%c.alloc
+      {|at_set_double_value_at_indexes(%{t:t value}, %{indexes:int list value},
+                                       %{v:float});|}]
   ;;
 
   let int_set t indexes v =
-    let t = globalize_gc_tensor t in
-    int64_value_set
-      t
-      (CArray.of_list int indexes |> CArray.start)
-      (List.length indexes)
-      (Int64.of_int v)
+    let t = globalize_tensor t in
+    [%c.alloc
+      {|at_set_int64_value_at_indexes(%{t:t value}, %{indexes:int list value},
+                                      %{v:int});|}]
   ;;
 
   let fill_float t v =
-    let t = globalize_gc_tensor t in
-    fill_double t v
+    let t = globalize_tensor t in
+    [%c.alloc {|at_fill_double(%{t:t value}, %{v:float});|}]
   ;;
 
   let fill_int t i =
-    let t = globalize_gc_tensor t in
-    fill_int64 t (Int64.of_int i)
+    let t = globalize_tensor t in
+    [%c.alloc {|at_fill_int64(%{t:t value}, %{i:int});|}]
   ;;
 
   let backward ?(keep_graph = false) ?(create_graph = false) t =
-    backward
-      (globalize_gc_tensor t)
-      (if keep_graph then 1 else 0)
-      (if create_graph then 1 else 0)
+    let t = globalize_tensor t in
+    let keep_graph = Bool.to_int keep_graph in
+    let create_graph = Bool.to_int create_graph in
+    [%c.alloc {| at_backward(%{t:t value}, %{keep_graph:int}, %{create_graph:int}); |}]
   ;;
 
-  let print t = print (globalize_gc_tensor t)
-  let to_string t ~line_size = to_string (globalize_gc_tensor t) line_size
-
-  let argmax ?dim ?(keepdim = false) t =
-    let t = globalize_gc_tensor t in
-    argmax t ~dim ~keepdim
+  let print t =
+    let t = globalize_tensor t in
+    [%c.no_alloc {| at_print(%{t:t value}); |}]
   ;;
 
+  let to_string t ~line_size =
+    let t = globalize_tensor t in
+    [%c.alloc
+      ({|CAMLreturn(at_to_string(%{t:t value}, %{line_size:int}));|} : string value)]
+  ;;
+
+  let argmax ?dim ?(keepdim = false) t = argmax t ~dim ~keepdim
   let max = maximum
   let min = minimum
 
   let copy_nonblocking_ t ~src =
-    copy_ (globalize_gc_tensor t) (globalize_gc_tensor src) true
+    let t = globalize_tensor t in
+    let src = globalize_tensor src in
+    [%c.alloc {| at_copy_(%{t:t value}, %{src:t value}, 1); |}]
   ;;
 
-  let copy_ t ~src = copy_ (globalize_gc_tensor t) (globalize_gc_tensor src) false
-  let set_data t ~src = set_data (globalize_gc_tensor t) (globalize_gc_tensor src)
-  let defined t = defined (globalize_gc_tensor t)
-  let device t = device (globalize_gc_tensor t) |> Device.of_int
+  let copy_ t ~src =
+    let t = globalize_tensor t in
+    let src = globalize_tensor src in
+    [%c.alloc {| at_copy_(%{t:t value}, %{src:t value}, 0); |}]
+  ;;
+
+  let set_data t ~src =
+    let t = globalize_tensor t in
+    let src = globalize_tensor src in
+    [%c.alloc {| at_set_data(%{t:t value}, %{src:t value});|}]
+  ;;
+
+  let defined t =
+    let t = globalize_tensor t in
+    [%c.alloc ({|CAMLreturnT(int, at_defined(%{t:t value}));|} : int)] <> 0
+  ;;
+
+  let device t =
+    let t = globalize_tensor t in
+    [%c.alloc ({|CAMLreturnT(int, at_device(%{t:t value}));|} : int)] |> Device.of_int
+  ;;
 
   let run_backward ?keep_graph ?(create_graph = false) tensors inputs =
-    let tensors = Base.List.globalize globalize_gc_tensor tensors in
-    let inputs = Base.List.globalize globalize_gc_tensor inputs in
+    let tensors = [%globalize: t list] tensors in
+    let inputs = [%globalize: t list] inputs in
     let keep_graph =
       match keep_graph with
       | None -> create_graph
       | Some keep_graph -> keep_graph
     in
-    let out_ = CArray.make raw_tensor (List.length inputs) in
-    run_backward
-      (CArray.of_list gc_tensor tensors |> CArray.start)
-      (List.length tensors)
-      (CArray.of_list gc_tensor inputs |> CArray.start)
-      (List.length inputs)
-      (CArray.start out_)
-      (if keep_graph then 1 else 0)
-      (if create_graph then 1 else 0);
-    keep_values_alive tensors;
-    keep_values_alive inputs;
-    List.map with_tensor_gc (CArray.to_list out_)
+    let keep_graph = Bool.to_int keep_graph in
+    let create_graph = Bool.to_int create_graph in
+    [%c.alloc
+      ({|CAMLreturn(at_run_backward(%{tensors:t list value}, %{inputs:t list value},
+                                    %{keep_graph:int}, %{create_graph:int}));|}
+       : raw_tensor list value)]
+    |> List.map ~f:wrap_managed_tensor
   ;;
 
   let sum t = sum t ~dtype:(kind t)
   let mean t = mean t ~dtype:(kind t)
-  let use_count t = use_count (globalize_gc_tensor t)
+
+  let use_count t =
+    let t = globalize_tensor t in
+    [%c.alloc ({|CAMLreturnT(int, at_use_count(%{t:t value}));|} : int)]
+  ;;
 
   module For_testing = struct
     include Refcounting.For_testing
@@ -273,78 +336,98 @@ module Tensor = struct
 end
 
 module Scalar = struct
-  module S = C.Scalar
-  include (S : module type of S)
+  type _ t = scalar
 
-  type nonrec _ t = scalar
+  let to_int64 t =
+    [%c.alloc
+      ({|CAMLreturn(caml_copy_int64(ats_to_int(%{t:_ t value})));|} : int64 value)]
+  ;;
+
+  let to_float t =
+    [%c.alloc ({|CAMLreturnT(double, ats_to_float(%{t:_ t value}));|} : float)]
+  ;;
+
+  let free t = [%c.alloc {| ats_free(%{t:_ t value}); |}]
 
   let int i =
-    let t = int (Int64.of_int i) in
-    Gc.finalise free t;
+    let i = Int64.of_int i in
+    let t = [%c.alloc ({|CAMLreturn(ats_int(%{i:Int64.t}));|} : _ t value)] in
+    Gc.Expert.add_finalizer_exn t free;
     t
   ;;
 
   let float f =
-    let t = float f in
-    Gc.finalise free t;
+    let t = [%c.alloc ({|CAMLreturn(ats_float(%{f:float}));|} : _ t value)] in
+    Gc.Expert.add_finalizer_exn t free;
     t
   ;;
 end
 
 module Optimizer = struct
-  include C.Optimizer
-
   type t = optimizer
 
+  let free t = [%c.alloc {| ato_free(%{t:t value}); |}]
+
   let adam ~learning_rate ~beta1 ~beta2 ~weight_decay ~eps =
-    let t = adam learning_rate beta1 beta2 weight_decay eps in
-    Gc.finalise free t;
+    let t =
+      [%c.alloc
+        ({|CAMLreturn(ato_adam(%{learning_rate:float}, %{beta1:float}, %{beta2:float},
+                               %{weight_decay:float}, %{eps:float}));|}
+         : t value)]
+    in
+    Gc.Expert.add_finalizer_exn t free;
     t
   ;;
 
   let rmsprop ~learning_rate ~alpha ~eps ~weight_decay ~momentum ~centered =
-    let centered = if centered then 1 else 0 in
-    let t = rmsprop learning_rate alpha eps weight_decay momentum centered in
-    Gc.finalise free t;
+    let centered = Bool.to_int centered in
+    let t =
+      [%c.alloc
+        ({|CAMLreturn(ato_rmsprop(%{learning_rate:float}, %{alpha:float}, %{eps:float},
+                                  %{weight_decay:float}, %{momentum:float},
+                                  %{centered:int}));|}
+         : t value)]
+    in
+    Gc.Expert.add_finalizer_exn t free;
     t
   ;;
 
   let sgd ~learning_rate ~momentum ~dampening ~weight_decay ~nesterov =
-    let t = sgd learning_rate momentum dampening weight_decay nesterov in
-    Gc.finalise free t;
+    let nesterov = Bool.to_int nesterov in
+    let t =
+      [%c.alloc
+        ({|CAMLreturn(ato_sgd(%{learning_rate:float}, %{momentum:float},
+                              %{dampening:float}, %{weight_decay:float},
+                              %{nesterov:int}));|}
+         : t value)]
+    in
+    Gc.Expert.add_finalizer_exn t free;
     t
   ;;
 
   let add_parameters t (tensors @ local) =
-    let tensors = globalize_gc_tensor_list tensors in
-    add_parameters t CArray.(of_list gc_tensor tensors |> start) (List.length tensors);
-    keep_values_alive tensors
+    let tensors = [%globalize: Tensor.t list] tensors in
+    [%c.alloc {|ato_add_parameters(%{t:t value}, %{tensors:Tensor.t list value});|}]
   ;;
+
+  let set_learning_rate t lr =
+    [%c.alloc {|ato_set_learning_rate(%{t:t value}, %{lr:float});|}]
+  ;;
+
+  let set_momentum t m = [%c.alloc {|ato_set_momentum(%{t:t value}, %{m:float});|}]
+  let zero_grad t = [%c.alloc {|ato_zero_grad(%{t:t value});|}]
+  let step t = [%c.alloc {|ato_step(%{t:t value});|}]
 end
 
 module Serialize = struct
-  include C.Serialize
-
-  let ptr_of_string str =
-    let len = String.length str in
-    let carray = CArray.make Ctypes.char (1 + len) in
-    String.iteri (fun i char -> CArray.set carray i char) str;
-    CArray.set carray len '\x00';
-    CArray.start carray
+  let save t ~filename =
+    let t = globalize_tensor t in
+    [%c.alloc {|at_save(%{t:Tensor.t value}, String_val(%{filename:string value}));|}]
   ;;
-
-  let ptr_of_strings strings =
-    let strings = List.map ptr_of_string strings in
-    let start = CArray.(of_list (ptr char) strings |> start) in
-    Gc.finalise (fun _ -> ignore (Sys.opaque_identity strings : _ list)) start;
-    start
-  ;;
-
-  let save (t @ local) ~filename = save (globalize_gc_tensor t) filename
 
   let escape s =
     String.map
-      (function
+      ~f:(function
         | '.' -> '|'
         | c -> c)
       s
@@ -352,96 +435,113 @@ module Serialize = struct
 
   let unescape s =
     String.map
-      (function
+      ~f:(function
         | '|' -> '.'
         | c -> c)
       s
   ;;
 
-  let load ~filename = load filename |> with_tensor_gc
+  let load ~filename =
+    [%c.alloc
+      ({|CAMLreturn(at_load(String_val(%{filename:string value})));|} : raw_tensor value)]
+    |> wrap_managed_tensor
+  ;;
 
   let save_multi ~(named_tensors @ local) ~filename =
     let names, tensors = Torch_local_iterators.List.unzip_local named_tensors in
-    let names = Base.List.globalize Base.String.globalize names in
-    let names = List.map escape names in
-    let tensors = Wrapper_utils.globalize_gc_tensor_list tensors in
-    save_multi
-      CArray.(of_list gc_tensor tensors |> start)
-      (ptr_of_strings names)
-      (List.length tensors)
-      filename;
-    keep_values_alive tensors
+    let names = [%globalize: string list] names in
+    let names = List.map ~f:escape names in
+    let tensors = [%globalize: Tensor.t list] tensors in
+    [%c.alloc
+      {| at_save_multi(%{tensors:Tensor.t list value}, %{names:string list value},
+                       String_val(%{filename:string value})); |}]
   ;;
 
   let load_multi ~names ~filename =
-    let names = List.map escape names in
-    let ntensors = List.length names in
-    let tensors = CArray.make raw_tensor ntensors in
-    load_multi (CArray.start tensors) (ptr_of_strings names) ntensors filename;
-    let tensors = List.map with_tensor_gc (CArray.to_list tensors) in
-    tensors
+    let names = List.map ~f:escape names in
+    [%c.alloc
+      ({| CAMLreturn(at_load_multi(%{names:string list value},
+                                   String_val(%{filename:string value})));|}
+       : raw_tensor list value)]
+    |> List.map ~f:wrap_managed_tensor
   ;;
 
   let load_multi_ ~(named_tensors @ local) ~filename =
     let names, tensors = Torch_local_iterators.List.unzip_local named_tensors in
-    let names = Base.List.globalize Base.String.globalize names in
-    let names = List.map escape names in
-    let tensors = Wrapper_utils.globalize_gc_tensor_list tensors in
-    load_multi_
-      CArray.(of_list gc_tensor tensors |> start)
-      (ptr_of_strings names)
-      (List.length tensors)
-      filename;
-    keep_values_alive tensors
+    let names = [%globalize: string list] names in
+    let names = List.map ~f:escape names in
+    let tensors = [%globalize: Tensor.t list] tensors in
+    [%c.alloc
+      {| at_load_multi_(%{tensors:Tensor.t list value}, %{names:string list value},
+                        String_val(%{filename:string value}));|}]
   ;;
 
   let load_all ~filename =
-    let all_tensors = ref [] in
-    let callback =
-      coerce
-        (Foreign.funptr (string @-> raw_tensor @-> returning void))
-        (static_funptr (string @-> raw_tensor @-> returning void))
-        (fun tensor_name tensor ->
-          all_tensors := (unescape tensor_name, with_tensor_gc tensor) :: !all_tensors)
-      [@alert "-deprecated"]
-    in
-    load_callback filename callback;
-    !all_tensors
+    [%c.alloc
+      ({|CAMLreturn(at_load_all(String_val(%{filename:string value})));|}
+       : (string * raw_tensor) list value)]
+    |> List.map ~f:(fun (name, t) -> unescape name, wrap_managed_tensor t)
   ;;
 end
 
 module Cuda = struct
-  include C.Cuda
+  let device_count () = [%c.alloc ({|CAMLreturnT(int, atc_cuda_device_count());|} : int)]
 
-  let is_available () = is_available () <> 0
-  let cudnn_is_available () = cudnn_is_available () <> 0
-  let set_benchmark_cudnn b = set_benchmark_cudnn (if b then 1 else 0)
+  let is_available () =
+    [%c.alloc ({|CAMLreturnT(int, atc_cuda_is_available());|} : int)] <> 0
+  ;;
+
+  let cudnn_is_available () =
+    [%c.alloc ({|CAMLreturnT(int, atc_cudnn_is_available());|} : int)] <> 0
+  ;;
+
+  let set_benchmark_cudnn b =
+    let b = Bool.to_int b in
+    [%c.alloc {|atc_set_benchmark_cudnn(%{b:int});|}]
+  ;;
 end
 
 module Aoti_runner_cuda = struct
-  include C.Aoti_runner_cuda
+  type t
 
-  type t = aoti_runner_cuda
+  let free t = [%c.alloc {| aoti_runner_cuda_free(%{t:t value}); |}]
 
   let load ?(max_concurrent_executions = 1) ~device ~cubin_dir ~so_path () : t =
-    let m = load so_path max_concurrent_executions (Device.to_int device) cubin_dir in
-    Gc.finalise free m;
+    let device = Device.to_int device in
+    let m =
+      [%c.alloc
+        ({| CAMLreturn(aoti_runner_cuda_load(String_val(%{so_path:string value}),
+                                             %{max_concurrent_executions:int},
+                                             %{device:int},
+                                             String_val(%{cubin_dir:string value}))); |}
+         : t value)]
+    in
+    Gc.Expert.add_finalizer_exn m free;
     m
   ;;
 
   let run_unit t tensors =
-    let globalized = [%globalize: gc_tensor Base.List.t] tensors in
-    let array = CArray.of_list gc_tensor globalized in
-    run_unit t (CArray.start array) (CArray.length array);
-    keep_values_alive globalized
+    let tensors =
+      Torch_local_iterators.List.map_local_input ~f:globalize_tensor tensors
+    in
+    [%c.alloc
+      {|aoti_runner_cuda_run_unit(%{t:t value}, %{tensors:Tensor.t list value});|}]
   ;;
 end
 
-let manual_seed seed = C.manual_seed (Int64.of_int seed)
-let set_num_threads = C.set_num_threads
-let get_num_threads = C.get_num_threads
-let record_memory_history = C.record_memory_history
+let manual_seed seed =
+  let seed = Int64.of_int seed in
+  [%c.no_alloc {|at_manual_seed(%{seed:Int64.t});|}]
+;;
+
+let set_num_threads num_threads =
+  [%c.no_alloc {|at_set_num_threads(%{num_threads:int});|}]
+;;
+
+let get_num_threads () = [%c.no_alloc ({|return at_get_num_threads();|} : int)]
+let record_memory_history () = [%c.no_alloc {|torch_record_memory_history();|}]
 
 let save_memory_snapshot_pickled ~output_filename =
-  C.save_memory_snapshot_pickled output_filename
+  [%c.no_alloc
+    {|torch_save_memory_snapshot_pickled(String_val(%{output_filename:string value}));|}]
 ;;

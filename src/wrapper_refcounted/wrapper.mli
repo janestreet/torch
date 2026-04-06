@@ -16,7 +16,7 @@ module Scalar : sig
 end
 
 module Tensor : sig
-  type t = Torch_refcounted_bindings.Type_defs.gc_tensor
+  type t = Torch_refcounted_bindings.Type_defs.tensor [@@deriving globalize]
 
   include
     Wrapper_generated_refcounted_intf.S with type t := t and type 'a scalar := 'a Scalar.t
