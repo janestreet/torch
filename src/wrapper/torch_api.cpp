@@ -207,12 +207,35 @@ void at_copy_to_bytes(gc_tensor t, void *bytes, int64_t bytes_len) {
 void at_copy_from_bytes(gc_tensor t, void *bytes, int64_t bytes_len) {
   PROTECT(torch::Tensor tensor = tensor_from_ocaml(t); auto dtype = tensor.dtype();
           int64_t need_bytes = tensor.numel() * tensor.element_size();
-          if (need_bytes != bytes_len) throw std::invalid_argument(
-              sstr("bytes is not the correct length for this tensor: ", need_bytes,
-                   " != ", bytes_len));
+          if (need_bytes != bytes_len) {
+            throw std::invalid_argument(
+                sstr("bytes is not the correct length for this tensor: ", need_bytes,
+                     " != ", bytes_len));
+          }
+
           torch::Tensor tmp_tensor = torch::from_blob(
               bytes, tensor.sizes(), torch::TensorOptions().dtype(dtype));
           tensor.copy_(tmp_tensor, 0);)
+}
+
+void at_copy_from_elements(gc_tensor t, void *vs, int64_t numel, int elt_size_in_bytes) {
+  PROTECT(
+      torch::Tensor tensor = tensor_from_ocaml(t); auto dtype = tensor.dtype();
+      if (elt_size_in_bytes != 0 && (int64_t)elt_size_in_bytes != tensor.element_size()) {
+        throw std::invalid_argument(sstr("mismatched element sizes in bytes: src (",
+                                         elt_size_in_bytes, ") != dst (",
+                                         tensor.element_size(), ")"));
+      }
+
+      if ((int64_t)numel != tensor.numel()) {
+        throw std::invalid_argument(sstr("source numel (", numel,
+                                         ") does not match tensor numel (",
+                                         tensor.numel(), ")"));
+      }
+
+      torch::Tensor tmp_tensor =
+          torch::from_blob(vs, tensor.sizes(), torch::TensorOptions().dtype(dtype));
+      tensor.copy_(tmp_tensor, 0);)
 }
 
 raw_tensor at_float_vec(double *vs, int len, int type) {

@@ -34,7 +34,7 @@ depends: [
 depopts: [
   "libtorch"
 ]
-available: arch != "arm32" & arch != "x86_32"
+available: arch != "x86_32"
 conflicts: [
   "libtorch" {< "2.3.0" | >= "2.4.0"}
 ]

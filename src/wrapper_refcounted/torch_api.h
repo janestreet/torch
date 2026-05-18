@@ -40,6 +40,7 @@ value at_tensor_of_data(value vs, value dims, int element_size_in_bytes, int typ
 void at_copy_to_elements(value t, value vs, int64_t numel, int element_size_in_bytes);
 void at_copy_to_bytes(value t, value bytes, int64_t bytes_offset, int64_t bytes_len);
 void at_copy_from_bytes(value t, value bytes, int64_t bytes_offset, int64_t bytes_len);
+void at_copy_from_elements(value t, value vs, int64_t numel, int element_size_in_bytes);
 
 value at_float_vec(value values, int type);
 value at_int_vec(value values, int type);

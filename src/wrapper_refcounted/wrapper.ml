@@ -132,6 +132,23 @@ module Tensor = struct
                              %{bigarray_size:Int64.t}, %{kind_size:int});|}]
   ;;
 
+  let copy_from_bigarray
+    (type a b)
+    (t : t)
+    (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t)
+    =
+    let kind = Bigarray.Genarray.kind ga in
+    let t = globalize_tensor t in
+    let bigarray_size =
+      Bigarray.Genarray.dims ga |> Array.fold ~f:( * ) ~init:1 |> Int64.of_int
+    in
+    let kind_size = Bigarray.kind_size_in_bytes kind in
+    [%c.alloc
+      {| at_copy_from_elements(%{t:t value},
+                               %{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t value},
+                               %{bigarray_size:Int64.t}, %{kind_size:int});|}]
+  ;;
+
   let ndim t =
     let t = globalize_tensor t in
     [%c.alloc ({|CAMLreturnT(int, at_dim(%{t:t value}));|} : int)]

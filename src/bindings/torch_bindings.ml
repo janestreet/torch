@@ -75,6 +75,20 @@ module C (F : Cstubs.FOREIGN) = struct
          @-> returning void)
     ;;
 
+    let copy_from_elements =
+      foreign
+        "at_copy_from_elements"
+        (gc_tensor
+         (* tensor *)
+         @-> ptr void
+         (* data *)
+         @-> int64_t
+         (* numel *)
+         @-> int
+         (* element size in bytes *)
+         @-> returning void)
+    ;;
+
     let copy_ =
       foreign
         "at_copy_"

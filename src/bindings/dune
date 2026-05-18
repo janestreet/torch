@@ -1,6 +1,6 @@
 (library
  (name torch_bindings)
  (public_name torch.bindings)
- (libraries ctypes ctypes.stubs)
+ (libraries ctypes.stubs ctypes)
  (preprocess
   (pps ppx_jane -compare-require-explicit-locality)))

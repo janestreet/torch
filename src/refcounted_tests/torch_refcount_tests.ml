@@ -162,6 +162,157 @@ let%expect_test "copy_to_bigstring works" =
     [%expect {| (^._.^)__/ |}])
 ;;
 
+let%expect_test "copy_to_bigstring validates pos/len and fails cleanly" =
+  Tensor.with_rc_scope (fun () ->
+    let tensor = Tensor.of_int1 [| 0x2323232323232323; 0x2424242424242424 |] in
+    let dst = Bigarray.Array1.create Bigarray.char Bigarray.c_layout 16 in
+    (* this works *)
+    Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:0 ~dst_len:16;
+    for i = 0 to Bigarray.Array1.dim dst - 1 do
+      Stdio.printf "%c" (Bigarray.Array1.get dst i)
+    done;
+    [%expect {| ########$$$$$$$$ |}];
+    (* this also works *)
+    let dst = Bigarray.Array1.init Bigarray.char Bigarray.c_layout 20 (fun _ -> '.') in
+    Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:0 ~dst_len:16;
+    for i = 0 to Bigarray.Array1.dim dst - 1 do
+      Stdio.printf "%c" (Bigarray.Array1.get dst i)
+    done;
+    [%expect {| ########$$$$$$$$.... |}];
+    (* these are correctly rejected *)
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:10 ~dst_len:16);
+    [%expect {| (raised (Invalid_argument "pos + len past end: 10 + 16 > 20")) |}];
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:10 ~dst_len:10);
+    [%expect
+      {| (raised (Failure "bytes is not the correct length for this tensor: 16 != 10")) |}];
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:2 ~dst_len:5);
+    [%expect
+      {| (raised (Failure "bytes is not the correct length for this tensor: 16 != 5")) |}];
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:(-1) ~dst_len:16);
+    [%expect {| (raised (Invalid_argument "Negative position: -1")) |}];
+    (* these are completely illegal, and crucially don't segv *)
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:(-1) ~dst_len:16);
+    [%expect {| (raised (Invalid_argument "Negative position: -1")) |}];
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_to_bigstring ~src:tensor ~dst ~dst_pos:100 ~dst_len:16);
+    [%expect {| (raised (Invalid_argument "pos + len past end: 100 + 16 > 20")) |}])
+;;
+
+let%expect_test "copy_from_bigstring works" =
+  Tensor.with_rc_scope (fun () ->
+    let bigstring_of_string str =
+      Bigarray.Array1.init
+        Bigarray.char
+        Bigarray.c_layout
+        (String.length str)
+        (String.get str)
+    in
+    let src = bigstring_of_string "\x01\x00\x00\x00\x02\x00\x00\x00" in
+    let dst = Tensor.zeros ~kind:(T Int) [ 2 ] in
+    Tensor.copy_from_bigstring ~src ~src_pos:0 ~src_len:8 ~dst;
+    Stdio.printf !"%{sexp:int array}\n" (Tensor.to_int1_exn dst);
+    [%expect {| (1 2) |}];
+    (* demonstrate that it works with a more complicated tensor (which just gets
+       overwritten) *)
+    let col1 = Tensor.zeros ~kind:(T Int) [ 2 ] in
+    let col2 = Tensor.zeros ~kind:(T Int) [ 2 ] in
+    let src =
+      bigstring_of_string
+        "\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00"
+    in
+    let dst = Tensor.stack [ col1; col2 ] ~dim:1 in
+    Tensor.copy_from_bigstring ~src ~src_pos:0 ~src_len:16 ~dst;
+    Stdio.printf !"%{sexp:int array array}\n" (Tensor.to_int2_exn dst);
+    [%expect {| ((5 6) (7 8)) |}])
+;;
+
+let%expect_test "copy_from_bigstring validates pos/len and fails cleanly" =
+  Tensor.with_rc_scope (fun () ->
+    let bytes = "\xff\xff\x01\x00\x00\x00\x02\x00\x00\x00" in
+    let src =
+      Bigarray.Array1.init
+        Bigarray.char
+        Bigarray.c_layout
+        (String.length bytes)
+        (String.get bytes)
+    in
+    let dst = Tensor.zeros ~kind:(T Int) [ 2 ] in
+    (* this works fine *)
+    Tensor.copy_from_bigstring ~src ~src_pos:2 ~src_len:8 ~dst;
+    Stdio.printf !"%{sexp:int array}\n" (Tensor.to_int1_exn dst);
+    [%expect {| (1 2) |}];
+    (* these are correctly rejected (and crucially don't segv) *)
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_from_bigstring ~src ~src_pos:1 ~src_len:9 ~dst);
+    [%expect
+      {| (raised (Failure "bytes is not the correct length for this tensor: 8 != 9")) |}];
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_from_bigstring ~src ~src_pos:5 ~src_len:5 ~dst);
+    [%expect
+      {| (raised (Failure "bytes is not the correct length for this tensor: 8 != 5")) |}];
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_from_bigstring ~src ~src_pos:5 ~src_len:8 ~dst);
+    [%expect {| (raised (Invalid_argument "pos + len past end: 5 + 8 > 10")) |}];
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_from_bigstring ~src ~src_pos:16 ~src_len:8 ~dst);
+    [%expect {| (raised (Invalid_argument "pos + len past end: 16 + 8 > 10")) |}];
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_from_bigstring ~src ~src_pos:(-1) ~src_len:8 ~dst);
+    [%expect {| (raised (Invalid_argument "Negative position: -1")) |}])
+;;
+
+let%expect_test "copy_from_bigarray works" =
+  Tensor.with_rc_scope (fun () ->
+    let src =
+      Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout [| 1.; 2.; 3. |]
+    in
+    let dst = Tensor.zeros ~kind:(T Float) [ 3 ] in
+    Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array1 src);
+    Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn dst);
+    [%expect {| (1 2 3) |}];
+    (* demonstrate that it works with a 2D bigarray *)
+    let src =
+      Bigarray.Array2.of_array
+        Bigarray.float64
+        Bigarray.c_layout
+        [| [| 5.; 6. |]; [| 7.; 8. |] |]
+    in
+    let dst = Tensor.zeros ~kind:(T Double) [ 2; 2 ] in
+    Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array2 src);
+    Stdio.printf !"%{sexp:float array array}\n" (Tensor.to_float2_exn dst);
+    [%expect {| ((5 6) (7 8)) |}])
+;;
+
+let%expect_test "copy_from_bigarray validates element size and fails cleanly" =
+  Tensor.with_rc_scope (fun () ->
+    (* mismatched element kinds *)
+    let src = Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout [| 1.; 2. |] in
+    let dst = Tensor.zeros ~kind:(T Double) [ 2 ] in
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array1 src));
+    [%expect
+      {| (raised (Failure "mismatched element sizes in bytes: src (4) != dst (8)")) |}];
+    (* oversized source *)
+    let src =
+      Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout [| 1.; 2.; 3. |]
+    in
+    let dst = Tensor.zeros ~kind:(T Float) [ 2 ] in
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array1 src));
+    [%expect {| (raised (Failure "source numel (3) does not match tensor numel (2)")) |}];
+    (* undersized source *)
+    let src = Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout [| 1. |] in
+    let dst = Tensor.zeros ~kind:(T Float) [ 2 ] in
+    Expect_test_helpers_base.show_raise (fun () : unit ->
+      Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array1 src));
+    [%expect {| (raised (Failure "source numel (1) does not match tensor numel (2)")) |}])
+;;
+
 let%expect_test _ =
   Tensor.with_rc_scope (fun () ->
     let logits = Tensor.of_float1 [| -1.; 0.5; 0.25; 0.; 2.; 4.; -1. |] in
