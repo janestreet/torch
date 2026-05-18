@@ -296,6 +296,14 @@ val copy_to_bigarray
   -> ('b, 'a, Bigarray.c_layout) Bigarray.Genarray.t
   -> unit
 
+(** [copy_from_bigarray t ba] copies the data from [ba] into [t]. The element kind and
+    total number of elements of [ba] must match those of [t]; the shape (number of
+    dimensions) need not agree; data is reinterpreted using [t]'s shape. *)
+val copy_from_bigarray
+  :  t @ local
+  -> ('b, 'a, Bigarray.c_layout) Bigarray.Genarray.t
+  -> unit
+
 (** [to_bigarray t ~kind] converts [t] to a bigarray using the c layout. [kind] has to be
     compatible with the element kind of [t]. *)
 val to_bigarray

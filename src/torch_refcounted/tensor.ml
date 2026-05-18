@@ -24,6 +24,7 @@ let no_grad_ t ~f =
     if requires_grad t
     then (
       let t = set_requires_grad t ~r:false in
+      let t = Obj.magic_unyielding t in
       Exn.protect
         ~f:(fun () -> f t)
         ~finally:(fun () -> ignore (set_requires_grad t ~r:true : t)) [@nontail])

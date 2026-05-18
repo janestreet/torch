@@ -214,6 +214,51 @@ let%expect_test "copy_from_bigstring validates pos/len and fails cleanly" =
   [%expect {| (raised (Invalid_argument "Negative position: -1")) |}]
 ;;
 
+let%expect_test "copy_from_bigarray works" =
+  let src =
+    Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout [| 1.; 2.; 3. |]
+  in
+  let dst = Tensor.zeros ~kind:(T Float) [ 3 ] in
+  Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array1 src);
+  Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn dst);
+  [%expect {| (1 2 3) |}];
+  (* demonstrate that it works with a 2D bigarray *)
+  let src =
+    Bigarray.Array2.of_array
+      Bigarray.float64
+      Bigarray.c_layout
+      [| [| 5.; 6. |]; [| 7.; 8. |] |]
+  in
+  let dst = Tensor.zeros ~kind:(T Double) [ 2; 2 ] in
+  Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array2 src);
+  Stdio.printf !"%{sexp:float array array}\n" (Tensor.to_float2_exn dst);
+  [%expect {| ((5 6) (7 8)) |}]
+;;
+
+let%expect_test "copy_from_bigarray validates element size and fails cleanly" =
+  (* mismatched element kinds *)
+  let src = Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout [| 1.; 2. |] in
+  let dst = Tensor.zeros ~kind:(T Double) [ 2 ] in
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array1 src));
+  [%expect
+    {| (raised (Failure "mismatched element sizes in bytes: src (4) != dst (8)")) |}];
+  (* oversized source *)
+  let src =
+    Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout [| 1.; 2.; 3. |]
+  in
+  let dst = Tensor.zeros ~kind:(T Float) [ 2 ] in
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array1 src));
+  [%expect {| (raised (Failure "source numel (3) does not match tensor numel (2)")) |}];
+  (* undersized source *)
+  let src = Bigarray.Array1.of_array Bigarray.float32 Bigarray.c_layout [| 1. |] in
+  let dst = Tensor.zeros ~kind:(T Float) [ 2 ] in
+  Expect_test_helpers_base.show_raise (fun () : unit ->
+    Tensor.copy_from_bigarray dst (Bigarray.genarray_of_array1 src));
+  [%expect {| (raised (Failure "source numel (1) does not match tensor numel (2)")) |}]
+;;
+
 let%expect_test _ =
   let logits = Tensor.of_float1 [| -1.; 0.5; 0.25; 0.; 2.; 4.; -1. |] in
   let eval_and_print ~target =

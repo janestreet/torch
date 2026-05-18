@@ -135,6 +135,16 @@ module Tensor = struct
       (Bigarray.kind_size_in_bytes kind)
   ;;
 
+  let copy_from_bigarray (type a b) t (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t)
+    =
+    let kind = Bigarray.Genarray.kind ga in
+    copy_from_elements
+      t
+      (bigarray_start genarray ga |> to_voidp)
+      (Bigarray.Genarray.dims ga |> Array.fold_left ( * ) 1 |> Int64.of_int)
+      (Bigarray.kind_size_in_bytes kind)
+  ;;
+
   let shape t =
     let num_dims = ndim t in
     let carray = CArray.make int num_dims in

@@ -21,7 +21,7 @@
     torch_api_generated3.cpp torch_api_generated4.cpp
     torch_api_generated5.cpp torch_api_generated6.cpp
     torch_api_generated7.cpp))
- (libraries ctypes.foreign ctypes torch_bindings torch_wrapper_types)
+ (libraries ctypes ctypes.foreign torch_bindings torch_wrapper_types)
  (preprocess
   (pps ppx_jane -compare-require-explicit-locality)))
 

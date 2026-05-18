@@ -51,6 +51,12 @@ module Tensor : sig
     -> unit
 
   val copy_to_bigarray : t -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> unit
+
+  (** [copy_from_bigarray t ba] copies the data from [ba] into [t]. The element kind and
+      total number of elements of [ba] must match those of [t]; the shape (number of
+      dimensions) need not agree; data is reinterpreted using [t]'s shape. *)
+  val copy_from_bigarray : t -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> unit
+
   val shape : t -> int list
   val ndim : t -> int
   val size : t -> int list

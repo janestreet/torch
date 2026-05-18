@@ -309,6 +309,32 @@ void at_copy_from_bytes(value t, value bytes, int64_t bytes_offset, int64_t byte
           CAMLreturn0;)
 }
 
+void at_copy_from_elements(value t, value vs, int64_t numel, int elt_size_in_bytes) {
+  CAMLparam2(t, vs);
+  PROTECT(
+      torch::Tensor tensor = rc_tensor_from_ocaml(t);
+      void *vs_data = Caml_ba_data_val(vs);
+
+      auto dtype = tensor.dtype();
+      if (elt_size_in_bytes != 0 && (int64_t)elt_size_in_bytes != tensor.element_size()) {
+        throw std::invalid_argument(sstr("mismatched element sizes in bytes: src (",
+                                         elt_size_in_bytes, ") != dst (",
+                                         tensor.element_size(), ")"));
+      }
+
+      if ((int64_t)numel != tensor.numel()) {
+        throw std::invalid_argument(sstr("source numel (", numel,
+                                         ") does not match tensor numel (",
+                                         tensor.numel(), ")"));
+      }
+
+      torch::Tensor tmp_tensor =
+          torch::from_blob(vs_data, tensor.sizes(), torch::TensorOptions().dtype(dtype));
+      tensor.copy_(tmp_tensor, 0);
+
+      CAMLreturn0;)
+}
+
 value at_float_vec(value values, int type) {
   CAMLparam1(values);
   PROTECT(std::vector<double> vs = vec_of_ocaml_double_list(values);
