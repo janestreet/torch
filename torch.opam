@@ -25,11 +25,11 @@ depends: [
   "ppx_string"
   "stdio"
   "vec"
-  "ctypes"              {= "0.23.0+ox"}
-  "ctypes-foreign"      {= "0.23.0+ox"}
+  "ctypes"              {>= "0.18.0"}
+  "ctypes-foreign"      {>= "0.18.0"}
   "dune"                {>= "3.17.0"}
   "dune-configurator"
-  "ocaml-compiler-libs" {= "v0.17.0+ox"}
+  "ocaml-compiler-libs" {>= "v0.11.0"}
 ]
 depopts: [
   "libtorch"
@@ -37,6 +37,7 @@ depopts: [
 available: arch != "x86_32"
 conflicts: [
   "libtorch" {< "2.3.0" | >= "2.4.0"}
+  "oxcaml-compiler" {< "5.2.0minus39"}
 ]
 synopsis: "Torch bindings for OCaml"
 description: "
