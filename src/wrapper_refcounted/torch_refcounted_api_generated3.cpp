@@ -2,6 +2,7 @@
 #include "torch_api_for_generated.hpp"
 
 value atg_dot(value self, value tensor) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, tensor);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::dot(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(tensor))));
@@ -9,6 +10,7 @@ value atg_dot(value self, value tensor) {
 }
 
 value atg_dot_out(value out, value self, value tensor) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, tensor);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -17,6 +19,7 @@ value atg_dot_out(value out, value self, value tensor) {
 }
 
 value atg_dropout(value input, double p, int train) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(input);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::dropout(rc_tensor_from_ocaml(input), p, train != 0)));
@@ -24,6 +27,7 @@ value atg_dropout(value input, double p, int train) {
 }
 
 value atg_dropout_(value self, double p, int train) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -32,6 +36,7 @@ value atg_dropout_(value self, double p, int train) {
 }
 
 value atg_dsplit(value self, int64_t sections) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(to_ocaml_tensor_list(torch::dsplit(rc_tensor_from_ocaml(self), sections)));
@@ -39,6 +44,7 @@ value atg_dsplit(value self, int64_t sections) {
 }
 
 value atg_dsplit_array(value self, value indices) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, indices);
   PROTECT(
     CAMLreturn(to_ocaml_tensor_list(torch::dsplit(rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(indices))));
@@ -46,6 +52,7 @@ value atg_dsplit_array(value self, value indices) {
 }
 
 value atg_dstack(value tensors) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(tensors);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::dstack(of_ocaml_tensor_list(tensors))));
@@ -53,6 +60,7 @@ value atg_dstack(value tensors) {
 }
 
 value atg_dstack_out(value out, value tensors) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, tensors);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -61,6 +69,7 @@ value atg_dstack_out(value out, value tensors) {
 }
 
 value atg_einsum(const char * equation, value tensors, value path) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(tensors, path);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::einsum(std::string(equation), of_ocaml_tensor_list(tensors), Is_some(path) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(path))) : c10::OptionalArrayRef<int64_t>(std::nullopt))));
@@ -68,6 +77,7 @@ value atg_einsum(const char * equation, value tensors, value path) {
 }
 
 value atg_elu(value self, value alpha, value scale, value input_scale) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, alpha, scale, input_scale);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::elu(rc_tensor_from_ocaml(self), scalar_option_from_ocaml(alpha).value_or(1) , scalar_option_from_ocaml(scale).value_or(1) , scalar_option_from_ocaml(input_scale).value_or(1) )));
@@ -75,6 +85,7 @@ value atg_elu(value self, value alpha, value scale, value input_scale) {
 }
 
 value atg_elu_(value self, value alpha, value scale, value input_scale) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, alpha, scale, input_scale);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -83,6 +94,7 @@ value atg_elu_(value self, value alpha, value scale, value input_scale) {
 }
 
 value atg_elu_backward(value grad_output, value alpha, value scale, value input_scale, int is_result, value self_or_result) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(grad_output, alpha, scale, input_scale, self_or_result);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::elu_backward(rc_tensor_from_ocaml(grad_output), *scalar_from_ocaml_noalloc(alpha), *scalar_from_ocaml_noalloc(scale), *scalar_from_ocaml_noalloc(input_scale), is_result != 0, rc_tensor_from_ocaml(self_or_result))));
@@ -90,6 +102,7 @@ value atg_elu_backward(value grad_output, value alpha, value scale, value input_
 }
 
 value atg_elu_backward_grad_input(value grad_input, value grad_output, value alpha, value scale, value input_scale, int is_result, value self_or_result) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(grad_input, grad_output, alpha, scale, input_scale);
   CAMLxparam1(self_or_result);
   PROTECT(
@@ -99,6 +112,7 @@ value atg_elu_backward_grad_input(value grad_input, value grad_output, value alp
 }
 
 value atg_elu_out(value out, value self, value alpha, value scale, value input_scale) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, alpha, scale, input_scale);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -107,6 +121,7 @@ value atg_elu_out(value out, value self, value alpha, value scale, value input_s
 }
 
 value atg_embedding(value weight, value indices, int64_t padding_idx, int scale_grad_by_freq, int sparse) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(weight, indices);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::embedding(rc_tensor_from_ocaml(weight), rc_tensor_from_ocaml(indices), padding_idx, scale_grad_by_freq != 0, sparse != 0)));
@@ -114,6 +129,7 @@ value atg_embedding(value weight, value indices, int64_t padding_idx, int scale_
 }
 
 value atg_embedding_backward(value grad, value indices, int64_t num_weights, int64_t padding_idx, int scale_grad_by_freq, int sparse) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad, indices);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::embedding_backward(rc_tensor_from_ocaml(grad), rc_tensor_from_ocaml(indices), num_weights, padding_idx, scale_grad_by_freq != 0, sparse != 0)));
@@ -121,6 +137,7 @@ value atg_embedding_backward(value grad, value indices, int64_t num_weights, int
 }
 
 value atg_embedding_bag(value weight, value indices, value offsets, int scale_grad_by_freq, int64_t mode, int sparse, value per_sample_weights, int include_last_offset) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(weight, indices, offsets, per_sample_weights);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::embedding_bag(rc_tensor_from_ocaml(weight), rc_tensor_from_ocaml(indices), rc_tensor_from_ocaml(offsets), scale_grad_by_freq != 0, mode, sparse != 0, tensor_option_from_ocaml(per_sample_weights), include_last_offset != 0)));
@@ -128,6 +145,7 @@ value atg_embedding_bag(value weight, value indices, value offsets, int scale_gr
 }
 
 value atg_embedding_bag_padding_idx(value weight, value indices, value offsets, int scale_grad_by_freq, int64_t mode, int sparse, value per_sample_weights, int include_last_offset, value padding_idx) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(weight, indices, offsets, per_sample_weights, padding_idx);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::embedding_bag(rc_tensor_from_ocaml(weight), rc_tensor_from_ocaml(indices), rc_tensor_from_ocaml(offsets), scale_grad_by_freq != 0, mode, sparse != 0, tensor_option_from_ocaml(per_sample_weights), include_last_offset != 0, optional_int_from_ocaml(padding_idx))));
@@ -135,6 +153,7 @@ value atg_embedding_bag_padding_idx(value weight, value indices, value offsets, 
 }
 
 value atg_embedding_dense_backward(value grad_output, value indices, int64_t num_weights, int64_t padding_idx, int scale_grad_by_freq) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad_output, indices);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::embedding_dense_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(indices), num_weights, padding_idx, scale_grad_by_freq != 0)));
@@ -142,6 +161,7 @@ value atg_embedding_dense_backward(value grad_output, value indices, int64_t num
 }
 
 value atg_embedding_dense_backward_out(value out, value grad_output, value indices, int64_t num_weights, int64_t padding_idx, int scale_grad_by_freq) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, grad_output, indices);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -150,6 +170,7 @@ value atg_embedding_dense_backward_out(value out, value grad_output, value indic
 }
 
 value atg_embedding_out(value out, value weight, value indices, int64_t padding_idx, int scale_grad_by_freq, int sparse) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, weight, indices);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -158,6 +179,7 @@ value atg_embedding_out(value out, value weight, value indices, int64_t padding_
 }
 
 value atg_embedding_renorm(value self, value indices, double max_norm, double norm_type) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, indices);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::embedding_renorm(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(indices), max_norm, norm_type)));
@@ -165,6 +187,7 @@ value atg_embedding_renorm(value self, value indices, double max_norm, double no
 }
 
 value atg_embedding_renorm_(value self, value indices, double max_norm, double norm_type) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, indices);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -173,6 +196,7 @@ value atg_embedding_renorm_(value self, value indices, double max_norm, double n
 }
 
 value atg_embedding_renorm_out(value out, value self, value indices, double max_norm, double norm_type) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, indices);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -181,6 +205,7 @@ value atg_embedding_renorm_out(value out, value self, value indices, double max_
 }
 
 value atg_embedding_sparse_backward(value grad, value indices, int64_t num_weights, int64_t padding_idx, int scale_grad_by_freq) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad, indices);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::embedding_sparse_backward(rc_tensor_from_ocaml(grad), rc_tensor_from_ocaml(indices), num_weights, padding_idx, scale_grad_by_freq != 0)));
@@ -188,6 +213,7 @@ value atg_embedding_sparse_backward(value grad, value indices, int64_t num_weigh
 }
 
 value atg_empty(value size, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(size);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::empty(vec_of_ocaml_int_list(size), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -195,6 +221,7 @@ value atg_empty(value size, int options_kind, int options_device) {
 }
 
 value atg_empty_like(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::empty_like(rc_tensor_from_ocaml(self))));
@@ -202,6 +229,7 @@ value atg_empty_like(value self) {
 }
 
 value atg_empty_like_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -210,6 +238,7 @@ value atg_empty_like_out(value out, value self) {
 }
 
 value atg_empty_out(value out, value size) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, size);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -218,6 +247,7 @@ value atg_empty_out(value out, value size) {
 }
 
 value atg_empty_permuted(value size, value physical_layout, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(size, physical_layout);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::empty_permuted(vec_of_ocaml_int_list(size), vec_of_ocaml_int_list(physical_layout), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -225,6 +255,7 @@ value atg_empty_permuted(value size, value physical_layout, int options_kind, in
 }
 
 value atg_empty_permuted_out(value out, value size, value physical_layout) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, size, physical_layout);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -233,6 +264,7 @@ value atg_empty_permuted_out(value out, value size, value physical_layout) {
 }
 
 value atg_empty_quantized(value size, value qtensor, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(size, qtensor);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::empty_quantized(vec_of_ocaml_int_list(size), rc_tensor_from_ocaml(qtensor), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -240,6 +272,7 @@ value atg_empty_quantized(value size, value qtensor, int options_kind, int optio
 }
 
 value atg_empty_quantized_out(value out, value size, value qtensor) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, size, qtensor);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -248,6 +281,7 @@ value atg_empty_quantized_out(value out, value size, value qtensor) {
 }
 
 value atg_empty_strided(value size, value stride, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(size, stride);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::empty_strided(vec_of_ocaml_int_list(size), vec_of_ocaml_int_list(stride), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -255,6 +289,7 @@ value atg_empty_strided(value size, value stride, int options_kind, int options_
 }
 
 value atg_empty_strided_out(value out, value size, value stride) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, size, stride);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -263,6 +298,7 @@ value atg_empty_strided_out(value out, value size, value stride) {
 }
 
 value atg_eq(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::eq(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(other))));
@@ -270,6 +306,7 @@ value atg_eq(value self, value other) {
 }
 
 value atg_eq_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -278,6 +315,7 @@ value atg_eq_(value self, value other) {
 }
 
 value atg_eq_scalar_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -286,6 +324,7 @@ value atg_eq_scalar_out(value out, value self, value other) {
 }
 
 value atg_eq_tensor(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::eq(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -293,6 +332,7 @@ value atg_eq_tensor(value self, value other) {
 }
 
 value atg_eq_tensor_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -301,6 +341,7 @@ value atg_eq_tensor_(value self, value other) {
 }
 
 value atg_eq_tensor_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -309,6 +350,7 @@ value atg_eq_tensor_out(value out, value self, value other) {
 }
 
 value atg_equal(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(Val_bool(torch::equal(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -316,6 +358,7 @@ value atg_equal(value self, value other) {
 }
 
 value atg_erf(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::erf(rc_tensor_from_ocaml(self))));
@@ -323,6 +366,7 @@ value atg_erf(value self) {
 }
 
 value atg_erf_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -331,6 +375,7 @@ value atg_erf_(value self) {
 }
 
 value atg_erf_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -339,6 +384,7 @@ value atg_erf_out(value out, value self) {
 }
 
 value atg_erfc(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::erfc(rc_tensor_from_ocaml(self))));
@@ -346,6 +392,7 @@ value atg_erfc(value self) {
 }
 
 value atg_erfc_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -354,6 +401,7 @@ value atg_erfc_(value self) {
 }
 
 value atg_erfc_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -362,6 +410,7 @@ value atg_erfc_out(value out, value self) {
 }
 
 value atg_erfinv(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::erfinv(rc_tensor_from_ocaml(self))));
@@ -369,6 +418,7 @@ value atg_erfinv(value self) {
 }
 
 value atg_erfinv_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -377,6 +427,7 @@ value atg_erfinv_(value self) {
 }
 
 value atg_erfinv_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -385,6 +436,7 @@ value atg_erfinv_out(value out, value self) {
 }
 
 value atg_exp(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::exp(rc_tensor_from_ocaml(self))));
@@ -392,6 +444,7 @@ value atg_exp(value self) {
 }
 
 value atg_exp2(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::exp2(rc_tensor_from_ocaml(self))));
@@ -399,6 +452,7 @@ value atg_exp2(value self) {
 }
 
 value atg_exp2_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -407,6 +461,7 @@ value atg_exp2_(value self) {
 }
 
 value atg_exp2_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -415,6 +470,7 @@ value atg_exp2_out(value out, value self) {
 }
 
 value atg_exp_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -423,6 +479,7 @@ value atg_exp_(value self) {
 }
 
 value atg_exp_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -431,6 +488,7 @@ value atg_exp_out(value out, value self) {
 }
 
 value atg_expand(value self, value size, int implicit) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, size);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(rc_tensor_from_ocaml(self).expand(vec_of_ocaml_int_list(size), implicit != 0)));
@@ -438,6 +496,7 @@ value atg_expand(value self, value size, int implicit) {
 }
 
 value atg_expand_as(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(rc_tensor_from_ocaml(self).expand_as(rc_tensor_from_ocaml(other))));
@@ -445,6 +504,7 @@ value atg_expand_as(value self, value other) {
 }
 
 value atg_expand_copy(value self, value size, int implicit) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, size);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::expand_copy(rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(size), implicit != 0)));
@@ -452,6 +512,7 @@ value atg_expand_copy(value self, value size, int implicit) {
 }
 
 value atg_expand_copy_out(value out, value self, value size, int implicit) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, size);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -460,6 +521,7 @@ value atg_expand_copy_out(value out, value self, value size, int implicit) {
 }
 
 value atg_expm1(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::expm1(rc_tensor_from_ocaml(self))));
@@ -467,6 +529,7 @@ value atg_expm1(value self) {
 }
 
 value atg_expm1_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -475,6 +538,7 @@ value atg_expm1_(value self) {
 }
 
 value atg_expm1_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -483,6 +547,7 @@ value atg_expm1_out(value out, value self) {
 }
 
 value atg_exponential(value self, double lambd) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::exponential(rc_tensor_from_ocaml(self), lambd)));
@@ -490,6 +555,7 @@ value atg_exponential(value self, double lambd) {
 }
 
 value atg_exponential_(value self, double lambd) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -498,6 +564,7 @@ value atg_exponential_(value self, double lambd) {
 }
 
 value atg_exponential_out(value out, value self, double lambd) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -506,6 +573,7 @@ value atg_exponential_out(value out, value self, double lambd) {
 }
 
 value atg_eye(int64_t n, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::eye(n, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -513,6 +581,7 @@ value atg_eye(int64_t n, int options_kind, int options_device) {
 }
 
 value atg_eye_m(int64_t n, int64_t m, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::eye(n, m, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -520,6 +589,7 @@ value atg_eye_m(int64_t n, int64_t m, int options_kind, int options_device) {
 }
 
 value atg_eye_m_out(value out, int64_t n, int64_t m) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -528,6 +598,7 @@ value atg_eye_m_out(value out, int64_t n, int64_t m) {
 }
 
 value atg_eye_out(value out, int64_t n) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -536,6 +607,7 @@ value atg_eye_out(value out, int64_t n) {
 }
 
 value atg_fake_quantize_per_channel_affine(value self, value scale, value zero_point, int64_t axis, int64_t quant_min, int64_t quant_max) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, scale, zero_point);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fake_quantize_per_channel_affine(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(scale), rc_tensor_from_ocaml(zero_point), axis, quant_min, quant_max)));
@@ -543,6 +615,7 @@ value atg_fake_quantize_per_channel_affine(value self, value scale, value zero_p
 }
 
 value atg_fake_quantize_per_channel_affine_cachemask(value self, value scale, value zero_point, int64_t axis, int64_t quant_min, int64_t quant_max) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, scale, zero_point);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::fake_quantize_per_channel_affine_cachemask(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(scale), rc_tensor_from_ocaml(zero_point), axis, quant_min, quant_max)));
@@ -550,6 +623,7 @@ value atg_fake_quantize_per_channel_affine_cachemask(value self, value scale, va
 }
 
 value atg_fake_quantize_per_channel_affine_cachemask_backward(value grad, value mask) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad, mask);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fake_quantize_per_channel_affine_cachemask_backward(rc_tensor_from_ocaml(grad), rc_tensor_from_ocaml(mask))));
@@ -557,6 +631,7 @@ value atg_fake_quantize_per_channel_affine_cachemask_backward(value grad, value 
 }
 
 value atg_fake_quantize_per_channel_affine_cachemask_out(value out0, value out1, value self, value scale, value zero_point, int64_t axis, int64_t quant_min, int64_t quant_max) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out0, out1, self, scale, zero_point);
   PROTECT(
     torch::Tensor out0_local = rc_tensor_from_ocaml(out0);
@@ -566,6 +641,7 @@ value atg_fake_quantize_per_channel_affine_cachemask_out(value out0, value out1,
 }
 
 value atg_fake_quantize_per_tensor_affine(value self, double scale, int64_t zero_point, int64_t quant_min, int64_t quant_max) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fake_quantize_per_tensor_affine(rc_tensor_from_ocaml(self), scale, zero_point, quant_min, quant_max)));
@@ -573,6 +649,7 @@ value atg_fake_quantize_per_tensor_affine(value self, double scale, int64_t zero
 }
 
 value atg_fake_quantize_per_tensor_affine_cachemask(value self, double scale, int64_t zero_point, int64_t quant_min, int64_t quant_max) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::fake_quantize_per_tensor_affine_cachemask(rc_tensor_from_ocaml(self), scale, zero_point, quant_min, quant_max)));
@@ -580,6 +657,7 @@ value atg_fake_quantize_per_tensor_affine_cachemask(value self, double scale, in
 }
 
 value atg_fake_quantize_per_tensor_affine_cachemask_backward(value grad, value mask) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad, mask);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fake_quantize_per_tensor_affine_cachemask_backward(rc_tensor_from_ocaml(grad), rc_tensor_from_ocaml(mask))));
@@ -587,6 +665,7 @@ value atg_fake_quantize_per_tensor_affine_cachemask_backward(value grad, value m
 }
 
 value atg_fake_quantize_per_tensor_affine_cachemask_out(value out0, value out1, value self, double scale, int64_t zero_point, int64_t quant_min, int64_t quant_max) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out0, out1, self);
   PROTECT(
     torch::Tensor out0_local = rc_tensor_from_ocaml(out0);
@@ -596,6 +675,7 @@ value atg_fake_quantize_per_tensor_affine_cachemask_out(value out0, value out1, 
 }
 
 value atg_fake_quantize_per_tensor_affine_tensor_qparams(value self, value scale, value zero_point, int64_t quant_min, int64_t quant_max) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, scale, zero_point);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fake_quantize_per_tensor_affine(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(scale), rc_tensor_from_ocaml(zero_point), quant_min, quant_max)));
@@ -603,6 +683,7 @@ value atg_fake_quantize_per_tensor_affine_tensor_qparams(value self, value scale
 }
 
 value atg_fbgemm_linear_fp16_weight(value input, value packed_weight, value bias) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(input, packed_weight, bias);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fbgemm_linear_fp16_weight(rc_tensor_from_ocaml(input), rc_tensor_from_ocaml(packed_weight), rc_tensor_from_ocaml(bias))));
@@ -610,6 +691,7 @@ value atg_fbgemm_linear_fp16_weight(value input, value packed_weight, value bias
 }
 
 value atg_fbgemm_linear_fp16_weight_fp32_activation(value input, value packed_weight, value bias) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(input, packed_weight, bias);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fbgemm_linear_fp16_weight_fp32_activation(rc_tensor_from_ocaml(input), rc_tensor_from_ocaml(packed_weight), rc_tensor_from_ocaml(bias))));
@@ -617,6 +699,7 @@ value atg_fbgemm_linear_fp16_weight_fp32_activation(value input, value packed_we
 }
 
 value atg_fbgemm_linear_int8_weight(value input, value weight, value packed, value col_offsets, value weight_scale, value weight_zero_point, value bias) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(input, weight, packed, col_offsets, weight_scale);
   CAMLxparam2(weight_zero_point, bias);
   PROTECT(
@@ -625,6 +708,7 @@ value atg_fbgemm_linear_int8_weight(value input, value weight, value packed, val
 }
 
 value atg_fbgemm_linear_int8_weight_fp32_activation(value input, value weight, value packed, value col_offsets, value weight_scale, value weight_zero_point, value bias) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(input, weight, packed, col_offsets, weight_scale);
   CAMLxparam2(weight_zero_point, bias);
   PROTECT(
@@ -633,6 +717,7 @@ value atg_fbgemm_linear_int8_weight_fp32_activation(value input, value weight, v
 }
 
 value atg_fbgemm_pack_gemm_matrix_fp16(value input) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(input);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fbgemm_pack_gemm_matrix_fp16(rc_tensor_from_ocaml(input))));
@@ -640,6 +725,7 @@ value atg_fbgemm_pack_gemm_matrix_fp16(value input) {
 }
 
 value atg_fbgemm_pack_quantized_matrix(value input) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(input);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fbgemm_pack_quantized_matrix(rc_tensor_from_ocaml(input))));
@@ -647,6 +733,7 @@ value atg_fbgemm_pack_quantized_matrix(value input) {
 }
 
 value atg_fbgemm_pack_quantized_matrix_kn(value input, int64_t K, int64_t n) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(input);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fbgemm_pack_quantized_matrix(rc_tensor_from_ocaml(input), K, n)));
@@ -654,6 +741,7 @@ value atg_fbgemm_pack_quantized_matrix_kn(value input, int64_t K, int64_t n) {
 }
 
 value atg_feature_alpha_dropout(value input, double p, int train) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(input);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::feature_alpha_dropout(rc_tensor_from_ocaml(input), p, train != 0)));
@@ -661,6 +749,7 @@ value atg_feature_alpha_dropout(value input, double p, int train) {
 }
 
 value atg_feature_alpha_dropout_(value self, double p, int train) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -669,6 +758,7 @@ value atg_feature_alpha_dropout_(value self, double p, int train) {
 }
 
 value atg_feature_dropout(value input, double p, int train) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(input);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::feature_dropout(rc_tensor_from_ocaml(input), p, train != 0)));
@@ -676,6 +766,7 @@ value atg_feature_dropout(value input, double p, int train) {
 }
 
 value atg_feature_dropout_(value self, double p, int train) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -684,6 +775,7 @@ value atg_feature_dropout_(value self, double p, int train) {
 }
 
 value atg_fft_fft(value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, n, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_fft(rc_tensor_from_ocaml(self), optional_int_from_ocaml(n), dim, optional_string_from_ocaml(norm))));
@@ -691,6 +783,7 @@ value atg_fft_fft(value self, value n, int64_t dim, value norm) {
 }
 
 value atg_fft_fft2(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_fft2(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), vec_of_ocaml_int_list(dim), optional_string_from_ocaml(norm))));
@@ -698,6 +791,7 @@ value atg_fft_fft2(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_fft2_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -706,6 +800,7 @@ value atg_fft_fft2_out(value out, value self, value s, value dim, value norm) {
 }
 
 value atg_fft_fft_out(value out, value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, n, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -714,6 +809,7 @@ value atg_fft_fft_out(value out, value self, value n, int64_t dim, value norm) {
 }
 
 value atg_fft_fftfreq(int64_t n, double d, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_fftfreq(n, d, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -721,6 +817,7 @@ value atg_fft_fftfreq(int64_t n, double d, int options_kind, int options_device)
 }
 
 value atg_fft_fftfreq_out(value out, int64_t n, double d) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -729,6 +826,7 @@ value atg_fft_fftfreq_out(value out, int64_t n, double d) {
 }
 
 value atg_fft_fftn(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_fftn(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), Is_some(dim) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(dim))) : c10::OptionalArrayRef<int64_t>(std::nullopt), optional_string_from_ocaml(norm))));
@@ -736,6 +834,7 @@ value atg_fft_fftn(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_fftn_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -744,6 +843,7 @@ value atg_fft_fftn_out(value out, value self, value s, value dim, value norm) {
 }
 
 value atg_fft_fftshift(value self, value dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, dim);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_fftshift(rc_tensor_from_ocaml(self), Is_some(dim) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(dim))) : c10::OptionalArrayRef<int64_t>(std::nullopt))));
@@ -751,6 +851,7 @@ value atg_fft_fftshift(value self, value dim) {
 }
 
 value atg_fft_hfft(value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, n, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_hfft(rc_tensor_from_ocaml(self), optional_int_from_ocaml(n), dim, optional_string_from_ocaml(norm))));
@@ -758,6 +859,7 @@ value atg_fft_hfft(value self, value n, int64_t dim, value norm) {
 }
 
 value atg_fft_hfft2(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_hfft2(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), vec_of_ocaml_int_list(dim), optional_string_from_ocaml(norm))));
@@ -765,6 +867,7 @@ value atg_fft_hfft2(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_hfft2_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -773,6 +876,7 @@ value atg_fft_hfft2_out(value out, value self, value s, value dim, value norm) {
 }
 
 value atg_fft_hfft_out(value out, value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, n, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -781,6 +885,7 @@ value atg_fft_hfft_out(value out, value self, value n, int64_t dim, value norm) 
 }
 
 value atg_fft_hfftn(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_hfftn(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), Is_some(dim) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(dim))) : c10::OptionalArrayRef<int64_t>(std::nullopt), optional_string_from_ocaml(norm))));
@@ -788,6 +893,7 @@ value atg_fft_hfftn(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_hfftn_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -796,6 +902,7 @@ value atg_fft_hfftn_out(value out, value self, value s, value dim, value norm) {
 }
 
 value atg_fft_ifft(value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, n, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_ifft(rc_tensor_from_ocaml(self), optional_int_from_ocaml(n), dim, optional_string_from_ocaml(norm))));
@@ -803,6 +910,7 @@ value atg_fft_ifft(value self, value n, int64_t dim, value norm) {
 }
 
 value atg_fft_ifft2(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_ifft2(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), vec_of_ocaml_int_list(dim), optional_string_from_ocaml(norm))));
@@ -810,6 +918,7 @@ value atg_fft_ifft2(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_ifft2_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -818,6 +927,7 @@ value atg_fft_ifft2_out(value out, value self, value s, value dim, value norm) {
 }
 
 value atg_fft_ifft_out(value out, value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, n, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -826,6 +936,7 @@ value atg_fft_ifft_out(value out, value self, value n, int64_t dim, value norm) 
 }
 
 value atg_fft_ifftn(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_ifftn(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), Is_some(dim) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(dim))) : c10::OptionalArrayRef<int64_t>(std::nullopt), optional_string_from_ocaml(norm))));
@@ -833,6 +944,7 @@ value atg_fft_ifftn(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_ifftn_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -841,6 +953,7 @@ value atg_fft_ifftn_out(value out, value self, value s, value dim, value norm) {
 }
 
 value atg_fft_ifftshift(value self, value dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, dim);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_ifftshift(rc_tensor_from_ocaml(self), Is_some(dim) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(dim))) : c10::OptionalArrayRef<int64_t>(std::nullopt))));
@@ -848,6 +961,7 @@ value atg_fft_ifftshift(value self, value dim) {
 }
 
 value atg_fft_ihfft(value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, n, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_ihfft(rc_tensor_from_ocaml(self), optional_int_from_ocaml(n), dim, optional_string_from_ocaml(norm))));
@@ -855,6 +969,7 @@ value atg_fft_ihfft(value self, value n, int64_t dim, value norm) {
 }
 
 value atg_fft_ihfft2(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_ihfft2(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), vec_of_ocaml_int_list(dim), optional_string_from_ocaml(norm))));
@@ -862,6 +977,7 @@ value atg_fft_ihfft2(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_ihfft2_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -870,6 +986,7 @@ value atg_fft_ihfft2_out(value out, value self, value s, value dim, value norm) 
 }
 
 value atg_fft_ihfft_out(value out, value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, n, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -878,6 +995,7 @@ value atg_fft_ihfft_out(value out, value self, value n, int64_t dim, value norm)
 }
 
 value atg_fft_ihfftn(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_ihfftn(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), Is_some(dim) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(dim))) : c10::OptionalArrayRef<int64_t>(std::nullopt), optional_string_from_ocaml(norm))));
@@ -885,6 +1003,7 @@ value atg_fft_ihfftn(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_ihfftn_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -893,6 +1012,7 @@ value atg_fft_ihfftn_out(value out, value self, value s, value dim, value norm) 
 }
 
 value atg_fft_irfft(value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, n, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_irfft(rc_tensor_from_ocaml(self), optional_int_from_ocaml(n), dim, optional_string_from_ocaml(norm))));
@@ -900,6 +1020,7 @@ value atg_fft_irfft(value self, value n, int64_t dim, value norm) {
 }
 
 value atg_fft_irfft2(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_irfft2(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), vec_of_ocaml_int_list(dim), optional_string_from_ocaml(norm))));
@@ -907,6 +1028,7 @@ value atg_fft_irfft2(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_irfft2_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -915,6 +1037,7 @@ value atg_fft_irfft2_out(value out, value self, value s, value dim, value norm) 
 }
 
 value atg_fft_irfft_out(value out, value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, n, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -923,6 +1046,7 @@ value atg_fft_irfft_out(value out, value self, value n, int64_t dim, value norm)
 }
 
 value atg_fft_irfftn(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_irfftn(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), Is_some(dim) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(dim))) : c10::OptionalArrayRef<int64_t>(std::nullopt), optional_string_from_ocaml(norm))));
@@ -930,6 +1054,7 @@ value atg_fft_irfftn(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_irfftn_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -938,6 +1063,7 @@ value atg_fft_irfftn_out(value out, value self, value s, value dim, value norm) 
 }
 
 value atg_fft_rfft(value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, n, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_rfft(rc_tensor_from_ocaml(self), optional_int_from_ocaml(n), dim, optional_string_from_ocaml(norm))));
@@ -945,6 +1071,7 @@ value atg_fft_rfft(value self, value n, int64_t dim, value norm) {
 }
 
 value atg_fft_rfft2(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_rfft2(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), vec_of_ocaml_int_list(dim), optional_string_from_ocaml(norm))));
@@ -952,6 +1079,7 @@ value atg_fft_rfft2(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_rfft2_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -960,6 +1088,7 @@ value atg_fft_rfft2_out(value out, value self, value s, value dim, value norm) {
 }
 
 value atg_fft_rfft_out(value out, value self, value n, int64_t dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, n, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -968,6 +1097,7 @@ value atg_fft_rfft_out(value out, value self, value n, int64_t dim, value norm) 
 }
 
 value atg_fft_rfftfreq(int64_t n, double d, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_rfftfreq(n, d, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -975,6 +1105,7 @@ value atg_fft_rfftfreq(int64_t n, double d, int options_kind, int options_device
 }
 
 value atg_fft_rfftfreq_out(value out, int64_t n, double d) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -983,6 +1114,7 @@ value atg_fft_rfftfreq_out(value out, int64_t n, double d) {
 }
 
 value atg_fft_rfftn(value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, s, dim, norm);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fft_rfftn(rc_tensor_from_ocaml(self), Is_some(s) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(s))) : c10::OptionalArrayRef<int64_t>(std::nullopt), Is_some(dim) ? c10::OptionalArrayRef<int64_t>(vec_of_ocaml_int_list(Some_val(dim))) : c10::OptionalArrayRef<int64_t>(std::nullopt), optional_string_from_ocaml(norm))));
@@ -990,6 +1122,7 @@ value atg_fft_rfftn(value self, value s, value dim, value norm) {
 }
 
 value atg_fft_rfftn_out(value out, value self, value s, value dim, value norm) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, s, dim, norm);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -998,6 +1131,7 @@ value atg_fft_rfftn_out(value out, value self, value s, value dim, value norm) {
 }
 
 value atg_fill(value self, value value_) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, value_);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fill(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(value_))));
@@ -1005,6 +1139,7 @@ value atg_fill(value self, value value_) {
 }
 
 value atg_fill_(value self, value value_) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, value_);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1013,6 +1148,7 @@ value atg_fill_(value self, value value_) {
 }
 
 value atg_fill_diagonal_(value self, value fill_value, int wrap) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, fill_value);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1021,6 +1157,7 @@ value atg_fill_diagonal_(value self, value fill_value, int wrap) {
 }
 
 value atg_fill_scalar_out(value out, value self, value value_) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, value_);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1029,6 +1166,7 @@ value atg_fill_scalar_out(value out, value self, value value_) {
 }
 
 value atg_fill_tensor(value self, value value_) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, value_);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fill(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(value_))));
@@ -1036,6 +1174,7 @@ value atg_fill_tensor(value self, value value_) {
 }
 
 value atg_fill_tensor_(value self, value value_) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, value_);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1044,6 +1183,7 @@ value atg_fill_tensor_(value self, value value_) {
 }
 
 value atg_fill_tensor_out(value out, value self, value value_) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, value_);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1052,6 +1192,7 @@ value atg_fill_tensor_out(value out, value self, value value_) {
 }
 
 value atg_fix(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fix(rc_tensor_from_ocaml(self))));
@@ -1059,6 +1200,7 @@ value atg_fix(value self) {
 }
 
 value atg_fix_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1067,6 +1209,7 @@ value atg_fix_(value self) {
 }
 
 value atg_fix_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1075,6 +1218,7 @@ value atg_fix_out(value out, value self) {
 }
 
 value atg_flatten(value self, int64_t start_dim, int64_t end_dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::flatten(rc_tensor_from_ocaml(self), start_dim, end_dim)));
@@ -1082,6 +1226,7 @@ value atg_flatten(value self, int64_t start_dim, int64_t end_dim) {
 }
 
 value atg_flatten_dense_tensors(value tensors) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(tensors);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::flatten_dense_tensors(of_ocaml_tensor_list(tensors))));
@@ -1089,6 +1234,7 @@ value atg_flatten_dense_tensors(value tensors) {
 }
 
 value atg_flip(value self, value dims) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, dims);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::flip(rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(dims))));
@@ -1096,6 +1242,7 @@ value atg_flip(value self, value dims) {
 }
 
 value atg_flip_out(value out, value self, value dims) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, dims);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1104,6 +1251,7 @@ value atg_flip_out(value out, value self, value dims) {
 }
 
 value atg_fliplr(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fliplr(rc_tensor_from_ocaml(self))));
@@ -1111,6 +1259,7 @@ value atg_fliplr(value self) {
 }
 
 value atg_flipud(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::flipud(rc_tensor_from_ocaml(self))));
@@ -1118,6 +1267,7 @@ value atg_flipud(value self) {
 }
 
 value atg_float_power(value self, value exponent) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, exponent);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::float_power(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(exponent))));
@@ -1125,6 +1275,7 @@ value atg_float_power(value self, value exponent) {
 }
 
 value atg_float_power_(value self, value exponent) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, exponent);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1133,6 +1284,7 @@ value atg_float_power_(value self, value exponent) {
 }
 
 value atg_float_power_scalar(value self, value exponent) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, exponent);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::float_power(*scalar_from_ocaml_noalloc(self), rc_tensor_from_ocaml(exponent))));
@@ -1140,6 +1292,7 @@ value atg_float_power_scalar(value self, value exponent) {
 }
 
 value atg_float_power_scalar_out(value out, value self, value exponent) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, exponent);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1148,6 +1301,7 @@ value atg_float_power_scalar_out(value out, value self, value exponent) {
 }
 
 value atg_float_power_tensor_(value self, value exponent) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, exponent);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1156,6 +1310,7 @@ value atg_float_power_tensor_(value self, value exponent) {
 }
 
 value atg_float_power_tensor_scalar(value self, value exponent) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, exponent);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::float_power(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(exponent))));
@@ -1163,6 +1318,7 @@ value atg_float_power_tensor_scalar(value self, value exponent) {
 }
 
 value atg_float_power_tensor_scalar_out(value out, value self, value exponent) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, exponent);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1171,6 +1327,7 @@ value atg_float_power_tensor_scalar_out(value out, value self, value exponent) {
 }
 
 value atg_float_power_tensor_tensor_out(value out, value self, value exponent) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, exponent);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1179,6 +1336,7 @@ value atg_float_power_tensor_tensor_out(value out, value self, value exponent) {
 }
 
 value atg_floor(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::floor(rc_tensor_from_ocaml(self))));
@@ -1186,6 +1344,7 @@ value atg_floor(value self) {
 }
 
 value atg_floor_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1194,6 +1353,7 @@ value atg_floor_(value self) {
 }
 
 value atg_floor_divide(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::floor_divide(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1201,6 +1361,7 @@ value atg_floor_divide(value self, value other) {
 }
 
 value atg_floor_divide_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1209,6 +1370,7 @@ value atg_floor_divide_(value self, value other) {
 }
 
 value atg_floor_divide_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1217,6 +1379,7 @@ value atg_floor_divide_out(value out, value self, value other) {
 }
 
 value atg_floor_divide_scalar(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::floor_divide(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(other))));
@@ -1224,6 +1387,7 @@ value atg_floor_divide_scalar(value self, value other) {
 }
 
 value atg_floor_divide_scalar_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1232,6 +1396,7 @@ value atg_floor_divide_scalar_(value self, value other) {
 }
 
 value atg_floor_divide_scalar_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1240,6 +1405,7 @@ value atg_floor_divide_scalar_out(value out, value self, value other) {
 }
 
 value atg_floor_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1248,6 +1414,7 @@ value atg_floor_out(value out, value self) {
 }
 
 value atg_fmax(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fmax(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1255,6 +1422,7 @@ value atg_fmax(value self, value other) {
 }
 
 value atg_fmax_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1263,6 +1431,7 @@ value atg_fmax_out(value out, value self, value other) {
 }
 
 value atg_fmin(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fmin(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1270,6 +1439,7 @@ value atg_fmin(value self, value other) {
 }
 
 value atg_fmin_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1278,6 +1448,7 @@ value atg_fmin_out(value out, value self, value other) {
 }
 
 value atg_fmod(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fmod(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(other))));
@@ -1285,6 +1456,7 @@ value atg_fmod(value self, value other) {
 }
 
 value atg_fmod_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1293,6 +1465,7 @@ value atg_fmod_(value self, value other) {
 }
 
 value atg_fmod_scalar_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1301,6 +1474,7 @@ value atg_fmod_scalar_out(value out, value self, value other) {
 }
 
 value atg_fmod_tensor(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fmod(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1308,6 +1482,7 @@ value atg_fmod_tensor(value self, value other) {
 }
 
 value atg_fmod_tensor_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1316,6 +1491,7 @@ value atg_fmod_tensor_(value self, value other) {
 }
 
 value atg_fmod_tensor_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1324,6 +1500,7 @@ value atg_fmod_tensor_out(value out, value self, value other) {
 }
 
 value atg_frac(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::frac(rc_tensor_from_ocaml(self))));
@@ -1331,6 +1508,7 @@ value atg_frac(value self) {
 }
 
 value atg_frac_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1339,6 +1517,7 @@ value atg_frac_(value self) {
 }
 
 value atg_frac_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1347,6 +1526,7 @@ value atg_frac_out(value out, value self) {
 }
 
 value atg_fractional_max_pool2d(value self, value kernel_size, value output_size, value random_samples) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, kernel_size, output_size, random_samples);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::fractional_max_pool2d(rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(kernel_size), vec_of_ocaml_int_list(output_size), rc_tensor_from_ocaml(random_samples))));
@@ -1354,6 +1534,7 @@ value atg_fractional_max_pool2d(value self, value kernel_size, value output_size
 }
 
 value atg_fractional_max_pool2d_backward(value grad_output, value self, value kernel_size, value output_size, value indices) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(grad_output, self, kernel_size, output_size, indices);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fractional_max_pool2d_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(kernel_size), vec_of_ocaml_int_list(output_size), rc_tensor_from_ocaml(indices))));
@@ -1361,6 +1542,7 @@ value atg_fractional_max_pool2d_backward(value grad_output, value self, value ke
 }
 
 value atg_fractional_max_pool2d_backward_grad_input(value grad_input, value grad_output, value self, value kernel_size, value output_size, value indices) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(grad_input, grad_output, self, kernel_size, output_size);
   CAMLxparam1(indices);
   PROTECT(
@@ -1370,6 +1552,7 @@ value atg_fractional_max_pool2d_backward_grad_input(value grad_input, value grad
 }
 
 value atg_fractional_max_pool2d_output(value output, value indices, value self, value kernel_size, value output_size, value random_samples) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(output, indices, self, kernel_size, output_size);
   CAMLxparam1(random_samples);
   PROTECT(
@@ -1380,6 +1563,7 @@ value atg_fractional_max_pool2d_output(value output, value indices, value self, 
 }
 
 value atg_fractional_max_pool3d(value self, value kernel_size, value output_size, value random_samples) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, kernel_size, output_size, random_samples);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::fractional_max_pool3d(rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(kernel_size), vec_of_ocaml_int_list(output_size), rc_tensor_from_ocaml(random_samples))));
@@ -1387,6 +1571,7 @@ value atg_fractional_max_pool3d(value self, value kernel_size, value output_size
 }
 
 value atg_fractional_max_pool3d_backward(value grad_output, value self, value kernel_size, value output_size, value indices) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(grad_output, self, kernel_size, output_size, indices);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::fractional_max_pool3d_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(kernel_size), vec_of_ocaml_int_list(output_size), rc_tensor_from_ocaml(indices))));
@@ -1394,6 +1579,7 @@ value atg_fractional_max_pool3d_backward(value grad_output, value self, value ke
 }
 
 value atg_fractional_max_pool3d_backward_grad_input(value grad_input, value grad_output, value self, value kernel_size, value output_size, value indices) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(grad_input, grad_output, self, kernel_size, output_size);
   CAMLxparam1(indices);
   PROTECT(
@@ -1403,6 +1589,7 @@ value atg_fractional_max_pool3d_backward_grad_input(value grad_input, value grad
 }
 
 value atg_fractional_max_pool3d_output(value output, value indices, value self, value kernel_size, value output_size, value random_samples) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(output, indices, self, kernel_size, output_size);
   CAMLxparam1(random_samples);
   PROTECT(
@@ -1413,6 +1600,7 @@ value atg_fractional_max_pool3d_output(value output, value indices, value self, 
 }
 
 value atg_frexp(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::frexp(rc_tensor_from_ocaml(self))));
@@ -1420,6 +1608,7 @@ value atg_frexp(value self) {
 }
 
 value atg_frexp_tensor_out(value mantissa, value exponent, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(mantissa, exponent, self);
   PROTECT(
     torch::Tensor mantissa_local = rc_tensor_from_ocaml(mantissa);
@@ -1429,6 +1618,7 @@ value atg_frexp_tensor_out(value mantissa, value exponent, value self) {
 }
 
 value atg_frobenius_norm(value self, value dim, int keepdim) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, dim);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::frobenius_norm(rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(dim), keepdim != 0)));
@@ -1436,6 +1626,7 @@ value atg_frobenius_norm(value self, value dim, int keepdim) {
 }
 
 value atg_frobenius_norm_out(value out, value self, value dim, int keepdim) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, dim);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1444,6 +1635,7 @@ value atg_frobenius_norm_out(value out, value self, value dim, int keepdim) {
 }
 
 value atg_from_file(const char * filename, int shared, value size, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(size);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::from_file(std::string(filename), shared != 0, optional_int_from_ocaml(size), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -1451,6 +1643,7 @@ value atg_from_file(const char * filename, int shared, value size, int options_k
 }
 
 value atg_from_file_out(value out, const char * filename, int shared, value size) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, size);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1459,6 +1652,7 @@ value atg_from_file_out(value out, const char * filename, int shared, value size
 }
 
 value atg_full(value size, value fill_value, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(size, fill_value);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::full(vec_of_ocaml_int_list(size), *scalar_from_ocaml_noalloc(fill_value), at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -1466,6 +1660,7 @@ value atg_full(value size, value fill_value, int options_kind, int options_devic
 }
 
 value atg_full_like(value self, value fill_value) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, fill_value);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::full_like(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(fill_value))));
@@ -1473,6 +1668,7 @@ value atg_full_like(value self, value fill_value) {
 }
 
 value atg_full_like_out(value out, value self, value fill_value) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, fill_value);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1481,6 +1677,7 @@ value atg_full_like_out(value out, value self, value fill_value) {
 }
 
 value atg_full_out(value out, value size, value fill_value) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, size, fill_value);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1489,6 +1686,7 @@ value atg_full_out(value out, value size, value fill_value) {
 }
 
 value atg_fused_moving_avg_obs_fake_quant(value self, value observer_on, value fake_quant_on, value running_min, value running_max, value scale, value zero_point, double averaging_const, int64_t quant_min, int64_t quant_max, int64_t ch_axis, int per_row_fake_quant, int symmetric_quant) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(self, observer_on, fake_quant_on, running_min, running_max);
   CAMLxparam2(scale, zero_point);
   PROTECT(
@@ -1501,6 +1699,7 @@ value atg_fused_moving_avg_obs_fake_quant(value self, value observer_on, value f
 }
 
 value atg_gather(value self, int64_t dim, value index, int sparse_grad) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, index);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::gather(rc_tensor_from_ocaml(self), dim, rc_tensor_from_ocaml(index), sparse_grad != 0)));
@@ -1508,6 +1707,7 @@ value atg_gather(value self, int64_t dim, value index, int sparse_grad) {
 }
 
 value atg_gather_backward(value grad, value self, int64_t dim, value index, int sparse_grad) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(grad, self, index);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::gather_backward(rc_tensor_from_ocaml(grad), rc_tensor_from_ocaml(self), dim, rc_tensor_from_ocaml(index), sparse_grad != 0)));
@@ -1515,6 +1715,7 @@ value atg_gather_backward(value grad, value self, int64_t dim, value index, int 
 }
 
 value atg_gather_out(value out, value self, int64_t dim, value index, int sparse_grad) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, index);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1523,6 +1724,7 @@ value atg_gather_out(value out, value self, int64_t dim, value index, int sparse
 }
 
 value atg_gcd(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::gcd(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1530,6 +1732,7 @@ value atg_gcd(value self, value other) {
 }
 
 value atg_gcd_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1538,6 +1741,7 @@ value atg_gcd_(value self, value other) {
 }
 
 value atg_gcd_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1546,6 +1750,7 @@ value atg_gcd_out(value out, value self, value other) {
 }
 
 value atg_ge(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::ge(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(other))));
@@ -1553,6 +1758,7 @@ value atg_ge(value self, value other) {
 }
 
 value atg_ge_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1561,6 +1767,7 @@ value atg_ge_(value self, value other) {
 }
 
 value atg_ge_scalar_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1569,6 +1776,7 @@ value atg_ge_scalar_out(value out, value self, value other) {
 }
 
 value atg_ge_tensor(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::ge(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1576,6 +1784,7 @@ value atg_ge_tensor(value self, value other) {
 }
 
 value atg_ge_tensor_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1584,6 +1793,7 @@ value atg_ge_tensor_(value self, value other) {
 }
 
 value atg_ge_tensor_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1592,6 +1802,7 @@ value atg_ge_tensor_out(value out, value self, value other) {
 }
 
 value atg_gelu(value self, const char * approximate) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::gelu(rc_tensor_from_ocaml(self), std::string(approximate))));
@@ -1599,6 +1810,7 @@ value atg_gelu(value self, const char * approximate) {
 }
 
 value atg_gelu_(value self, const char * approximate) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1607,6 +1819,7 @@ value atg_gelu_(value self, const char * approximate) {
 }
 
 value atg_gelu_backward(value grad_output, value self, const char * approximate) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad_output, self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::gelu_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(self), std::string(approximate))));
@@ -1614,6 +1827,7 @@ value atg_gelu_backward(value grad_output, value self, const char * approximate)
 }
 
 value atg_gelu_backward_grad_input(value grad_input, value grad_output, value self, const char * approximate) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(grad_input, grad_output, self);
   PROTECT(
     torch::Tensor grad_input_local = rc_tensor_from_ocaml(grad_input);
@@ -1622,6 +1836,7 @@ value atg_gelu_backward_grad_input(value grad_input, value grad_output, value se
 }
 
 value atg_gelu_out(value out, value self, const char * approximate) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1630,6 +1845,7 @@ value atg_gelu_out(value out, value self, const char * approximate) {
 }
 
 value atg_geometric(value self, double p) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::geometric(rc_tensor_from_ocaml(self), p)));
@@ -1637,6 +1853,7 @@ value atg_geometric(value self, double p) {
 }
 
 value atg_geometric_(value self, double p) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1645,6 +1862,7 @@ value atg_geometric_(value self, double p) {
 }
 
 value atg_geometric_out(value out, value self, double p) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1653,6 +1871,7 @@ value atg_geometric_out(value out, value self, double p) {
 }
 
 value atg_geqrf(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::geqrf(rc_tensor_from_ocaml(self))));
@@ -1660,6 +1879,7 @@ value atg_geqrf(value self) {
 }
 
 value atg_geqrf_a(value a, value tau, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(a, tau, self);
   PROTECT(
     torch::Tensor a_local = rc_tensor_from_ocaml(a);
@@ -1669,6 +1889,7 @@ value atg_geqrf_a(value a, value tau, value self) {
 }
 
 value atg_ger(value self, value vec2) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, vec2);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::ger(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(vec2))));
@@ -1676,6 +1897,7 @@ value atg_ger(value self, value vec2) {
 }
 
 value atg_ger_out(value out, value self, value vec2) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, vec2);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1684,6 +1906,7 @@ value atg_ger_out(value out, value self, value vec2) {
 }
 
 value atg_glu(value self, int64_t dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::glu(rc_tensor_from_ocaml(self), dim)));
@@ -1691,6 +1914,7 @@ value atg_glu(value self, int64_t dim) {
 }
 
 value atg_glu_backward(value grad_output, value self, int64_t dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad_output, self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::glu_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(self), dim)));
@@ -1698,6 +1922,7 @@ value atg_glu_backward(value grad_output, value self, int64_t dim) {
 }
 
 value atg_glu_backward_grad_input(value grad_input, value grad_output, value self, int64_t dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(grad_input, grad_output, self);
   PROTECT(
     torch::Tensor grad_input_local = rc_tensor_from_ocaml(grad_input);
@@ -1706,6 +1931,7 @@ value atg_glu_backward_grad_input(value grad_input, value grad_output, value sel
 }
 
 value atg_glu_backward_jvp(value grad_x, value grad_glu, value x, value dgrad_glu, value dx, int64_t dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(grad_x, grad_glu, x, dgrad_glu, dx);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::glu_backward_jvp(rc_tensor_from_ocaml(grad_x), rc_tensor_from_ocaml(grad_glu), rc_tensor_from_ocaml(x), rc_tensor_from_ocaml(dgrad_glu), rc_tensor_from_ocaml(dx), dim)));
@@ -1713,6 +1939,7 @@ value atg_glu_backward_jvp(value grad_x, value grad_glu, value x, value dgrad_gl
 }
 
 value atg_glu_backward_jvp_out(value out, value grad_x, value grad_glu, value x, value dgrad_glu, value dx, int64_t dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, grad_x, grad_glu, x, dgrad_glu);
   CAMLxparam1(dx);
   PROTECT(
@@ -1722,6 +1949,7 @@ value atg_glu_backward_jvp_out(value out, value grad_x, value grad_glu, value x,
 }
 
 value atg_glu_jvp(value glu, value x, value dx, int64_t dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(glu, x, dx);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::glu_jvp(rc_tensor_from_ocaml(glu), rc_tensor_from_ocaml(x), rc_tensor_from_ocaml(dx), dim)));
@@ -1729,6 +1957,7 @@ value atg_glu_jvp(value glu, value x, value dx, int64_t dim) {
 }
 
 value atg_glu_jvp_out(value out, value glu, value x, value dx, int64_t dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, glu, x, dx);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1737,6 +1966,7 @@ value atg_glu_jvp_out(value out, value glu, value x, value dx, int64_t dim) {
 }
 
 value atg_glu_out(value out, value self, int64_t dim) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1745,6 +1975,7 @@ value atg_glu_out(value out, value self, int64_t dim) {
 }
 
 value atg_grad(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(rc_tensor_from_ocaml(self).grad()));
@@ -1752,6 +1983,7 @@ value atg_grad(value self) {
 }
 
 value atg_greater(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::greater(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(other))));
@@ -1759,6 +1991,7 @@ value atg_greater(value self, value other) {
 }
 
 value atg_greater_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1767,6 +2000,7 @@ value atg_greater_(value self, value other) {
 }
 
 value atg_greater_equal(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::greater_equal(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(other))));
@@ -1774,6 +2008,7 @@ value atg_greater_equal(value self, value other) {
 }
 
 value atg_greater_equal_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1782,6 +2017,7 @@ value atg_greater_equal_(value self, value other) {
 }
 
 value atg_greater_equal_scalar_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1790,6 +2026,7 @@ value atg_greater_equal_scalar_out(value out, value self, value other) {
 }
 
 value atg_greater_equal_tensor(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::greater_equal(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1797,6 +2034,7 @@ value atg_greater_equal_tensor(value self, value other) {
 }
 
 value atg_greater_equal_tensor_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1805,6 +2043,7 @@ value atg_greater_equal_tensor_(value self, value other) {
 }
 
 value atg_greater_equal_tensor_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1813,6 +2052,7 @@ value atg_greater_equal_tensor_out(value out, value self, value other) {
 }
 
 value atg_greater_scalar_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1821,6 +2061,7 @@ value atg_greater_scalar_out(value out, value self, value other) {
 }
 
 value atg_greater_tensor(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::greater(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1828,6 +2069,7 @@ value atg_greater_tensor(value self, value other) {
 }
 
 value atg_greater_tensor_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1836,6 +2078,7 @@ value atg_greater_tensor_(value self, value other) {
 }
 
 value atg_greater_tensor_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1844,6 +2087,7 @@ value atg_greater_tensor_out(value out, value self, value other) {
 }
 
 value atg_grid_sampler(value input, value grid, int64_t interpolation_mode, int64_t padding_mode, int align_corners) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(input, grid);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::grid_sampler(rc_tensor_from_ocaml(input), rc_tensor_from_ocaml(grid), interpolation_mode, padding_mode, align_corners != 0)));
@@ -1851,6 +2095,7 @@ value atg_grid_sampler(value input, value grid, int64_t interpolation_mode, int6
 }
 
 value atg_grid_sampler_2d(value input, value grid, int64_t interpolation_mode, int64_t padding_mode, int align_corners) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(input, grid);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::grid_sampler_2d(rc_tensor_from_ocaml(input), rc_tensor_from_ocaml(grid), interpolation_mode, padding_mode, align_corners != 0)));
@@ -1858,6 +2103,7 @@ value atg_grid_sampler_2d(value input, value grid, int64_t interpolation_mode, i
 }
 
 value atg_grid_sampler_2d_out(value out, value input, value grid, int64_t interpolation_mode, int64_t padding_mode, int align_corners) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, input, grid);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1866,6 +2112,7 @@ value atg_grid_sampler_2d_out(value out, value input, value grid, int64_t interp
 }
 
 value atg_grid_sampler_3d(value input, value grid, int64_t interpolation_mode, int64_t padding_mode, int align_corners) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(input, grid);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::grid_sampler_3d(rc_tensor_from_ocaml(input), rc_tensor_from_ocaml(grid), interpolation_mode, padding_mode, align_corners != 0)));
@@ -1873,6 +2120,7 @@ value atg_grid_sampler_3d(value input, value grid, int64_t interpolation_mode, i
 }
 
 value atg_grid_sampler_3d_out(value out, value input, value grid, int64_t interpolation_mode, int64_t padding_mode, int align_corners) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, input, grid);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1881,6 +2129,7 @@ value atg_grid_sampler_3d_out(value out, value input, value grid, int64_t interp
 }
 
 value atg_group_norm(value input, int64_t num_groups, value weight, value bias, double eps, int cudnn_enabled) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(input, weight, bias);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::group_norm(rc_tensor_from_ocaml(input), num_groups, tensor_option_from_ocaml(weight), tensor_option_from_ocaml(bias), eps, cudnn_enabled != 0)));
@@ -1888,6 +2137,7 @@ value atg_group_norm(value input, int64_t num_groups, value weight, value bias, 
 }
 
 value atg_gru(value input, value hx, value params, int has_biases, int64_t num_layers, double dropout, int train, int bidirectional, int batch_first) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(input, hx, params);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::gru(rc_tensor_from_ocaml(input), rc_tensor_from_ocaml(hx), of_ocaml_tensor_list(params), has_biases != 0, num_layers, dropout, train != 0, bidirectional != 0, batch_first != 0)));
@@ -1895,6 +2145,7 @@ value atg_gru(value input, value hx, value params, int has_biases, int64_t num_l
 }
 
 value atg_gru_cell(value input, value hx, value w_ih, value w_hh, value b_ih, value b_hh) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(input, hx, w_ih, w_hh, b_ih);
   CAMLxparam1(b_hh);
   PROTECT(
@@ -1903,6 +2154,7 @@ value atg_gru_cell(value input, value hx, value w_ih, value w_hh, value b_ih, va
 }
 
 value atg_gru_data(value data, value batch_sizes, value hx, value params, int has_biases, int64_t num_layers, double dropout, int train, int bidirectional) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(data, batch_sizes, hx, params);
   PROTECT(
     CAMLreturn(rc_tensors_to_ocaml_tuple(torch::gru(rc_tensor_from_ocaml(data), rc_tensor_from_ocaml(batch_sizes), rc_tensor_from_ocaml(hx), of_ocaml_tensor_list(params), has_biases != 0, num_layers, dropout, train != 0, bidirectional != 0)));
@@ -1910,6 +2162,7 @@ value atg_gru_data(value data, value batch_sizes, value hx, value params, int ha
 }
 
 value atg_gt(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::gt(rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(other))));
@@ -1917,6 +2170,7 @@ value atg_gt(value self, value other) {
 }
 
 value atg_gt_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1925,6 +2179,7 @@ value atg_gt_(value self, value other) {
 }
 
 value atg_gt_scalar_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1933,6 +2188,7 @@ value atg_gt_scalar_out(value out, value self, value other) {
 }
 
 value atg_gt_tensor(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::gt(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -1940,6 +2196,7 @@ value atg_gt_tensor(value self, value other) {
 }
 
 value atg_gt_tensor_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -1948,6 +2205,7 @@ value atg_gt_tensor_(value self, value other) {
 }
 
 value atg_gt_tensor_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1956,6 +2214,7 @@ value atg_gt_tensor_out(value out, value self, value other) {
 }
 
 value atg_hamming_window(int64_t window_length, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hamming_window(window_length, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -1963,6 +2222,7 @@ value atg_hamming_window(int64_t window_length, int options_kind, int options_de
 }
 
 value atg_hamming_window_out(value out, int64_t window_length) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -1971,6 +2231,7 @@ value atg_hamming_window_out(value out, int64_t window_length) {
 }
 
 value atg_hamming_window_periodic(int64_t window_length, int periodic, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hamming_window(window_length, periodic != 0, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -1978,6 +2239,7 @@ value atg_hamming_window_periodic(int64_t window_length, int periodic, int optio
 }
 
 value atg_hamming_window_periodic_alpha(int64_t window_length, int periodic, double alpha, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hamming_window(window_length, periodic != 0, alpha, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -1985,6 +2247,7 @@ value atg_hamming_window_periodic_alpha(int64_t window_length, int periodic, dou
 }
 
 value atg_hamming_window_periodic_alpha_beta(int64_t window_length, int periodic, double alpha, double beta, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hamming_window(window_length, periodic != 0, alpha, beta, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -1992,6 +2255,7 @@ value atg_hamming_window_periodic_alpha_beta(int64_t window_length, int periodic
 }
 
 value atg_hamming_window_periodic_alpha_beta_out(value out, int64_t window_length, int periodic, double alpha, double beta) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2000,6 +2264,7 @@ value atg_hamming_window_periodic_alpha_beta_out(value out, int64_t window_lengt
 }
 
 value atg_hamming_window_periodic_alpha_out(value out, int64_t window_length, int periodic, double alpha) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2008,6 +2273,7 @@ value atg_hamming_window_periodic_alpha_out(value out, int64_t window_length, in
 }
 
 value atg_hamming_window_periodic_out(value out, int64_t window_length, int periodic) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2016,6 +2282,7 @@ value atg_hamming_window_periodic_out(value out, int64_t window_length, int peri
 }
 
 value atg_hann_window(int64_t window_length, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hann_window(window_length, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -2023,6 +2290,7 @@ value atg_hann_window(int64_t window_length, int options_kind, int options_devic
 }
 
 value atg_hann_window_out(value out, int64_t window_length) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2031,6 +2299,7 @@ value atg_hann_window_out(value out, int64_t window_length) {
 }
 
 value atg_hann_window_periodic(int64_t window_length, int periodic, int options_kind, int options_device) {
+  torch_refcounted_check_abi_once();
   CAMLparam0();
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hann_window(window_length, periodic != 0, at::device(device_of_int(options_device)).dtype(at::ScalarType(options_kind)))));
@@ -2038,6 +2307,7 @@ value atg_hann_window_periodic(int64_t window_length, int periodic, int options_
 }
 
 value atg_hann_window_periodic_out(value out, int64_t window_length, int periodic) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(out);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2046,6 +2316,7 @@ value atg_hann_window_periodic_out(value out, int64_t window_length, int periodi
 }
 
 value atg_hardshrink(value self, value lambd) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, lambd);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hardshrink(rc_tensor_from_ocaml(self), scalar_option_from_ocaml(lambd).value_or(0.5) )));
@@ -2053,6 +2324,7 @@ value atg_hardshrink(value self, value lambd) {
 }
 
 value atg_hardshrink_backward(value grad_out, value self, value lambd) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(grad_out, self, lambd);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hardshrink_backward(rc_tensor_from_ocaml(grad_out), rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(lambd))));
@@ -2060,6 +2332,7 @@ value atg_hardshrink_backward(value grad_out, value self, value lambd) {
 }
 
 value atg_hardshrink_backward_grad_input(value grad_input, value grad_out, value self, value lambd) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(grad_input, grad_out, self, lambd);
   PROTECT(
     torch::Tensor grad_input_local = rc_tensor_from_ocaml(grad_input);
@@ -2068,6 +2341,7 @@ value atg_hardshrink_backward_grad_input(value grad_input, value grad_out, value
 }
 
 value atg_hardshrink_out(value out, value self, value lambd) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, lambd);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2076,6 +2350,7 @@ value atg_hardshrink_out(value out, value self, value lambd) {
 }
 
 value atg_hardsigmoid(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hardsigmoid(rc_tensor_from_ocaml(self))));
@@ -2083,6 +2358,7 @@ value atg_hardsigmoid(value self) {
 }
 
 value atg_hardsigmoid_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2091,6 +2367,7 @@ value atg_hardsigmoid_(value self) {
 }
 
 value atg_hardsigmoid_backward(value grad_output, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad_output, self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hardsigmoid_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(self))));
@@ -2098,6 +2375,7 @@ value atg_hardsigmoid_backward(value grad_output, value self) {
 }
 
 value atg_hardsigmoid_backward_grad_input(value grad_input, value grad_output, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(grad_input, grad_output, self);
   PROTECT(
     torch::Tensor grad_input_local = rc_tensor_from_ocaml(grad_input);
@@ -2106,6 +2384,7 @@ value atg_hardsigmoid_backward_grad_input(value grad_input, value grad_output, v
 }
 
 value atg_hardsigmoid_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2114,6 +2393,7 @@ value atg_hardsigmoid_out(value out, value self) {
 }
 
 value atg_hardswish(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hardswish(rc_tensor_from_ocaml(self))));
@@ -2121,6 +2401,7 @@ value atg_hardswish(value self) {
 }
 
 value atg_hardswish_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2129,6 +2410,7 @@ value atg_hardswish_(value self) {
 }
 
 value atg_hardswish_backward(value grad_output, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(grad_output, self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hardswish_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(self))));
@@ -2136,6 +2418,7 @@ value atg_hardswish_backward(value grad_output, value self) {
 }
 
 value atg_hardswish_backward_out(value out, value grad_output, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, grad_output, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2144,6 +2427,7 @@ value atg_hardswish_backward_out(value out, value grad_output, value self) {
 }
 
 value atg_hardswish_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2152,6 +2436,7 @@ value atg_hardswish_out(value out, value self) {
 }
 
 value atg_hardtanh(value self, value min_val, value max_val) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, min_val, max_val);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hardtanh(rc_tensor_from_ocaml(self), scalar_option_from_ocaml(min_val).value_or(-1) , scalar_option_from_ocaml(max_val).value_or(1) )));
@@ -2159,6 +2444,7 @@ value atg_hardtanh(value self, value min_val, value max_val) {
 }
 
 value atg_hardtanh_(value self, value min_val, value max_val) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, min_val, max_val);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2167,6 +2453,7 @@ value atg_hardtanh_(value self, value min_val, value max_val) {
 }
 
 value atg_hardtanh_backward(value grad_output, value self, value min_val, value max_val) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(grad_output, self, min_val, max_val);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hardtanh_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(self), *scalar_from_ocaml_noalloc(min_val), *scalar_from_ocaml_noalloc(max_val))));
@@ -2174,6 +2461,7 @@ value atg_hardtanh_backward(value grad_output, value self, value min_val, value 
 }
 
 value atg_hardtanh_backward_grad_input(value grad_input, value grad_output, value self, value min_val, value max_val) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(grad_input, grad_output, self, min_val, max_val);
   PROTECT(
     torch::Tensor grad_input_local = rc_tensor_from_ocaml(grad_input);
@@ -2182,6 +2470,7 @@ value atg_hardtanh_backward_grad_input(value grad_input, value grad_output, valu
 }
 
 value atg_hardtanh_out(value out, value self, value min_val, value max_val) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, min_val, max_val);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2190,6 +2479,7 @@ value atg_hardtanh_out(value out, value self, value min_val, value max_val) {
 }
 
 value atg_heaviside(value self, value values) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, values);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::heaviside(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(values))));
@@ -2197,6 +2487,7 @@ value atg_heaviside(value self, value values) {
 }
 
 value atg_heaviside_(value self, value values) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, values);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2205,6 +2496,7 @@ value atg_heaviside_(value self, value values) {
 }
 
 value atg_heaviside_out(value out, value self, value values) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, values);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2213,6 +2505,7 @@ value atg_heaviside_out(value out, value self, value values) {
 }
 
 value atg_hinge_embedding_loss(value self, value target, double margin, int64_t reduction) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, target);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hinge_embedding_loss(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(target), margin, reduction)));
@@ -2220,6 +2513,7 @@ value atg_hinge_embedding_loss(value self, value target, double margin, int64_t 
 }
 
 value atg_histc(value self, int64_t bins, value min, value max) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, min, max);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::histc(rc_tensor_from_ocaml(self), bins, scalar_option_from_ocaml(min).value_or(0) , scalar_option_from_ocaml(max).value_or(0) )));
@@ -2227,6 +2521,7 @@ value atg_histc(value self, int64_t bins, value min, value max) {
 }
 
 value atg_histc_out(value out, value self, int64_t bins, value min, value max) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, min, max);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2235,6 +2530,7 @@ value atg_histc_out(value out, value self, int64_t bins, value min, value max) {
 }
 
 value atg_hsplit(value self, int64_t sections) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(to_ocaml_tensor_list(torch::hsplit(rc_tensor_from_ocaml(self), sections)));
@@ -2242,6 +2538,7 @@ value atg_hsplit(value self, int64_t sections) {
 }
 
 value atg_hsplit_array(value self, value indices) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, indices);
   PROTECT(
     CAMLreturn(to_ocaml_tensor_list(torch::hsplit(rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(indices))));
@@ -2249,6 +2546,7 @@ value atg_hsplit_array(value self, value indices) {
 }
 
 value atg_hspmm(value mat1, value mat2) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(mat1, mat2);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hspmm(rc_tensor_from_ocaml(mat1), rc_tensor_from_ocaml(mat2))));
@@ -2256,6 +2554,7 @@ value atg_hspmm(value mat1, value mat2) {
 }
 
 value atg_hspmm_out(value out, value mat1, value mat2) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, mat1, mat2);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2264,6 +2563,7 @@ value atg_hspmm_out(value out, value mat1, value mat2) {
 }
 
 value atg_hstack(value tensors) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(tensors);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hstack(of_ocaml_tensor_list(tensors))));
@@ -2271,6 +2571,7 @@ value atg_hstack(value tensors) {
 }
 
 value atg_hstack_out(value out, value tensors) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, tensors);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2279,6 +2580,7 @@ value atg_hstack_out(value out, value tensors) {
 }
 
 value atg_huber_loss(value self, value target, int64_t reduction, double delta) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, target);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::huber_loss(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(target), reduction, delta)));
@@ -2286,6 +2588,7 @@ value atg_huber_loss(value self, value target, int64_t reduction, double delta) 
 }
 
 value atg_huber_loss_backward(value grad_output, value self, value target, int64_t reduction, double delta) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(grad_output, self, target);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::huber_loss_backward(rc_tensor_from_ocaml(grad_output), rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(target), reduction, delta)));
@@ -2293,6 +2596,7 @@ value atg_huber_loss_backward(value grad_output, value self, value target, int64
 }
 
 value atg_huber_loss_backward_out(value grad_input, value grad_output, value self, value target, int64_t reduction, double delta) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(grad_input, grad_output, self, target);
   PROTECT(
     torch::Tensor grad_input_local = rc_tensor_from_ocaml(grad_input);
@@ -2301,6 +2605,7 @@ value atg_huber_loss_backward_out(value grad_input, value grad_output, value sel
 }
 
 value atg_huber_loss_out(value out, value self, value target, int64_t reduction, double delta) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, target);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2309,6 +2614,7 @@ value atg_huber_loss_out(value out, value self, value target, int64_t reduction,
 }
 
 value atg_hypot(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::hypot(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -2316,6 +2622,7 @@ value atg_hypot(value self, value other) {
 }
 
 value atg_hypot_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2324,6 +2631,7 @@ value atg_hypot_(value self, value other) {
 }
 
 value atg_hypot_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2332,6 +2640,7 @@ value atg_hypot_out(value out, value self, value other) {
 }
 
 value atg_i0(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::i0(rc_tensor_from_ocaml(self))));
@@ -2339,6 +2648,7 @@ value atg_i0(value self) {
 }
 
 value atg_i0_(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2347,6 +2657,7 @@ value atg_i0_(value self) {
 }
 
 value atg_i0_out(value out, value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(out, self);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2355,6 +2666,7 @@ value atg_i0_out(value out, value self) {
 }
 
 value atg_igamma(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::igamma(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -2362,6 +2674,7 @@ value atg_igamma(value self, value other) {
 }
 
 value atg_igamma_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2370,6 +2683,7 @@ value atg_igamma_(value self, value other) {
 }
 
 value atg_igamma_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2378,6 +2692,7 @@ value atg_igamma_out(value out, value self, value other) {
 }
 
 value atg_igammac(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::igammac(rc_tensor_from_ocaml(self), rc_tensor_from_ocaml(other))));
@@ -2385,6 +2700,7 @@ value atg_igammac(value self, value other) {
 }
 
 value atg_igammac_(value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam2(self, other);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2393,6 +2709,7 @@ value atg_igammac_(value self, value other) {
 }
 
 value atg_igammac_out(value out, value self, value other) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(out, self, other);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2401,6 +2718,7 @@ value atg_igammac_out(value out, value self, value other) {
 }
 
 value atg_im2col(value self, value kernel_size, value dilation, value padding, value stride) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(self, kernel_size, dilation, padding, stride);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::im2col(rc_tensor_from_ocaml(self), vec_of_ocaml_int_list(kernel_size), vec_of_ocaml_int_list(dilation), vec_of_ocaml_int_list(padding), vec_of_ocaml_int_list(stride))));
@@ -2408,6 +2726,7 @@ value atg_im2col(value self, value kernel_size, value dilation, value padding, v
 }
 
 value atg_im2col_out(value out, value self, value kernel_size, value dilation, value padding, value stride) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, kernel_size, dilation, padding);
   CAMLxparam1(stride);
   PROTECT(
@@ -2417,6 +2736,7 @@ value atg_im2col_out(value out, value self, value kernel_size, value dilation, v
 }
 
 value atg_imag(value self) {
+  torch_refcounted_check_abi_once();
   CAMLparam1(self);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::imag(rc_tensor_from_ocaml(self))));
@@ -2424,6 +2744,7 @@ value atg_imag(value self) {
 }
 
 value atg_index_add(value self, int64_t dim, value index, value source, value alpha) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, index, source, alpha);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::index_add(rc_tensor_from_ocaml(self), dim, rc_tensor_from_ocaml(index), rc_tensor_from_ocaml(source), scalar_option_from_ocaml(alpha).value_or(1) )));
@@ -2431,6 +2752,7 @@ value atg_index_add(value self, int64_t dim, value index, value source, value al
 }
 
 value atg_index_add_(value self, int64_t dim, value index, value source, value alpha) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(self, index, source, alpha);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2439,6 +2761,7 @@ value atg_index_add_(value self, int64_t dim, value index, value source, value a
 }
 
 value atg_index_add_out(value out, value self, int64_t dim, value index, value source, value alpha) {
+  torch_refcounted_check_abi_once();
   CAMLparam5(out, self, index, source, alpha);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2447,6 +2770,7 @@ value atg_index_add_out(value out, value self, int64_t dim, value index, value s
 }
 
 value atg_index_copy(value self, int64_t dim, value index, value source) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, index, source);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::index_copy(rc_tensor_from_ocaml(self), dim, rc_tensor_from_ocaml(index), rc_tensor_from_ocaml(source))));
@@ -2454,6 +2778,7 @@ value atg_index_copy(value self, int64_t dim, value index, value source) {
 }
 
 value atg_index_copy_(value self, int64_t dim, value index, value source) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, index, source);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);
@@ -2462,6 +2787,7 @@ value atg_index_copy_(value self, int64_t dim, value index, value source) {
 }
 
 value atg_index_copy_out(value out, value self, int64_t dim, value index, value source) {
+  torch_refcounted_check_abi_once();
   CAMLparam4(out, self, index, source);
   PROTECT(
     torch::Tensor out_local = rc_tensor_from_ocaml(out);
@@ -2470,6 +2796,7 @@ value atg_index_copy_out(value out, value self, int64_t dim, value index, value 
 }
 
 value atg_index_fill(value self, int64_t dim, value index, value value_) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, index, value_);
   PROTECT(
     CAMLreturn(rc_tensor_to_ocaml(torch::index_fill(rc_tensor_from_ocaml(self), dim, rc_tensor_from_ocaml(index), *scalar_from_ocaml_noalloc(value_))));
@@ -2477,6 +2804,7 @@ value atg_index_fill(value self, int64_t dim, value index, value value_) {
 }
 
 value atg_index_fill_(value self, int64_t dim, value index, value value_) {
+  torch_refcounted_check_abi_once();
   CAMLparam3(self, index, value_);
   PROTECT(
     torch::Tensor self_local = rc_tensor_from_ocaml(self);

@@ -65,12 +65,12 @@ let linear vs ?activation ?(use_bias = true) ?(w_init @ local) ~input_dim output
           ~init:(Uniform (-.bound, bound))
           ~name:"bias"
       in
-      fun (xs @ local) -> exclave_
+      fun (xs : Tensor.t @ local) -> exclave_
         Tensor.with_rc_scope_tensor (fun () -> exclave_
           let y = Tensor.(mm xs (tr w) + b) in
           apply y ?activation [@nontail]))
     else
-      fun (xs @ local) -> exclave_
+      fun (xs : Tensor.t @ local) -> exclave_
       Tensor.with_rc_scope_tensor (fun () -> exclave_
         let y = Tensor.(mm xs (tr w)) in
         apply y ?activation [@nontail])
@@ -544,7 +544,7 @@ let of_fn apply = { apply }
 let of_fn_ apply_with_training = { apply_with_training }
 
 let sequential t_list =
-  let apply xs = exclave_
+  let apply (xs : Tensor.t) = exclave_
     Tensor.with_rc_scope_tensor (fun () -> exclave_
       List.fold__local__local t_list ~init:xs ~f:(fun acc t -> exclave_ t.apply acc))
   in
@@ -552,7 +552,7 @@ let sequential t_list =
 ;;
 
 let sequential_ t_list =
-  let apply_with_training xs ~is_training = exclave_
+  let apply_with_training (xs : Tensor.t) ~is_training = exclave_
     Tensor.with_rc_scope_tensor (fun () -> exclave_
       List.fold__local__local t_list ~init:xs ~f:(fun acc t -> exclave_
         t.apply_with_training acc ~is_training))

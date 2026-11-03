@@ -11,8 +11,10 @@ module Scalar : sig
 
   val int : int -> int t
   val float : float -> float t
+  val f64 : Ox.f64 -> float t
   val to_int64 : int t -> int64
   val to_float : float t -> float
+  val to_f64 : float t -> Ox.f64
 end
 
 module Tensor : sig
@@ -26,7 +28,14 @@ module Tensor : sig
   val new_tensor : unit -> t @ local
   val float_vec : ?kind:[ `double | `float | `half ] -> float list -> t @ local
   val int_vec : ?kind:[ `int | `int16 | `int64 | `int8 | `uint8 ] -> int list -> t @ local
-  val of_bigarray : (_, _, Bigarray.c_layout) Bigarray.Genarray.t -> t @ local
+
+  (** CPU-only pinned constructors. *)
+  val zeros_pinned : ?kind:Torch_wrapper_types.Kind.packed -> int list -> t @ local
+
+  val ones_pinned : ?kind:Torch_wrapper_types.Kind.packed -> int list -> t @ local
+  val rand_pinned : ?kind:Torch_wrapper_types.Kind.packed -> int list -> t @ local
+  val randn_pinned : ?kind:Torch_wrapper_types.Kind.packed -> int list -> t @ local
+  val of_bigarray : (_, _, Bigarray.c_layout) Bigarray.Genarray.t @ local -> t @ local
 
   (** Both of the below copy functions lay out tensor memory contiguously in the
       bigstring, ignoring the strides of the underlying tensor.
@@ -41,13 +50,13 @@ module Tensor : sig
 
   val copy_to_bigstring
     :  src:t @ local
-    -> dst:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+    -> dst:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t @ local
     -> dst_pos:int
     -> dst_len:int
     -> unit
 
   val copy_from_bigstring
-    :  src:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+    :  src:(char, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t @ local
     -> src_pos:int
     -> src_len:int
     -> dst:t @ local
@@ -55,7 +64,7 @@ module Tensor : sig
 
   val copy_to_bigarray
     :  t @ local
-    -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t
+    -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t @ local
     -> unit
 
   (** [copy_from_bigarray t ba] copies the data from [ba] into [t]. The element kind and
@@ -63,7 +72,7 @@ module Tensor : sig
       dimensions) need not agree; data is reinterpreted using [t]'s shape. *)
   val copy_from_bigarray
     :  t @ local
-    -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t
+    -> (_, _, Bigarray.c_layout) Bigarray.Genarray.t @ local
     -> unit
 
   val shape : t @ local -> int list
@@ -82,12 +91,16 @@ module Tensor : sig
   val get : t @ local -> int -> t @ local
   val select : t @ local -> dim:int -> index:int -> t @ local
   val float_value : t @ local -> float
+  val f64_value : t @ local -> Ox.f64
   val int_value : t @ local -> int
   val float_get : t @ local -> int list -> float
+  val f64_get : t @ local -> int list -> Ox.f64
   val int_get : t @ local -> int list -> int
   val float_set : t @ local -> int list -> float -> unit
+  val f64_set : t @ local -> int list -> Ox.f64 -> unit
   val int_set : t @ local -> int list -> int -> unit
   val fill_float : t @ local -> float -> unit
+  val fill_f64 : t @ local -> Ox.f64 -> unit
   val fill_int : t @ local -> int -> unit
   val backward : ?keep_graph:bool -> ?create_graph:bool -> t @ local -> unit
 
@@ -138,12 +151,29 @@ module Optimizer : sig
     -> eps:float
     -> t
 
+  val adam_f64
+    :  learning_rate:Ox.f64
+    -> beta1:Ox.f64
+    -> beta2:Ox.f64
+    -> weight_decay:Ox.f64
+    -> eps:Ox.f64
+    -> t
+
   val rmsprop
     :  learning_rate:float
     -> alpha:float
     -> eps:float
     -> weight_decay:float
     -> momentum:float
+    -> centered:bool
+    -> t
+
+  val rmsprop_f64
+    :  learning_rate:Ox.f64
+    -> alpha:Ox.f64
+    -> eps:Ox.f64
+    -> weight_decay:Ox.f64
+    -> momentum:Ox.f64
     -> centered:bool
     -> t
 
@@ -155,8 +185,18 @@ module Optimizer : sig
     -> nesterov:bool
     -> t
 
+  val sgd_f64
+    :  learning_rate:Ox.f64
+    -> momentum:Ox.f64
+    -> dampening:Ox.f64
+    -> weight_decay:Ox.f64
+    -> nesterov:bool
+    -> t
+
   val set_learning_rate : t -> float -> unit
+  val set_learning_rate_f64 : t -> Ox.f64 -> unit
   val set_momentum : t -> float -> unit
+  val set_momentum_f64 : t -> Ox.f64 -> unit
   val add_parameters : t -> Tensor.t list @ local -> unit
   val zero_grad : t -> unit
   val step : t -> unit

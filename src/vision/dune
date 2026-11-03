@@ -8,4 +8,4 @@
  (public_name torch.vision)
  (libraries base stdio torch torch_core)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

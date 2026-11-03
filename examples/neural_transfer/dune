@@ -3,4 +3,4 @@
  (names neural_transfer)
  (libraries stdio torch torch_vision unix)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

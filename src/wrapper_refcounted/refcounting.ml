@@ -146,7 +146,9 @@ let pop_current_scope_and_transfer ~tensors_to_shift_out =
   tensors
 ;;
 
-let with_rc_scope_tensor (f : (unit -> tensor @ local) @ local) : tensor @ local =
+let with_rc_scope_tensor (f : (unit -> tensor @ local) @ local unyielding)
+  : tensor @ local
+  =
   (* We have different [with_scope] functions because when users want to return tensor(s)
      from the callback, we need to ensure they are handed off to the outer scope. Tensors
      cannot be returned from regular [with_scope] because it returns ['a] which is not
@@ -164,7 +166,7 @@ let with_rc_scope_tensor (f : (unit -> tensor @ local) @ local) : tensor @ local
   pop_current_scope_and_transfer ~tensors_to_shift_out:[ returned_tensor ] |> List.hd_exn
 ;;
 
-let with_rc_scope_tensors (f : (unit -> tensor list @ local) @ local)
+let with_rc_scope_tensors (f : (unit -> tensor list @ local) @ local unyielding)
   : tensor list @ local
   =
   set_up_new_scope ();
@@ -177,7 +179,7 @@ let with_rc_scope_tensors (f : (unit -> tensor list @ local) @ local)
   pop_current_scope_and_transfer ~tensors_to_shift_out:returned_tensors [@nontail]
 ;;
 
-let with_rc_scope (f : (unit -> 'a) @ local) : 'a =
+let with_rc_scope (f : (unit -> 'a) @ local unyielding) : 'a =
   set_up_new_scope ();
   Exn.protect ~f ~finally:pop_current_scope [@nontail]
 ;;

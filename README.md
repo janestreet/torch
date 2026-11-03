@@ -74,7 +74,6 @@ export LIBRARY_PATH="$LIBTORCH_DIR/lib:$CUDA_DIR/targets/x86_64-linux/lib/"
 Then run the commands above.
 
 
-
 ## Examples
 
 ### Utop
@@ -122,7 +121,6 @@ not work on macos).
 * [ResNet examples on CIFAR-10](./examples/cifar/README.md).
 * [Character-level RNN](./examples/char_rnn/README.md)
 * [Neural Style Transfer](./examples/neural_transfer/README.md)
-* [Reinforcement Learning](./examples/reinforcement-learning/README.md)
 * [Llama 2](./examples/llama2/README.md) (or [with refcounting](./examples/refcounted/llama2/README.md))
 
 Some more advanced applications from external repos:

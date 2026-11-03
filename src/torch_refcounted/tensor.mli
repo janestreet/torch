@@ -62,7 +62,7 @@ val ( .%.[] ) : t @ local -> int -> float
 val ( .%.[]<- ) : t @ local -> int -> float -> unit
 
 (** [no_grad_ t ~f] runs [f] on [t] without tracking gradients for t. *)
-val no_grad_ : t @ local -> f:(t @ local -> 'a) @ local -> 'a
+val no_grad_ : t @ local -> f:(t @ local -> 'a) @ local unyielding -> 'a
 
 val no_grad : (unit -> 'a) -> 'a
 val zero_grad : t @ local -> unit
@@ -109,10 +109,13 @@ val mm : t @ local -> t @ local -> t @ local
 (** [f v] returns a scalar tensor with value [v]. *)
 val f : float -> t @ local
 
+(** [pinned_memory] defaults to [false]. When [true], the device must be [Cpu] and CUDA
+    must be available. Also if you pass [pinned_memory:true] you must not pass [scale]. *)
 type create =
   ?requires_grad:bool
   -> ?kind:Kind.packed
   -> ?device:Device.t
+  -> ?pinned_memory:bool
   -> ?scale:float
   -> int list
   -> t @ local
@@ -286,14 +289,14 @@ val const_batch_norm : ?momentum:float -> ?eps:float -> t @ local -> t @ local
     the same data. *)
 val of_bigarray
   :  ?device:Device.t
-  -> ('a, 'b, Bigarray.c_layout) Bigarray.Genarray.t
+  -> ('a, 'b, Bigarray.c_layout) Bigarray.Genarray.t @ local
   -> t @ local
 
 (** [copy_to_bigarray t ba] copies the data from [t] to [ba]. The dimensions of [ba] and
     its kind of element must match the dimension and kind of [t]. *)
 val copy_to_bigarray
   :  t @ local
-  -> ('b, 'a, Bigarray.c_layout) Bigarray.Genarray.t
+  -> ('b, 'a, Bigarray.c_layout) Bigarray.Genarray.t @ local
   -> unit
 
 (** [copy_from_bigarray t ba] copies the data from [ba] into [t]. The element kind and
@@ -301,7 +304,7 @@ val copy_to_bigarray
     dimensions) need not agree; data is reinterpreted using [t]'s shape. *)
 val copy_from_bigarray
   :  t @ local
-  -> ('b, 'a, Bigarray.c_layout) Bigarray.Genarray.t
+  -> ('b, 'a, Bigarray.c_layout) Bigarray.Genarray.t @ local
   -> unit
 
 (** [to_bigarray t ~kind] converts [t] to a bigarray using the c layout. [kind] has to be

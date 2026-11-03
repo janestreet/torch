@@ -15,6 +15,7 @@ depends: [
   "base"
   "core"
   "core_unix"
+  "ox"
   "ppx_bench"
   "ppx_c_bindings"
   "ppx_expect"

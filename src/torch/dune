@@ -3,4 +3,4 @@
  (public_name torch)
  (libraries base core stdio torch_core unix)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

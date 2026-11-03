@@ -3,4 +3,4 @@
  (names llama2)
  (libraries core stdio torch_local_iterators torch_refcounted unix)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

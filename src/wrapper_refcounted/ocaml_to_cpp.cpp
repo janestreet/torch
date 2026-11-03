@@ -2,6 +2,11 @@
 #include <caml/memory.h>
 #include <caml/alloc.h>
 
+// This file doesn't use torch, but we need to reference torch_refcounted_check_abi_once
+// so post-process-wrapper-symbols.sh is happy
+extern "C" void torch_refcounted_check_abi_once();
+[[gnu::used]] static const auto abi_check_reference = &torch_refcounted_check_abi_once;
+
 size_t list_length_noalloc(value list) {
   size_t result = 0;
   while (list != Val_emptylist) {

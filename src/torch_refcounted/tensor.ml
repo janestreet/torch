@@ -24,7 +24,6 @@ let no_grad_ t ~f =
     if requires_grad t
     then (
       let t = set_requires_grad t ~r:false in
-      let t = Obj.magic_unyielding t in
       Exn.protect
         ~f:(fun () -> f t)
         ~finally:(fun () -> ignore (set_requires_grad t ~r:true : t)) [@nontail])
@@ -50,6 +49,7 @@ type create =
   ?requires_grad:bool
   -> ?kind:Kind.packed
   -> ?device:Device.t
+  -> ?pinned_memory:bool
   -> ?scale:float
   -> int list
   -> t @ local
@@ -68,30 +68,42 @@ let float_vec ?kind ?device dims = exclave_ float_vec ?kind dims |> to_device ?d
 
 let gen
   ~f
+  ~pinned_f
   ?(requires_grad = false)
   ?(kind = Kind.(T Float))
   ?(device = Device.Cpu)
+  ?(pinned_memory = false)
   ?scale
   size
   = exclave_
-  let t = f ~size ~options:(kind, device) in
   let t =
-    Option.value_map__local
-      scale
-      ~f:(fun scale -> exclave_
-        let scale = float_vec [ Float.globalize scale ] ~device in
-        let result = mul t scale in
-        result)
-      ~default:t
+    if pinned_memory
+    then (
+      match scale with
+      | Some _ -> invalid_arg "pinned_memory does not support scale"
+      | None ->
+        (match device with
+         | Cpu -> ()
+         | Cuda _ -> invalid_arg "pinned_memory requires a CPU device");
+        pinned_f ?kind:(Some kind) size)
+    else (
+      let t = f ~size ~options:(kind, device) in
+      Option.value_map__local
+        scale
+        ~f:(fun scale -> exclave_
+          let scale = float_vec [ Float.globalize scale ] ~device in
+          let result = mul t scale in
+          result)
+        ~default:t)
   in
   let t = if requires_grad then set_requires_grad t ~r:true else t in
   t
 ;;
 
-let zeros = gen ~f:zeros
-let ones = gen ~f:ones
-let rand = gen ~f:rand
-let randn = gen ~f:randn
+let zeros = gen ~f:zeros ~pinned_f:zeros_pinned
+let ones = gen ~f:ones ~pinned_f:ones_pinned
+let rand = gen ~f:rand ~pinned_f:rand_pinned
+let randn = gen ~f:randn ~pinned_f:randn_pinned
 let f v = exclave_ float_vec [ v ] |> reshape ~shape:[]
 let mm = matmul
 let ( + ) t t' = exclave_ add t t'
@@ -356,7 +368,7 @@ let to_int0 t =
   | _ -> None
 ;;
 
-let of_bigarray ?device ba = exclave_ of_bigarray ba |> to_device ?device
+let of_bigarray ?device (ba @ local) = exclave_ of_bigarray ba |> to_device ?device
 
 let of_float0 ?device f = exclave_
   Bigarray.Array0.of_value Float32 C_layout f

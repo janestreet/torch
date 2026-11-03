@@ -33,9 +33,14 @@ typedef void *gc_tensor;
 void increment_refcount_internal_noalloc(value managed_tensor);
 void decrement_refcount_internal(value managed_tensor);
 int get_refcount_internal_noalloc(value managed_tensor);
+void torch_refcounted_check_abi_once();
 
 void at_manual_seed(int64_t);
 value at_new_tensor();
+value at_zeros_pinned(value size, int kind);
+value at_ones_pinned(value size, int kind);
+value at_rand_pinned(value size, int kind);
+value at_randn_pinned(value size, int kind);
 value at_tensor_of_data(value vs, value dims, int element_size_in_bytes, int type);
 void at_copy_to_elements(value t, value vs, int64_t numel, int element_size_in_bytes);
 void at_copy_to_bytes(value t, value bytes, int64_t bytes_offset, int64_t bytes_len);

@@ -4,7 +4,7 @@ module T = struct
   type t = Torch_refcounted_core.Device.t =
     | Cpu
     | Cuda of int
-  [@@deriving bin_io, sexp, compare, hash]
+  [@@deriving bin_io, sexp, compare ~localize, hash]
 
   include (val Core.Core_stable.Comparator.V1.make ~compare ~sexp_of_t)
 end

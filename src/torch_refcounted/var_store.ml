@@ -154,7 +154,7 @@ module Init = struct
     | Copy of Tensor.t
 end
 
-let new_var ?(trainable = true) t ~shape ~(init @ local) ~name =
+let new_var ?(trainable = true) t ~shape ~(init : Init.t @ local) ~name =
   let device = device t in
   let requires_grad = trainable && not t.frozen in
   let tensor =

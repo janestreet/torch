@@ -26,15 +26,22 @@ module For_users : sig
       not local. To return tensors, you should use [with_rc_scope_tensor] or
       [with_rc_scope_tensors].
 
-      This can be nested with any combination of the other functions. *)
-  val with_rc_scope : (unit -> 'a) @ local -> 'a
+      This can be nested with any combination of the other functions.
+
+      [f] is [unyielding]: it may not suspend to the Async scheduler. This applies to
+      [with_rc_scope_tensor] and [with_rc_scope_tensors] too. The scope stack is
+      process-global, so suspending would sweep a concurrent job's tensors into this scope
+      and free them when it pops. *)
+  val with_rc_scope : (unit -> 'a) @ local unyielding -> 'a
 
   (** Same as [with_rc_scope], but the callback should return a tensor, and that tensor
       will be safely added to the scope of the caller of this function. *)
-  val with_rc_scope_tensor : (unit -> tensor @ local) @ local -> tensor @ local
+  val with_rc_scope_tensor : (unit -> tensor @ local) @ local unyielding -> tensor @ local
 
   (** Same as [with_rc_scope_tensor], but for a list of tensors. *)
-  val with_rc_scope_tensors : (unit -> tensor list @ local) @ local -> tensor list @ local
+  val with_rc_scope_tensors
+    :  (unit -> tensor list @ local) @ local unyielding
+    -> tensor list @ local
 
   (** Turn a refcounted tensor into a garbage collected tensor. After this function, the
       tensor can be passed around freely, but it will only be cleaned up when the

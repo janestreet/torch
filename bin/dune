@@ -1,6 +1,6 @@
 (executables
  (modes byte exe)
  (names tensor_tools)
- (libraries base cmdliner npy stdio torch torch_core torch_vision)
+ (libraries base cmdliner npy stdio torch torch_vision)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

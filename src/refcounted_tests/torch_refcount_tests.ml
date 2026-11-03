@@ -88,6 +88,54 @@ let%expect_test _ =
       |}])
 ;;
 
+let%expect_test "unboxed f64 wrapper functions" =
+  let f64 = Ox.F64.unbox in
+  let print_f64 value = print_s [%sexp (Ox.F64.box value : float)] in
+  Tensor.with_rc_scope (fun () ->
+    let t = Tensor.float_vec ~kind:`double [ 1.; 2. ] in
+    Tensor.f64_set t [ 1 ] (f64 3.5);
+    print_f64 (Tensor.f64_get t [ 1 ]);
+    Tensor.fill_f64 t (f64 4.25);
+    print_f64 (Tensor.f64_get t [ 0 ]);
+    print_f64 (Tensor.f64_value (Tensor.f 5.75)));
+  print_f64 (Scalar.to_f64 (Scalar.f64 (f64 6.5)));
+  let module Optimizer = Torch_refcounted_core.Wrapper.Optimizer in
+  let optimizer =
+    Optimizer.sgd_f64
+      ~learning_rate:(f64 0.1)
+      ~momentum:(f64 0.)
+      ~dampening:(f64 0.)
+      ~weight_decay:(f64 0.)
+      ~nesterov:false
+  in
+  Optimizer.set_learning_rate_f64 optimizer (f64 0.2);
+  Optimizer.set_momentum_f64 optimizer (f64 0.3);
+  ignore
+    (Optimizer.adam_f64
+       ~learning_rate:(f64 0.1)
+       ~beta1:(f64 0.9)
+       ~beta2:(f64 0.999)
+       ~weight_decay:(f64 0.)
+       ~eps:(f64 1e-8)
+     : Optimizer.t);
+  ignore
+    (Optimizer.rmsprop_f64
+       ~learning_rate:(f64 0.1)
+       ~alpha:(f64 0.99)
+       ~eps:(f64 1e-8)
+       ~weight_decay:(f64 0.)
+       ~momentum:(f64 0.)
+       ~centered:false
+     : Optimizer.t);
+  [%expect
+    {|
+    3.5
+    4.25
+    5.75
+    6.5
+    |}]
+;;
+
 let%expect_test _ =
   Tensor.with_rc_scope (fun () ->
     let open Tensor in
@@ -347,11 +395,11 @@ let%expect_test _ =
   Tensor.with_rc_scope (fun () ->
     let vs = Tensor.of_float1 [| -1.01; -1.; -0.99; 0.5; 0.25; 0.; 2.; 4.; -1.; -3. |] in
     Stdio.printf
-      !"%{sexp:float array} %{sexp:float}\n"
+      !"%{sexp:float array} %.6f\n"
       Tensor.(huber_loss vs (Tensor.f 0.) ~reduction:None |> to_float1_exn)
       Tensor.(huber_loss vs (Tensor.f 0.) |> to_float0_exn);
     [%expect
-      {| (0.50999999046325684 0.5 0.49005001783370972 0.125 0.03125 0 1.5 3.5 0.5 2.5) 0.9656299352645874 |}])
+      {| (0.50999999046325684 0.5 0.49005001783370972 0.125 0.03125 0 1.5 3.5 0.5 2.5) 0.965630 |}])
 ;;
 
 let%expect_test _ =
@@ -674,25 +722,25 @@ let%expect_test "non-nullable scalar arguments with default values" =
 ;;
 
 let%expect_test "non-nullable scalar arguments with multiple default values" =
-  Tensor.with_rc_scope (fun () ->
-    (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in the
-       right order *)
-    let t =
-      Tensor.arange_start_step
-        ~start:(Scalar.float (-0.5))
-        ~end_:(Scalar.float 1.0)
-        ~step:(Scalar.float 0.125)
-        ~options:(T Float, Cpu)
-        ()
-      |> Tensor.softplus ~beta:(Scalar.float 0.9) ~threshold:(Scalar.float 0.5)
-    in
-    Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn t);
-    [%expect
-      {|
-      (0.54805439710617065 0.59840929508209229 0.652180016040802
-       0.70942044258117676 0.77016353607177734 0.834420382976532 0.902180016040802
-       0.97340929508209229 1.0480543375015259 0.625 0.75 0.875)
-      |}])
+  Expect_test_helpers_base.with_sexp_round_floats ~significant_digits:6 (fun () ->
+    Tensor.with_rc_scope (fun () ->
+      (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in
+         the right order *)
+      let t =
+        Tensor.arange_start_step
+          ~start:(Scalar.float (-0.5))
+          ~end_:(Scalar.float 1.0)
+          ~step:(Scalar.float 0.125)
+          ~options:(T Float, Cpu)
+          ()
+        |> Tensor.softplus ~beta:(Scalar.float 0.9) ~threshold:(Scalar.float 0.5)
+      in
+      Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn t);
+      [%expect
+        {|
+        (0.548054 0.598409 0.65218 0.70942 0.770164 0.83442 0.90218 0.973409 1.04805
+         0.625 0.75 0.875)
+        |}]))
 ;;
 
 let%expect_test "print scopes" =

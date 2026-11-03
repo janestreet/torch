@@ -24,11 +24,3 @@ data/
 setup.data
 setup.log
 torch.install
-
-# generated files
-src/wrapper/cxx_flags.sexp
-src/wrapper/c_library_flags.sexp
-src/wrapper/torch_stubs.c
-src/wrapper/torch_bindings.ml
-src/wrapper/torch_generated.ml
-src/wrapper/torch_bindings_generated.ml

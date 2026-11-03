@@ -780,6 +780,7 @@ let write_func_cpp_ppx ~out_cpp ~out_h ~exported_name ~func =
   | `nothing ->
     ph "void atg_%s(%s);" exported_name c_typed_args_str;
     pc "void atg_%s(%s) {" exported_name c_typed_args_str;
+    pc "  torch_refcounted_check_abi_once();";
     register_ocaml_values ();
     pc "  PROTECT(";
     reclaim_tensors ();
@@ -799,6 +800,7 @@ let write_func_cpp_ppx ~out_cpp ~out_h ~exported_name ~func =
     in
     ph "value atg_%s(%s);" exported_name c_typed_args_str;
     pc "value atg_%s(%s) {" exported_name c_typed_args_str;
+    pc "  torch_refcounted_check_abi_once();";
     register_ocaml_values ();
     pc "  PROTECT(";
     reclaim_tensors ();

@@ -3,4 +3,4 @@
  (names discover)
  (libraries base dune-configurator core_unix.sys_unix)
  (preprocess
-  (pps ppx_jane)))
+  (pps ppx_jane -compare-require-explicit-locality)))

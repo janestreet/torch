@@ -291,11 +291,11 @@ let%expect_test _ =
 let%expect_test _ =
   let vs = Tensor.of_float1 [| -1.01; -1.; -0.99; 0.5; 0.25; 0.; 2.; 4.; -1.; -3. |] in
   Stdio.printf
-    !"%{sexp:float array} %{sexp:float}\n"
+    !"%{sexp:float array} %.6f\n"
     Tensor.(huber_loss vs (Tensor.f 0.) ~reduction:None |> to_float1_exn)
     Tensor.(huber_loss vs (Tensor.f 0.) |> to_float0_exn);
   [%expect
-    {| (0.50999999046325684 0.5 0.49005001783370972 0.125 0.03125 0 1.5 3.5 0.5 2.5) 0.9656299352645874 |}]
+    {| (0.50999999046325684 0.5 0.49005001783370972 0.125 0.03125 0 1.5 3.5 0.5 2.5) 0.965630 |}]
 ;;
 
 let%expect_test _ =
@@ -615,22 +615,22 @@ let%expect_test "non-nullable scalar arguments with default values" =
 ;;
 
 let%expect_test "non-nullable scalar arguments with multiple default values" =
-  (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in the
-     right order *)
-  let t =
-    Tensor.arange_start_step
-      ~start:(Scalar.float (-0.5))
-      ~end_:(Scalar.float 1.0)
-      ~step:(Scalar.float 0.125)
-      ~options:(T Float, Cpu)
-      ()
-    |> Tensor.softplus ~beta:(Scalar.float 0.9) ~threshold:(Scalar.float 0.5)
-  in
-  Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn t);
-  [%expect
-    {|
-    (0.54805439710617065 0.59840929508209229 0.652180016040802
-     0.70942044258117676 0.77016353607177734 0.834420382976532 0.902180016040802
-     0.97340929508209229 1.0480543375015259 0.625 0.75 0.875)
-    |}]
+  Expect_test_helpers_base.with_sexp_round_floats ~significant_digits:6 (fun () ->
+    (* Call [Tensor.softplus] which takes two extra arguments, to make sure they're in the
+       right order *)
+    let t =
+      Tensor.arange_start_step
+        ~start:(Scalar.float (-0.5))
+        ~end_:(Scalar.float 1.0)
+        ~step:(Scalar.float 0.125)
+        ~options:(T Float, Cpu)
+        ()
+      |> Tensor.softplus ~beta:(Scalar.float 0.9) ~threshold:(Scalar.float 0.5)
+    in
+    Stdio.printf !"%{sexp:float array}\n" (Tensor.to_float1_exn t);
+    [%expect
+      {|
+      (0.548054 0.598409 0.65218 0.70942 0.770164 0.83442 0.90218 0.973409 1.04805
+       0.625 0.75 0.875)
+      |}])
 ;;

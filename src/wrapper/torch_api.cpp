@@ -85,7 +85,7 @@ static struct custom_operations ops = {"torch-tensor",
                                        custom_fixed_length_default};
 
 // This signature is used in src/c_api, so don't break it.
-value prepare_ocaml_tensor(const torch::Tensor &tensor) {
+extern "C" value prepare_ocaml_tensor(const torch::Tensor &tensor) {
   CAMLparam0();
   CAMLlocal1(managed);
 

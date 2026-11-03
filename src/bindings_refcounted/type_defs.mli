@@ -1,4 +1,4 @@
 type raw_tensor
-type tensor [@@deriving globalize]
+type tensor : value mod unyielding [@@deriving globalize]
 type optimizer
 type scalar

@@ -17,26 +17,25 @@ let%expect_test _ =
     Optimizer.zero_grad opt;
     let ys_ = Layer.forward linear xs in
     let loss = Tensor.(mean (square (ys - ys_))) in
-    if index % 10 = 0
-    then Stdio.printf !"%d %{sexp:float}\n" index (Tensor.to_float0_exn loss);
+    if index % 10 = 0 then Stdio.printf "%d %.6f\n" index (Tensor.to_float0_exn loss);
     Tensor.backward loss;
     Optimizer.step opt
   done;
   let ys_ = Layer.forward linear xs in
   let loss = Tensor.(mean ((ys - ys_) * (ys - ys_))) in
-  Stdio.printf !"%{sexp:float}\n" (Tensor.to_float0_exn loss);
+  Stdio.printf "%.6f\n" (Tensor.to_float0_exn loss);
   [%expect
     {|
-    10 0.48697760701179504
-    20 0.099454931914806366
-    30 0.078205928206443787
-    40 0.076292321085929871
-    50 0.07540757954120636
-    60 0.074585661292076111
-    70 0.073775485157966614
-    80 0.072974242269992828
-    90 0.07218170166015625
-    100 0.071397744119167328
-    0.0713198333978653
+    10 0.486978
+    20 0.099455
+    30 0.078206
+    40 0.076292
+    50 0.075408
+    60 0.074586
+    70 0.073775
+    80 0.072974
+    90 0.072182
+    100 0.071398
+    0.071320
     |}]
 ;;

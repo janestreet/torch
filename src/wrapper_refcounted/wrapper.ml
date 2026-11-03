@@ -53,8 +53,43 @@ module Tensor = struct
     |> wrap_managed_tensor
   ;;
 
-  let of_bigarray (type a b) (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
-    let dims = Bigarray.Genarray.dims ga |> Array.to_list in
+  let zeros_pinned ?(kind = Kind.T Float) size =
+    let kind = Kind.packed_to_int kind in
+    [%c.alloc
+      ({|CAMLreturn(at_zeros_pinned(%{size:int list value}, %{kind:int}));|}
+       : raw_tensor value)]
+    |> wrap_managed_tensor
+  ;;
+
+  let ones_pinned ?(kind = Kind.T Float) size =
+    let kind = Kind.packed_to_int kind in
+    [%c.alloc
+      ({|CAMLreturn(at_ones_pinned(%{size:int list value}, %{kind:int}));|}
+       : raw_tensor value)]
+    |> wrap_managed_tensor
+  ;;
+
+  let rand_pinned ?(kind = Kind.T Float) size =
+    let kind = Kind.packed_to_int kind in
+    [%c.alloc
+      ({|CAMLreturn(at_rand_pinned(%{size:int list value}, %{kind:int}));|}
+       : raw_tensor value)]
+    |> wrap_managed_tensor
+  ;;
+
+  let randn_pinned ?(kind = Kind.T Float) size =
+    let kind = Kind.packed_to_int kind in
+    [%c.alloc
+      ({|CAMLreturn(at_randn_pinned(%{size:int list value}, %{kind:int}));|}
+       : raw_tensor value)]
+    |> wrap_managed_tensor
+  ;;
+
+  let of_bigarray (type a b) (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t @ local) =
+    let dims =
+      (List.init [@alloc stack]) (Bigarray.Genarray.num_dims ga) ~f:(fun i ->
+        Bigarray.Genarray.nth_dim ga i)
+    in
     let kind = Bigarray.Genarray.kind ga in
     let tensor_kind =
       match kind with
@@ -72,8 +107,8 @@ module Tensor = struct
     let element_size = Bigarray.kind_size_in_bytes kind in
     let kind = Kind.packed_to_int tensor_kind in
     [%c.alloc
-      ({|CAMLreturn(at_tensor_of_data(%{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t value},
-                                      %{dims: int list value}, %{element_size:int},
+      ({|CAMLreturn(at_tensor_of_data(%{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t local_value},
+                                      %{dims: int list local_value}, %{element_size:int},
                                       %{kind:int}));|}
        : raw_tensor value)]
     |> wrap_managed_tensor
@@ -81,7 +116,7 @@ module Tensor = struct
 
   let copy_to_bigstring
     ~src:t
-    ~dst:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t)
+    ~dst:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t @ local)
     ~dst_pos
     ~dst_len
     =
@@ -95,12 +130,12 @@ module Tensor = struct
     let dst_len = Int64.of_int dst_len in
     [%c.alloc
       {|at_copy_to_bytes(%{t:t value},
-                         %{b:(char, _, Bigarray.c_layout) Bigarray.Array1.t value},
+                         %{b:(char, _, Bigarray.c_layout) Bigarray.Array1.t local_value},
                          %{dst_pos:Int64.t}, %{dst_len:Int64.t});|}]
   ;;
 
   let copy_from_bigstring
-    ~src:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t)
+    ~src:(b : (char, _, Bigarray.c_layout) Bigarray.Array1.t @ local)
     ~src_pos
     ~src_len
     ~dst:t
@@ -115,11 +150,15 @@ module Tensor = struct
     let src_len = Int64.of_int src_len in
     [%c.alloc
       {|at_copy_from_bytes(%{t:t value},
-                           %{b:(char, _, Bigarray.c_layout) Bigarray.Array1.t value},
+                           %{b:(char, _, Bigarray.c_layout) Bigarray.Array1.t local_value},
                            %{src_pos:Int64.t}, %{src_len:Int64.t});|}]
   ;;
 
-  let copy_to_bigarray (type a b) t (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t) =
+  let copy_to_bigarray
+    (type a b)
+    t
+    (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t @ local)
+    =
     let t = globalize_tensor t in
     let kind = Bigarray.Genarray.kind ga in
     let bigarray_size =
@@ -128,14 +167,14 @@ module Tensor = struct
     let kind_size = Bigarray.kind_size_in_bytes kind in
     [%c.alloc
       {| at_copy_to_elements(%{t:t value},
-                             %{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t value},
+                             %{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t local_value},
                              %{bigarray_size:Int64.t}, %{kind_size:int});|}]
   ;;
 
   let copy_from_bigarray
     (type a b)
     (t : t)
-    (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t)
+    (ga : (b, a, Bigarray.c_layout) Bigarray.Genarray.t @ local)
     =
     let kind = Bigarray.Genarray.kind ga in
     let t = globalize_tensor t in
@@ -145,7 +184,7 @@ module Tensor = struct
     let kind_size = Bigarray.kind_size_in_bytes kind in
     [%c.alloc
       {| at_copy_from_elements(%{t:t value},
-                               %{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t value},
+                               %{ga:(b, a, Bigarray.c_layout) Bigarray.Genarray.t local_value},
                                %{bigarray_size:Int64.t}, %{kind_size:int});|}]
   ;;
 
@@ -223,6 +262,12 @@ module Tensor = struct
        : float)]
   ;;
 
+  let f64_value t =
+    let t = globalize_tensor t in
+    [%c.alloc
+      ({| CAMLreturn(at_double_value_at_indexes(%{t:t value}, Val_emptylist));|} : Ox.f64)]
+  ;;
+
   let int_value t =
     let t = globalize_tensor t in
     [%c.alloc
@@ -237,6 +282,14 @@ module Tensor = struct
       ({| CAMLreturnT(double, at_double_value_at_indexes(%{t:t value},
                       %{indexes:int list value}));|}
        : float)]
+  ;;
+
+  let f64_get t indexes =
+    let t = globalize_tensor t in
+    [%c.alloc
+      ({| CAMLreturn(at_double_value_at_indexes(%{t:t value},
+                     %{indexes:int list value}));|}
+       : Ox.f64)]
   ;;
 
   let int_get t indexes =
@@ -255,6 +308,13 @@ module Tensor = struct
                                        %{v:float});|}]
   ;;
 
+  let f64_set t indexes v =
+    let t = globalize_tensor t in
+    [%c.alloc
+      {|at_set_double_value_at_indexes(%{t:t value}, %{indexes:int list value},
+                                       %{v:Ox.f64});|}]
+  ;;
+
   let int_set t indexes v =
     let t = globalize_tensor t in
     [%c.alloc
@@ -265,6 +325,11 @@ module Tensor = struct
   let fill_float t v =
     let t = globalize_tensor t in
     [%c.alloc {|at_fill_double(%{t:t value}, %{v:float});|}]
+  ;;
+
+  let fill_f64 t v =
+    let t = globalize_tensor t in
+    [%c.alloc {|at_fill_double(%{t:t value}, %{v:Ox.f64});|}]
   ;;
 
   let fill_int t i =
@@ -364,6 +429,7 @@ module Scalar = struct
     [%c.alloc ({|CAMLreturnT(double, ats_to_float(%{t:_ t value}));|} : float)]
   ;;
 
+  let to_f64 t = [%c.alloc ({|CAMLreturn(ats_to_float(%{t:_ t value}));|} : Ox.f64)]
   let free t = [%c.alloc {| ats_free(%{t:_ t value}); |}]
 
   let int i =
@@ -375,6 +441,12 @@ module Scalar = struct
 
   let float f =
     let t = [%c.alloc ({|CAMLreturn(ats_float(%{f:float}));|} : _ t value)] in
+    Gc.Expert.add_finalizer_exn t free;
+    t
+  ;;
+
+  let f64 f =
+    let t = [%c.alloc ({|CAMLreturn(ats_float(%{f:Ox.f64}));|} : _ t value)] in
     Gc.Expert.add_finalizer_exn t free;
     t
   ;;
@@ -396,6 +468,18 @@ module Optimizer = struct
     t
   ;;
 
+  let adam_f64 ~learning_rate ~beta1 ~beta2 ~weight_decay ~eps =
+    let t =
+      [%c.alloc
+        ({|CAMLreturn(ato_adam(%{learning_rate:Ox.f64}, %{beta1:Ox.f64},
+                               %{beta2:Ox.f64}, %{weight_decay:Ox.f64},
+                               %{eps:Ox.f64}));|}
+         : t value)]
+    in
+    Gc.Expert.add_finalizer_exn t free;
+    t
+  ;;
+
   let rmsprop ~learning_rate ~alpha ~eps ~weight_decay ~momentum ~centered =
     let centered = Bool.to_int centered in
     let t =
@@ -403,6 +487,19 @@ module Optimizer = struct
         ({|CAMLreturn(ato_rmsprop(%{learning_rate:float}, %{alpha:float}, %{eps:float},
                                   %{weight_decay:float}, %{momentum:float},
                                   %{centered:int}));|}
+         : t value)]
+    in
+    Gc.Expert.add_finalizer_exn t free;
+    t
+  ;;
+
+  let rmsprop_f64 ~learning_rate ~alpha ~eps ~weight_decay ~momentum ~centered =
+    let centered = Bool.to_int centered in
+    let t =
+      [%c.alloc
+        ({|CAMLreturn(ato_rmsprop(%{learning_rate:Ox.f64}, %{alpha:Ox.f64},
+                                  %{eps:Ox.f64}, %{weight_decay:Ox.f64},
+                                  %{momentum:Ox.f64}, %{centered:int}));|}
          : t value)]
     in
     Gc.Expert.add_finalizer_exn t free;
@@ -422,6 +519,19 @@ module Optimizer = struct
     t
   ;;
 
+  let sgd_f64 ~learning_rate ~momentum ~dampening ~weight_decay ~nesterov =
+    let nesterov = Bool.to_int nesterov in
+    let t =
+      [%c.alloc
+        ({|CAMLreturn(ato_sgd(%{learning_rate:Ox.f64}, %{momentum:Ox.f64},
+                              %{dampening:Ox.f64}, %{weight_decay:Ox.f64},
+                              %{nesterov:int}));|}
+         : t value)]
+    in
+    Gc.Expert.add_finalizer_exn t free;
+    t
+  ;;
+
   let add_parameters t (tensors @ local) =
     let tensors = [%globalize: Tensor.t list] tensors in
     [%c.alloc {|ato_add_parameters(%{t:t value}, %{tensors:Tensor.t list value});|}]
@@ -431,7 +541,12 @@ module Optimizer = struct
     [%c.alloc {|ato_set_learning_rate(%{t:t value}, %{lr:float});|}]
   ;;
 
+  let set_learning_rate_f64 t lr =
+    [%c.alloc {|ato_set_learning_rate(%{t:t value}, %{lr:Ox.f64});|}]
+  ;;
+
   let set_momentum t m = [%c.alloc {|ato_set_momentum(%{t:t value}, %{m:float});|}]
+  let set_momentum_f64 t m = [%c.alloc {|ato_set_momentum(%{t:t value}, %{m:Ox.f64});|}]
   let zero_grad t = [%c.alloc {|ato_zero_grad(%{t:t value});|}]
   let step t = [%c.alloc {|ato_step(%{t:t value});|}]
 end

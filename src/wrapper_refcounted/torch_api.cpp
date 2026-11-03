@@ -1,6 +1,7 @@
 #include <torch/csrc/autograd/engine.h>
 #include <torch/torch.h>
 #include <ATen/autocast_mode.h>
+#include <ATen/ExpandUtils.h>
 #include <torch/script.h>
 #include <torch/csrc/inductor/aoti_runner/model_container_runner_cuda.h>
 #include <torch/csrc/cuda/memory_snapshot.h>
@@ -17,6 +18,36 @@
 #include <caml/bigarray.h>
 #include "ocaml_runtime_props.h"
 #include "ocaml_to_cpp.h"
+
+extern "C" uint64_t aoti_torch_abi_version();
+
+static unsigned torch_abi_major(uint64_t v) { return (unsigned)(v >> 56); }
+
+static unsigned torch_abi_minor(uint64_t v) { return (unsigned)((v >> 48) & 0xff); }
+
+static unsigned torch_abi_patch(uint64_t v) { return (unsigned)((v >> 40) & 0xff); }
+
+static unsigned long long torch_abi_tag(uint64_t v) { return v & ((1ULL << 40) - 1); }
+
+static void torch_abi_check_now() {
+  uint64_t compiled = TORCH_ABI_VERSION;
+  uint64_t loaded = aoti_torch_abi_version();
+  if (loaded == compiled)
+    return;
+  fprintf(stderr,
+          "ocaml-torch: FATAL: Torch version mismatch.\n"
+          "  This OCaml code was compiled against libtorch %u.%u.%u (abi tag %llu),\n"
+          "  but the libtorch loaded into this process is %u.%u.%u (abi tag %llu)\n",
+          torch_abi_major(compiled), torch_abi_minor(compiled), torch_abi_patch(compiled),
+          torch_abi_tag(compiled), torch_abi_major(loaded), torch_abi_minor(loaded),
+          torch_abi_patch(loaded), torch_abi_tag(loaded));
+  abort();
+}
+
+extern "C" void torch_refcounted_check_abi_once() {
+  static const bool checked = (torch_abi_check_now(), true);
+  (void)checked;
+}
 
 // Following the conventions suggested in the link below, I named all functions that don't
 // allocate as noalloc and don't use CAMLparam and CAMLreturn in them.
@@ -159,7 +190,7 @@ value rc_tensor_to_ocaml(const torch::Tensor &tensor) {
   CAMLreturn(tensor_caml);
 }
 
-value prepare_ocaml_tensor(const torch::Tensor &tensor) {
+extern "C" value prepare_ocaml_tensor(const torch::Tensor &tensor) {
   return rc_tensor_to_ocaml(tensor);
 }
 
@@ -225,6 +256,55 @@ at::Device device_of_int(int d) { return optional_device_of_int(d).value(); }
 value at_new_tensor() {
   CAMLparam0();
   PROTECT(CAMLreturn(rc_tensor_to_ocaml(torch::Tensor()));)
+}
+
+class no_runtime_system {
+public:
+  no_runtime_system() { caml_release_runtime_system(); }
+  ~no_runtime_system() { caml_acquire_runtime_system(); }
+};
+
+// Copy OCaml inputs before releasing the runtime lock. Allocation and initialization can
+// be slow and they don't need the lock.
+template <typename Create>
+static value create_pinned(value size, int kind, Create create) {
+  CAMLparam1(size);
+  PROTECT({
+    std::vector<int64_t> size_vec = vec_of_ocaml_int_list(size);
+    auto options = at::device(at::kCPU).dtype(at::ScalarType(kind)).pinned_memory(true);
+    torch::Tensor result;
+
+    {
+      no_runtime_system nosys;
+      result = create(size_vec, options);
+    }
+
+    CAMLreturn(rc_tensor_to_ocaml(result));
+  })
+}
+
+value at_zeros_pinned(value size, int kind) {
+  return create_pinned(size, kind, [](const auto &sizes, const auto &options) {
+    return torch::zeros(sizes, options);
+  });
+}
+
+value at_ones_pinned(value size, int kind) {
+  return create_pinned(size, kind, [](const auto &sizes, const auto &options) {
+    return torch::ones(sizes, options);
+  });
+}
+
+value at_rand_pinned(value size, int kind) {
+  return create_pinned(size, kind, [](const auto &sizes, const auto &options) {
+    return torch::rand(sizes, options);
+  });
+}
+
+value at_randn_pinned(value size, int kind) {
+  return create_pinned(size, kind, [](const auto &sizes, const auto &options) {
+    return torch::randn(sizes, options);
+  });
 }
 
 value at_tensor_of_data(value vs, value dims, int element_size_in_bytes, int type) {
@@ -940,12 +1020,6 @@ int atc_cuda_is_available() { PROTECT(return torch::cuda::is_available();) }
 int atc_cudnn_is_available() { PROTECT(return torch::cuda::cudnn_is_available();) }
 
 void atc_set_benchmark_cudnn(int b) { at::globalContext().setBenchmarkCuDNN(b); }
-
-class no_runtime_system {
-public:
-  no_runtime_system() { caml_release_runtime_system(); }
-  ~no_runtime_system() { caml_acquire_runtime_system(); }
-};
 
 value aoti_runner_cuda_load(const char *filename_cstr, int num_concurrent_executions,
                             int device, const char *cubin_dir_cstr) {
